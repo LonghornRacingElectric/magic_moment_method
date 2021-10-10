@@ -8,13 +8,13 @@ CdA_tot = 1.512 - CdA0
 CsA_tot = 0         #don't know this yet
 
 #distribution of downforce across components
-ClA_dist = [0.4, 0.3, 0.3]   #[front, undertray, rear]
-CdA_dist = [0.4, 0.3, 0.3]
-CsA_dist = [0.4, 0.3, 0.3]
+ClA_dist = [0.371, 0.282, 0.347]   #[front, undertray, rear]
+CdA_dist = [0.324, 0.186, 0.490]
+CsA_dist = [.25, 0, .75]
 
-#pitch, yaw, and roll sensitivities
+#pitch, bodyslip, and roll sensitivities
 p_sens	= [[.0126, -.0418], [.0466, -.0496], [0,0]]	  # [%/deg], [Cl, Cd, Cs] -> [positive, negative]
-y_sens	= [.00446,  .0019,  0]					      # [%/deg]
+bs_sens	= [.00446,  .0019,  0]					      # [%/deg]
 r_sens	= [-.0074, -.00404, 0]					      # [%/deg]
 
 in_to_m = 0.0254 #conversion factor
@@ -41,11 +41,11 @@ def calc_CoP(v, bodyslip, pitch, roll, rideheight):
     for i in range (0, 3):
 
         #sensitivities for Cl, Cd, and Cs
-        Cl_sens = (1 + y_sens[0] * bodyslip) * (1 + p_sens[0][p_dir] * pitch) * (
+        Cl_sens = (1 + bs_sens[0] * bodyslip) * (1 + p_sens[0][p_dir] * pitch) * (
                 1 + r_sens[0] * roll)
-        Cd_sens = (1 + y_sens[1] * bodyslip) * (1 + p_sens[1][p_dir] * pitch) * (
+        Cd_sens = (1 + bs_sens[1] * bodyslip) * (1 + p_sens[1][p_dir] * pitch) * (
                 1 + r_sens[1] * roll)
-        Cs_sens = (1 + y_sens[2] * bodyslip) * (1 + p_sens[2][p_dir] * pitch) * (
+        Cs_sens = (1 + bs_sens[2] * bodyslip) * (1 + p_sens[2][p_dir] * pitch) * (
                 1 + r_sens[2] * roll)
 
         #Cl, Cd, and Cs for the compenent
