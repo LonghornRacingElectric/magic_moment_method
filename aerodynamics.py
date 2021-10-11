@@ -91,6 +91,7 @@ def calc_CoP(v, bodyslip, pitch, roll, rideheight):
 
     return F_tot, moment_total
 
+'''
 results = calc_CoP(30, 3, 0, 0, 0)
 
 forces = results[0]
@@ -101,3 +102,4 @@ np.set_printoptions(precision = 2)
 
 print("Total forces [x,y,z]: {:.2f} N, {:.2f} N, {:.2f} N".format(forces[0], forces[1], forces[2]))
 print("Total moment        : {:.2f} Nm".format(moment))
+'''
