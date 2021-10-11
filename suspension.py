@@ -109,6 +109,12 @@ class Suspension():
     #     self.state.rear_left_tire.state.force[2] = (self.mass_total * self.cg_bias / 2) \
     #                                                + (longitudinal_reaction_moment / self.wheelbase) / 4 \
     #                                                + (lateral_reaction_moment / self.front_track) / ( 2 / self.rear_roll_stiffness/total_roll_stiffness)
+    
+    def get_loads(self):
+        forces = np.array([0, 0, 0])
+        moments = np.array([0, 0, 0])
+        return forces, moments
+
     def get_total_Fy(self):
         total_Fy = 0
         for tire in self.state.tires.values():

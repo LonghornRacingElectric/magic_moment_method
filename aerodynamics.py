@@ -7,8 +7,8 @@ class Aerodynamics:
         
         #parameters
         ClA_tot = 3.955
-        CdA0    = 0.7155
-        CdA_tot = 1.512 - CdA0
+        self.CdA0    = 0.7155
+        CdA_tot = 1.512 - self.CdA0
         CsA_tot = 33.91
 
         # distribution of downforce across components
@@ -29,16 +29,15 @@ class Aerodynamics:
         self.in_to_m = 0.0254 # conversion factor
 
         # positions of component CoPs (magnitudes, equation takes signs into account)
-        self.front_CoP =     [23.65 * self.in_to_m, 9.30 * self.in_to_m]
-        self.undertray_CoP = [43.5 * self.in_to_m,  7.13 * self.in_to_m]
-        self.rear_CoP =      [67.6 * self.in_to_m, 42.91 * self.in_to_m]
+        # TODO: make positions relative to intermediate frame
+        self.CoP = np.array([[23.65 * self.in_to_m, 0, 9.30 * self.in_to_m], [43.5 * self.in_to_m, 0, 7.13 * self.in_to_m], [67.6 * self.in_to_m, 0, 42.91 * self.in_to_m]])    
 
         # gets aero coefficients for each component
         self.ClA = [ClA_tot * ClA_dist[0], ClA_tot * ClA_dist[1], ClA_tot * ClA_dist[2]]
         self.CdA = [CdA_tot * CdA_dist[0], CdA_tot * CdA_dist[1], CdA_tot * CdA_dist[2]]
         self.CsA = [CsA_tot * CsA_dist[0], CsA_tot * CsA_dist[1], CsA_tot * CsA_dist[2]]
 
-    def get_forces(self, velocity, bodyslip, pitch, roll, rideheight):
+    def get_loads(self, velocity, bodyslip, pitch, roll, rideheight):
 
         forces = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
@@ -63,25 +62,18 @@ class Aerodynamics:
             # calculate force in each direction
             Fl_part = 0.5 * 1.225 * ClA_part * velocity ** 2
             Fd_part = 0.5 * 1.225 * CdA_part * velocity ** 2
-            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.tan(bodyslip * math.pi/180)) ** 2
+            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.sin(bodyslip)) ** 2
 
-            forces[0] -= Fd_part
-            forces[1] += Fs_part
-            forces[2] -= Fl_part
+            part_force = np.array([-Fd_part, Fs_part, -Fl_part])
+            forces = np.add(forces, part_force)
+            moments = np.add(moments, np.cross(part_force, self.CoP[i]))
 
         # account for drag from rest of car
-        drag_no_aero = 0.5 * 1.225 * CdA0 * velocity ** 2
-        Fx.append(drag_no_aero)
+        # TODO: Account for moment for this drag
+        drag_no_aero = 0.5 * 1.225 * self.CdA0 * velocity ** 2
+        forces[0] -= drag_no_aero
 
-        F_tot = np.array([sum(Fx), sum(Fy), sum(Fz)])
-
-        # equation derived from statics problem
-        moment_total = -Fz[0]*front_CoP[0] + Fx[0]*front_CoP[1] + Fz[1]*undertray_CoP[0] \
-            + Fx[1]*undertray_CoP[1] + Fz[2]*rear_CoP[0] + Fx[2]*rear_CoP[1]
-
-
-
-        return F_tot, moment_total
+        return forces, moments
 
     '''
     results = calc_CoP(30, 3, 0, 0, 0)
