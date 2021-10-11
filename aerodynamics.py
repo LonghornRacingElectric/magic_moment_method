@@ -82,6 +82,3 @@ class Aerodynamics:
         forces[0] -= drag_no_aero
 
         return forces, moments
-
-x = Aerodynamics()
-print(x.get_loads(20,- 0.0872,0,0,0))
