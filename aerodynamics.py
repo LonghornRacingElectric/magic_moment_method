@@ -5,7 +5,7 @@ import numpy as np
 ClA_tot = 3.955
 CdA0    = 0.7155
 CdA_tot = 1.512 - CdA0
-CsA_tot = 138.78      # don't worry about it
+CsA_tot = 33.91
 
 # distribution of downforce across components
 ClA_dist = [0.371, 0.282, 0.347]   # [front, undertray, rear]
@@ -66,6 +66,17 @@ def calc_CoP(v, bodyslip, pitch, roll, rideheight):
         Fy.append(Fs_part)
         Fz.append(Fl_part)
 
+    '''
+    # Watching CoP move around for fun
+    CoP_y = .254
+    CoP_x = ((-Fz[0]*front_CoP[0] + Fx[0]*front_CoP[1] + Fz[1]*undertray_CoP[0] \
+        + Fx[1]*undertray_CoP[1] + Fz[2]*rear_CoP[0] + Fx[2]*rear_CoP[1]) - CoP_y*sum(Fx)) \
+        / sum(Fz)
+
+    CoP_x = 100 * CoP_x / 1.54
+    print("{:.2f}%".format(CoP_x))
+    '''
+
     # account for drag from rest of car
     drag_no_aero = 0.5 * 1.225 * CdA0 * v ** 2
     Fx.append(drag_no_aero)
@@ -76,9 +87,11 @@ def calc_CoP(v, bodyslip, pitch, roll, rideheight):
     moment_total = -Fz[0]*front_CoP[0] + Fx[0]*front_CoP[1] + Fz[1]*undertray_CoP[0] \
         + Fx[1]*undertray_CoP[1] + Fz[2]*rear_CoP[0] + Fx[2]*rear_CoP[1]
 
+
+
     return F_tot, moment_total
 
-results = calc_CoP(15, 0, 0, 0, 0)
+results = calc_CoP(30, 3, 0, 0, 0)
 
 forces = results[0]
 moment = results[1]
