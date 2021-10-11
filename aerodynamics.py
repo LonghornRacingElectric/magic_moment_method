@@ -4,7 +4,7 @@ import numpy as np
 class Aerodynamics:
     def __init__(self):
         # TODO: make param files later; currently all initialized here
-        
+
         #parameters
         ClA_tot   = 3.955
         self.CdA0 = 0.7155
@@ -20,13 +20,15 @@ class Aerodynamics:
         #            Cl              Cd               Cs
         self.p_sens	= [[[.01,   -.06],   [.07,   -.055],  [0,0]], # front [pos, neg] -> [%/deg]
                       [[.0076, -.0457], [.0546, -.0434],  [0,0]], # undertray
-                      [[.0178, -.0245], [.0294, -.0478], [0,0]]] # rear
+                      [[.0178, -.0245], [.0294, -.0478], [0,0]]]  # rear
 
         #                 front               undertray           rear
         self.bs_sens	= [[.008,  .0114, 0], [.0061,  .0089, 0], [-.0018, -.0058, 0]] # [Cl, Cd, Cs] -> [%/deg]
         self.r_sens	=     [[-.018,  0,    0], [-.0137,  0,    0], [-.005,  -.0145, 0]]
 
-        self.in_to_m = 0.0254 # conversion factor
+        # conversion factors
+        self.in_to_m = 0.0254
+        self.rad_to_deg = 180 / math.pi
 
         # positions of component CoPs (magnitudes, equation takes signs into account)
         # TODO: make positions relative to intermediate frame
@@ -54,11 +56,12 @@ class Aerodynamics:
         for i in range (0, 3):
 
             # sensitivities for Cl, Cd, and Cs
-            Cl_sens = (1 + self.bs_sens[i][0] * abs(bodyslip)) * (1 + self.p_sens[i][0][p_dir] * abs(pitch)) * (
-                    1 + self.r_sens[i][0] * abs(roll))
-            Cd_sens = (1 + self.bs_sens[i][1] * abs(bodyslip)) * (1 + self.p_sens[i][1][p_dir] * abs(pitch)) * (
-                    1 + self.r_sens[i][1] * abs(roll))
-            Cs_sens = (1 + self.p_sens[i][2][p_dir] * abs(pitch)) * (1 + self.r_sens[i][2] * abs(roll))
+            Cl_sens = (1 + self.bs_sens[i][0] * abs(bodyslip * self.rad_to_deg)) * (1 + self.p_sens[i][0][p_dir] *
+                        abs(pitch * self.rad_to_deg)) * (1 + self.r_sens[i][0] * abs(roll * self.rad_to_deg))
+            Cd_sens = (1 + self.bs_sens[i][1] * abs(bodyslip * self.rad_to_deg)) * (1 + self.p_sens[i][1][p_dir] *
+                        abs(pitch * self.rad_to_deg)) * (1 + self.r_sens[i][1] * abs(roll * self.rad_to_deg))
+            Cs_sens = (1 + self.p_sens[i][2][p_dir] * abs(pitch * self.rad_to_deg)) * (1 + self.r_sens[i][2] *
+                        abs(roll * self.rad_to_deg))
 
             # Cl, Cd, and Cs for the compenent
             ClA_part = self.ClA[i] * Cl_sens
@@ -68,31 +71,17 @@ class Aerodynamics:
             # calculate force in each direction
             Fl_part = 0.5 * 1.225 * ClA_part * velocity ** 2
             Fd_part = 0.5 * 1.225 * CdA_part * velocity ** 2
-            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.tan(bodyslip*math.pi/180)) ** 2 * s_dir
+            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.tan(bodyslip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)
-            moments = np.add(moments, -np.cross(part_force, self.CoP[i]))
+            moments = np.add(moments, np.cross(self.CoP[i], part_force))
 
         # account for drag from rest of car
-        # TODO: Account for moment for this drag - We are assuming it's insignificant bc to close to CoP
         drag_no_aero = 0.5 * 1.225 * self.CdA0 * velocity ** 2
         forces[0] -= drag_no_aero
 
         return forces, moments
 
-x= Aerodynamics()
-print(x.get_loads(15,0,0,0,0))
-
-'''
-    results = calc_CoP(30, 3, 0, 0, 0)
-
-    forces = results[0]
-    moment = results[1]
-
-    np.set_printoptions(suppress = True)
-    np.set_printoptions(precision = 2)
-
-    print("Total forces [x,y,z]: {:.2f} N, {:.2f} N, {:.2f} N".format(forces[0], forces[1], forces[2]))
-    print("Total moment        : {:.2f} Nm".format(moment))
-'''
+x = Aerodynamics()
+print(x.get_loads(20,- 0.0872,0,0,0))
