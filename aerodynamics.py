@@ -16,7 +16,7 @@ class Aerodynamics:
         CdA_dist = [0.324, 0.186, 0.490]
         CsA_dist = [0.250, 0.000, 0.750]
 
-        # pitch, bodyslip, and roll sensitivities,
+        # pitch, body_slip, and roll sensitivities,
         #            Cl              Cd               Cs
         self.p_sens	= [[[.01,   -.06],   [.07,   -.055],  [0,0]], # front [pos, neg] -> [%/deg]
                       [[.0076, -.0457], [.0546, -.0434],  [0,0]], # undertray
@@ -42,23 +42,24 @@ class Aerodynamics:
         self.CdA = [CdA_tot * CdA_dist[0], CdA_tot * CdA_dist[1], CdA_tot * CdA_dist[2]]
         self.CsA = [CsA_tot * CsA_dist[0], CsA_tot * CsA_dist[1], CsA_tot * CsA_dist[2]]
 
-    def get_loads(self, velocity, bodyslip, pitch, roll, rideheight):
+    def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
+        velocity = x_dot
 
         forces  = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
 
         p_dir = pitch <= 0
         s_dir = -1
-        if bodyslip < 0:
+        if body_slip < 0:
             s_dir = 1
 
         # iterates for each aero component
         for i in range (0, 3):
 
             # sensitivities for Cl, Cd, and Cs
-            Cl_sens = (1 + self.bs_sens[i][0] * abs(bodyslip * self.rad_to_deg)) * (1 + self.p_sens[i][0][p_dir] *
+            Cl_sens = (1 + self.bs_sens[i][0] * abs(body_slip * self.rad_to_deg)) * (1 + self.p_sens[i][0][p_dir] *
                         abs(pitch * self.rad_to_deg)) * (1 + self.r_sens[i][0] * abs(roll * self.rad_to_deg))
-            Cd_sens = (1 + self.bs_sens[i][1] * abs(bodyslip * self.rad_to_deg)) * (1 + self.p_sens[i][1][p_dir] *
+            Cd_sens = (1 + self.bs_sens[i][1] * abs(body_slip * self.rad_to_deg)) * (1 + self.p_sens[i][1][p_dir] *
                         abs(pitch * self.rad_to_deg)) * (1 + self.r_sens[i][1] * abs(roll * self.rad_to_deg))
             Cs_sens = (1 + self.p_sens[i][2][p_dir] * abs(pitch * self.rad_to_deg)) * (1 + self.r_sens[i][2] *
                         abs(roll * self.rad_to_deg))
@@ -71,7 +72,7 @@ class Aerodynamics:
             # calculate force in each direction
             Fl_part = 0.5 * 1.225 * ClA_part * velocity ** 2
             Fd_part = 0.5 * 1.225 * CdA_part * velocity ** 2
-            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.tan(bodyslip)) ** 2 * s_dir
+            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.tan(body_slip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)
