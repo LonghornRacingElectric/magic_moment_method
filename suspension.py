@@ -71,7 +71,7 @@ class Suspension():
         self.tires.front_left = Tire([front_coeff_Fx, front_coeff_Fy, front_coeff_Mz], [self.wheelbase * self.cg_total_bias, self.front_track/2, 0], 551 * 175, True)
         self.tires.front_right = Tire([front_coeff_Fx, front_coeff_Fy, front_coeff_Mz], [self.wheelbase * self.cg_total_bias, -self.front_track/2, 0], 551 * 175, False)
         self.tires.rear_left = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), self.rear_track/2, 0], 669 * 175, True)
-        self.tires.rear_left = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), -self.rear_track/2, 0], 669 * 175, False)
+        self.tires.rear_right = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), -self.rear_track/2, 0], 669 * 175, False)
 
     def get_loads(self, body_slip, steered_angle, x_dot, yaw_rate, roll, pitch, ride_height):
         # unsprung displacements (roll, pitch, ride height)
@@ -87,9 +87,13 @@ class Suspension():
         # tire forces (inclination angle, slip angles, normal forces) # TODO slip ratio
 
         # convert to intermediate frame; calculate moments
-
-        forces = np.array([0, 0, sum([tire.normal_load for tire in self.tires.__dict__.values()])-272*9.81])
+        forces = np.array([0, 0, -self.mass_total * self.env.g])
         moments = np.array([0, 0, 0])
+        for tire in self.tires.__dict__.values():
+            tire_force = np.array([0, 0, tire.normal_load])
+            forces = np.add(forces, tire_force)
+            tire_moment = np.cross(tire_force, tire.position)
+            moments = np.add(moments, tire_moment)
         return forces, moments
 
     def get_unsprung_displacements(self, roll, pitch, ride_height):
@@ -112,7 +116,7 @@ class Suspension():
 
             unsprung_deformation_static = static_forces[name]/tire.stiffness
             unsprung_height = tire.unloaded_radius + unsprung_deformation_static
-            static_chassis_height = static_forces[name]/wheelrate_stiffness + unsprung_height # this is your STATIC CHASSIS CORNER HEIGHT FELLAS
+            static_chassis_height = self.ride_height #static_forces[name]/wheelrate_stiffness + unsprung_height # this is your STATIC CHASSIS CORNER HEIGHT FELLAS
 
             tire.unsprung_displacement = (roll_stiffness * roll + wheelrate_stiffness * (static_chassis_height - z_c)) \
                 / tire.stiffness - unsprung_deformation_static      
