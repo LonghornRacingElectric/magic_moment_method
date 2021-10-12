@@ -43,7 +43,6 @@ class Aerodynamics:
         self.CsA = [CsA_tot * CsA_dist[0], CsA_tot * CsA_dist[1], CsA_tot * CsA_dist[2]]
 
     def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
-        velocity = x_dot
 
         forces  = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
@@ -70,16 +69,16 @@ class Aerodynamics:
             CsA_part = self.CsA[i] * Cs_sens
 
             # calculate force in each direction
-            Fl_part = 0.5 * 1.225 * ClA_part * velocity ** 2
-            Fd_part = 0.5 * 1.225 * CdA_part * velocity ** 2
-            Fs_part = 0.5 * 1.225 * CsA_part * (velocity * math.tan(body_slip)) ** 2 * s_dir
+            Fl_part = 0.5 * 1.225 * ClA_part * x_dot ** 2
+            Fd_part = 0.5 * 1.225 * CdA_part * x_dot ** 2
+            Fs_part = 0.5 * 1.225 * CsA_part * (x_dot * math.tan(body_slip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)
             moments = np.add(moments, np.cross(self.CoP[i], part_force))
 
         # account for drag from rest of car
-        drag_no_aero = 0.5 * 1.225 * self.CdA0 * velocity ** 2
+        drag_no_aero = 0.5 * 1.225 * self.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
 
         return forces, moments
