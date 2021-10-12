@@ -111,7 +111,7 @@ class Suspension():
     #                                                + (lateral_reaction_moment / self.front_track) / ( 2 / self.rear_roll_stiffness/total_roll_stiffness)
     
     def get_loads(self,  forces, torques, body_slip, steered_angle, x_dot, yaw_rate):
-        forces = np.array([0, 0, 0])
+        forces = np.array([100, 0, 0])
         moments = np.array([0, 0, 0])
         return forces, moments
 
