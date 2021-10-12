@@ -12,7 +12,7 @@ class Vehicle:
         self.aero = aero
 
         # Params
-        self.mass_total = 272  # kg
+        self.mass = 272  # kg
         self.sprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
         self.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
 
@@ -39,13 +39,11 @@ class Vehicle:
         forces, torques = np.zeros(3), np.zeros(3)
 
         # Define aero loads
-        aero_forces, aero_torques = forces, torques + (
-            self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
-                                ride_height))
+        aero_forces, aero_moments = 0,0 #self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
+                                 #ride_height)
 
         # Define suspension loads (suspension handles vehicle weight through tire normals)
-        suspension_forces, suspension_torques = self.suspension.get_loads(**self.state.__dict__, forces=aero_forces,
-                                                                          torques=aero_torques)
+        suspension_forces, suspension_moments = self.suspension.get_loads(*self.state.__dict__.values(), roll, pitch, ride_height)
 
-        forces, torques = aero_forces + suspension_forces, aero_torques + suspension_torques
-        return forces, torques
+        forces, torques = aero_forces + suspension_forces, aero_moments + suspension_moments
+        return forces #,torques
