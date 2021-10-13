@@ -29,13 +29,13 @@ class Suspension():
         self.rear_track = 1.17
         self.wheelbase = 1.55
 
-        self.front_roll_stiffness = 385 * math.pi/180  # N*m/rad
+        self.front_roll_stiffness = 500 * math.pi/180 #385 * math.pi/180  # N*m/rad
         self.rear_roll_stiffness = 385 * math.pi/180 # N*m/rad
         self.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
         self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
 
-        self.front_toe = 4
-        self.rear_toe = 0
+        self.front_toe = 0#4
+        self.rear_toe = 4
         self.front_static_camber = 0
         self.rear_static_camber = 0
 
@@ -68,32 +68,40 @@ class Suspension():
         front_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
  
         self.tires = types.SimpleNamespace()
-        self.tires.front_left = Tire([front_coeff_Fx, front_coeff_Fy, front_coeff_Mz], [self.wheelbase * self.cg_total_bias, self.front_track/2, 0], 551 * 175, True)
-        self.tires.front_right = Tire([front_coeff_Fx, front_coeff_Fy, front_coeff_Mz], [self.wheelbase * self.cg_total_bias, -self.front_track/2, 0], 551 * 175, False)
-        self.tires.rear_left = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), self.rear_track/2, 0], 669 * 175, True)
-        self.tires.rear_right = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), -self.rear_track/2, 0], 669 * 175, False)
+        self.tires.front_left = Tire([front_coeff_Fx, front_coeff_Fy, front_coeff_Mz], [self.wheelbase * self.cg_total_bias, self.front_track/2, 0], 551 * 175, True, True, self.front_toe)
+        self.tires.front_right = Tire([front_coeff_Fx, front_coeff_Fy, front_coeff_Mz], [self.wheelbase * self.cg_total_bias, -self.front_track/2, 0], 551 * 175, False, True, -self.front_toe)
+        self.tires.rear_left = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), self.rear_track/2, 0], 669 * 175, True, False, self.rear_toe)
+        self.tires.rear_right = Tire([rear_coeff_Fx, rear_coeff_Fy, rear_coeff_Mz], [-self.wheelbase * (1-self.cg_total_bias), -self.rear_track/2, 0], 669 * 175, False, False, -self.rear_toe)
 
-    def get_loads(self, body_slip, steered_angle, x_dot, yaw_rate, roll, pitch, ride_height):
+    # TODO: Don't pass both bodyslip and y_dot
+    def get_loads(self, body_slip, steered_angle, x_dot, yaw_rate, y_dot, roll, pitch, ride_height):
         # unsprung displacements (roll, pitch, ride height)
         self.get_unsprung_displacements(roll, pitch, ride_height)
 
-        # normal forces (from unsprung displacements) 
+        # normal forces (from unsprung displacements)
+        forces = np.array([0, 0, -self.mass_total * self.env.g])
+        moments = np.array([0, 0, 0])
         # # NOTE - THIS IS BEING DONE WITHIN TIRE
 
         # inclination angle (steered angle, unsprung displacements) # STATIC CAMBER GOES HERE
 
-        # slip angles (steered angle, body slip, yaw rate) # STATIC TOE GOES HERE
-
+        # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
         # tire forces (inclination angle, slip angles, normal forces) # TODO slip ratio
+        for name, tire in self.tires.__dict__.items():
+            tire_velocity = np.array([x_dot, y_dot, 0]) + np.cross(np.array([0, yaw_rate, 0]),tire.position)
+            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0])
 
-        # convert to intermediate frame; calculate moments
-        forces = np.array([0, 0, -self.mass_total * self.env.g])
-        moments = np.array([0, 0, 0])
-        for tire in self.tires.__dict__.values():
-            tire_force = np.array([0, 0, tire.normal_load])
-            forces = np.add(forces, tire_force)
-            tire_moment = np.cross(tire_force, tire.position)
-            moments = np.add(moments, tire_moment)
+            slip_angle += steered_angle if tire.steerable else 0 # TODO: Add in proper steering geometry later
+
+            tire_force = tire.get_force(slip_angle, 0, 0)  # Tire force in tire frame TODO: Current IA = 0 and SR = 0
+
+            # Rotate the tire force into intermediate frame and add moments/forces to total
+            # TODO: conversions utilities
+            rotation_matrix = np.array([[cos(slip_angle),-sin(slip_angle),0],[sin(slip_angle),cos(slip_angle),0],[0,0,1]])
+            tire_force_intermediate_frame = rotation_matrix.dot(tire_force)
+            forces = np.add(forces, tire_force_intermediate_frame)
+            moments = np.add(moments, np.cross(tire_force_intermediate_frame, tire.position))
+
         return forces, moments
 
     def get_unsprung_displacements(self, roll, pitch, ride_height):
