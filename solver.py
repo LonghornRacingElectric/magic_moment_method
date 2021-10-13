@@ -12,10 +12,10 @@ def main():
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
-    initial_guess = [0.0761, 0, 0, 0, 0, 0]
+    initial_guess = np.array([0.0761, 0, 0, 0, 0, 0])
 
     data = []
-    for x_dot in np.linspace(30,30,1):
+    for x_dot in np.linspace(20,20,1):
         for body_slip in np.linspace(-0.18, 0.18, 10):
             for steered_angle in np.linspace(-3, 3, 10):
                 for yaw_rate in np.linspace(0.1, 0.1, 1):
