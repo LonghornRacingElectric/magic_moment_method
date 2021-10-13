@@ -6,7 +6,7 @@ from aerodynamics import Aerodynamics
 
 def DOF6_motion_residuals(x, vehicle):
     # solving for these bois
-    x_double_dot, y_double_dot, yaw_acceleration, roll, pitch, ride_height = x
+    ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x
     translation_accelerations = np.array([x_double_dot, y_double_dot, 0])
     rotational_accelerations = np.array([0, 0, yaw_acceleration])
 
@@ -34,11 +34,11 @@ suspension = Suspension()
 aero = Aerodynamics()
 vehicle = Vehicle(suspension, aero)
 
-# sweep parameters
-vehicle.state.body_slip = 5
-vehicle.state.steered_angle = 5
-vehicle.state.x_dot = 5
-vehicle.state.yaw_rate = 5
+# input states
+vehicle.state.body_slip = 0
+vehicle.state.steered_angle = 0
+vehicle.state.x_dot = 0
+vehicle.state.yaw_rate = 0
 
 specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 print(josie_solver(specific_residual_func, x))
