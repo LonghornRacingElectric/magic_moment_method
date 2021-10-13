@@ -2,8 +2,9 @@ import math
 import numpy as np
 
 class Aerodynamics:
-    def __init__(self):
+    def __init__(self, params = None):
         # TODO: make param files later; currently all initialized here
+        self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
         #parameters
         ClA_tot   = 3.955

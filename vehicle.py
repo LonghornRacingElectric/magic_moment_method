@@ -6,15 +6,25 @@ import math
 
 
 class Vehicle:
-    def __init__(self, suspension, aero):
-        # Initiate component classes and vehicle parameters
-        self.suspension = suspension
-        self.aero = aero
-
+    def __init__(self):
         # Params
-        self.mass = self.suspension.mass_total  # kg # TODO - location
-        self.sprung_inertia = np.array([[100, 1, 1], [1, 120, 1], [1, 1, 70]])  # TODO
-        self.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
+        self.params = types.SimpleNamespace()
+        self.params.sprung_inertia = np.array([[1000, 1, 1], [1, 1200, 1], [1, 1, 700]])  # TODO
+        self.params.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
+        self.params.gravity = 9.81
+        self.params.cg_bias = 0.6  # Position of the cg from front to rear, value from 0-1
+        self.params.wheelbase = 1.55
+        self.params.cg_total_position = np.array([self.params.cg_bias * self.params.wheelbase, 0, 0.0254 * 10])
+        self.params.mass_unsprung_front = 13.5
+        self.params.unsprung_front_height = 0.0254 * 8
+        self.params.mass_unsprung_rear = 13.2
+        self.params.unsprung_rear_height = 0.0254 * 8
+        self.params.mass_sprung = 245.46
+        self.params.mass = self.params.mass_sprung + self.params.mass_unsprung_front + self.params.mass_unsprung_rear
+
+        # Initiate component classes and vehicle parameters
+        self.suspension = Suspension(self.params)
+        self.aero = Aerodynamics(self.params)
 
         # set defaults, these are the prescribed MMM states
         self.state = types.SimpleNamespace()
