@@ -1,8 +1,5 @@
-from scipy.optimize import fsolve as josie_solver
 import numpy as np
-from suspension import Suspension
-from vehicle import Vehicle
-from aerodynamics import Aerodynamics
+
 
 def DOF6_motion_residuals(x, vehicle):
     # solving for these bois
@@ -27,18 +24,3 @@ def DOF6_motion_residuals(x, vehicle):
 
     return np.array([*residuals_translation, *residuals_rotation])
 
-# x = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
-x = [0.073, 0, 0, 0, 0, 0]
-
-suspension = Suspension()
-aero = Aerodynamics()
-vehicle = Vehicle(suspension, aero)
-
-# input states
-vehicle.state.body_slip = 0
-vehicle.state.steered_angle = 0
-vehicle.state.x_dot = 0
-vehicle.state.yaw_rate = 0
-
-specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
-print(josie_solver(specific_residual_func, x))

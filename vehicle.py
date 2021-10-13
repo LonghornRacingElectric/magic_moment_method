@@ -12,8 +12,8 @@ class Vehicle:
         self.aero = aero
 
         # Params
-        self.mass = 272  # kg # TODO - location
-        self.sprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
+        self.mass = self.suspension.mass_total  # kg # TODO - location
+        self.sprung_inertia = np.array([[100, 1, 1], [1, 120, 1], [1, 1, 70]])  # TODO
         self.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
 
         # set defaults, these are the prescribed MMM states
@@ -43,7 +43,8 @@ class Vehicle:
                                  ride_height)
 
         # Define suspension loads (suspension handles vehicle weight through tire normals)
-        suspension_forces, suspension_moments = self.suspension.get_loads(*self.state.__dict__.values(), roll, pitch, ride_height)
+        # TODO: Don't pass both bodyslip and ydot
+        suspension_forces, suspension_moments = self.suspension.get_loads(*self.state.__dict__.values(), self.y_dot, roll, pitch, ride_height)
 
         forces, torques = aero_forces + suspension_forces, aero_moments + suspension_moments
-        return forces,torques
+        return forces, torques
