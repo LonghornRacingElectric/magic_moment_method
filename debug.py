@@ -1,4 +1,4 @@
-from scipy.optimize import broyden1 as josie_solver
+from scipy.optimize import fsolve as josie_solver
 import numpy as np
 from suspension import Suspension
 from vehicle import Vehicle
@@ -35,10 +35,10 @@ aero = Aerodynamics()
 vehicle = Vehicle(suspension, aero)
 
 # sweep parameters
-vehicle.state.body_slip = 0
-vehicle.state.steered_angle = 0
-vehicle.state.x_dot = 0
-vehicle.state.yaw_rate = 0
+vehicle.state.body_slip = 5
+vehicle.state.steered_angle = 5
+vehicle.state.x_dot = 5
+vehicle.state.yaw_rate = 5
 
 specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
-josie_solver(specific_residual_func, x)
+print(josie_solver(specific_residual_func, x))
