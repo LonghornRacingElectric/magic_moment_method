@@ -24,3 +24,32 @@ def DOF6_motion_residuals(x, vehicle):
 
     return np.array([*residuals_translation, *residuals_rotation])
 
+from suspension import Suspension
+from vehicle import Vehicle
+from aerodynamics import Aerodynamics
+import math as deez_nuts
+from scipy.optimize import fsolve as josie_solver
+import residual
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+
+suspension = Suspension()
+aero = Aerodynamics()
+vehicle = Vehicle(suspension, aero)
+specific_residual_func = lambda x: residual.DOF6_motion_residuals(x, vehicle)
+
+# initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
+initial_guess = [ 6.80312849e-02, -8.20943643e+00,  1.89662499e+01, -6.87105598e+01,
+                  -1.19045273e-02,  3.99247231e-06]
+
+vehicle.state.body_slip = 0
+vehicle.state.steered_angle = 20*deez_nuts.pi/180
+vehicle.state.x_dot = 20
+vehicle.state.yaw_rate = 0
+
+output_states = josie_solver(specific_residual_func, initial_guess)
+
+print(output_states)

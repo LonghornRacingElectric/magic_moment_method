@@ -46,9 +46,9 @@ class Tire:
         V = a11 * Fz + a12 + (a13 * Fz + a14) * inclination_angle * Fz
         Bx1 = B * (slip_angle + H)
 
-        Fy = D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V
+        Fy = 2/3 * D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V
 
-        return np.array([0, Fy * (1 if self.direction_left else -1), self.normal_load])
+        return np.array([0, Fy * (1 if self.direction_left else 1), self.normal_load])
 
 
     # def get_Fx(self, slip_angle, camber, Fz):
