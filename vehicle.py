@@ -53,8 +53,8 @@ class Vehicle:
         forces, torques = np.zeros(3), np.zeros(3)
 
         # Define aero loads
-        aero_forces, aero_moments = self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
-                                 ride_height)
+        aero_forces, aero_moments = 0,0 #self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
+                                # ride_height)
         # Define suspension loads (suspension handles vehicle weight through tire normals)
         # TODO: Don't pass both bodyslip and ydot
         suspension_forces, suspension_moments = self.suspension.get_loads(*self.state.__dict__.values(), self.y_dot, roll, pitch, ride_height)
