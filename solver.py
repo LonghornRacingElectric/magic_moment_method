@@ -47,7 +47,7 @@ def DOF6_motion_residuals(x, vehicle):
 
     # kinetic moment
     cg_relative_pos = np.array([0, 0, vehicle.params.cg_total_position[2]])
-    kinetic_moment = np.cross(translation_accelerations, (vehicle.params.mass * cg_relative_pos))
+    kinetic_moment = np.cross(vehicle.params.mass * translation_accelerations, cg_relative_pos)
     moments = np.add(moments, kinetic_moment)
 
     # residuals
