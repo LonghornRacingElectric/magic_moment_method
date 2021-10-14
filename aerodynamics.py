@@ -2,14 +2,11 @@ import math
 import numpy as np
 
 class Aerodynamics:
-    def __init__(self):
+    def __init__(self, params = None):
         # TODO: make param files later; currently all initialized here
+        self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
-        #parameters
-        ClA_tot   = 3.955
-        self.CdA0 = 0.7155
-        CdA_tot   = 1.512 - self.CdA0
-        CsA_tot   = 33.91
+        CdA_tot   = abs(self.vehicle_params.CdA_full - self.vehicle_params.CdA0)
 
         # distribution of downforce across components
         ClA_dist = [0.371, 0.282, 0.347]   # [front, undertray, rear]
@@ -33,14 +30,16 @@ class Aerodynamics:
         # positions of component CoPs (magnitudes, equation takes signs into account)
         # TODO: make positions relative to intermediate frame
         # Front, Undertray and Rear [x , y , z]
-        self.CoP = np.array([[ 23.65 * self.in_to_m, 0,  9.30 * self.in_to_m],
-                             [-43.5 * self.in_to_m,  0,  7.13 * self.in_to_m],
-                             [-67.6 * self.in_to_m,  0, 42.91 * self.in_to_m]])
+        self.CoP = np.array([[23.65 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 9.30 * self.in_to_m],
+                             [-43.5 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 7.13 * self.in_to_m],
+                             [-67.6 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 42.91 * self.in_to_m]])
 
         # gets aero coefficients for each component
-        self.ClA = [ClA_tot * ClA_dist[0], ClA_tot * ClA_dist[1], ClA_tot * ClA_dist[2]]
+        self.ClA = [self.vehicle_params.ClA_tot * ClA_dist[0], self.vehicle_params.ClA_tot * ClA_dist[1],
+                    self.vehicle_params.ClA_tot * ClA_dist[2]]
         self.CdA = [CdA_tot * CdA_dist[0], CdA_tot * CdA_dist[1], CdA_tot * CdA_dist[2]]
-        self.CsA = [CsA_tot * CsA_dist[0], CsA_tot * CsA_dist[1], CsA_tot * CsA_dist[2]]
+        self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[0], self.vehicle_params.CsA_tot * CsA_dist[1],
+                    self.vehicle_params.CsA_tot * CsA_dist[2]]
 
     def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
 
@@ -78,7 +77,7 @@ class Aerodynamics:
             moments = np.add(moments, np.cross(self.CoP[i], part_force))
 
         # account for drag from rest of car
-        drag_no_aero = 0.5 * 1.225 * self.CdA0 * x_dot ** 2
+        drag_no_aero = 0.5 * 1.225 * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
-
         return forces, moments
+

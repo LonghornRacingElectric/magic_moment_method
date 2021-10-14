@@ -31,8 +31,10 @@ class Tire:
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     def get_force(self, slip_angle, inclination_angle, slip_ratio = None):
         # TODO: Pacejka fit coefficient currently takes SA as deg, need to change to rad (explicit conversion for now)
-
-        slip_angle = slip_angle * 180/math.pi
+        multiplier = -1 if self.direction_left else 1
+        
+        slip_angle = slip_angle * 180/math.pi * multiplier
+        
         [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
          a17] = self.pacejka_fit.Fy_coefficients
         Fz = self.normal_load
@@ -46,7 +48,7 @@ class Tire:
         V = a11 * Fz + a12 + (a13 * Fz + a14) * inclination_angle * Fz
         Bx1 = B * (slip_angle + H)
 
-        Fy = 2/3 * D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V
+        Fy = multiplier * 2/3* (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
 
         return np.array([0, Fy * (1 if self.direction_left else 1), self.normal_load])
 
