@@ -9,7 +9,7 @@ class Vehicle:
     def __init__(self):
         # Params
         self.params = types.SimpleNamespace()
-        self.params.sprung_inertia = np.array([[100, 1, 1], [1, 120, 1], [1, 1, 70]])  # TODO
+        self.params.sprung_inertia = np.array([[119.8, 1, 1], [1, 33.4, 1], [1, 1, 108.2]])  # TODO
         self.params.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
         self.params.gravity = 9.81
         self.params.cg_bias = 0.6  # Position of the cg from front to rear, value from 0-1
@@ -53,8 +53,8 @@ class Vehicle:
         forces, torques = np.zeros(3), np.zeros(3)
 
         # Define aero loads
-        aero_forces, aero_moments = 0,0 #self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
-                                # ride_height)
+        aero_forces, aero_moments = self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
+                                ride_height)
         # Define suspension loads (suspension handles vehicle weight through tire normals)
         # TODO: Don't pass both bodyslip and ydot
         suspension_forces, suspension_moments = self.suspension.get_loads(*self.state.__dict__.values(), self.y_dot, roll, pitch, ride_height)
