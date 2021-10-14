@@ -22,7 +22,7 @@ class Suspension():
         self.front_track = 1.27
         self.rear_track = 1.17
 
-        self.front_roll_stiffness = 0#500 * math.pi/180 #385 * math.pi/180  # N*m/rad
+        self.front_roll_stiffness = 500 * math.pi/180 #385 * math.pi/180  # N*m/rad
         self.rear_roll_stiffness = 100 * math.pi/180 # N*m/rad
         self.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
         self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
