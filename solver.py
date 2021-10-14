@@ -12,13 +12,12 @@ def main():
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
-    initial_guess = [0.0761, 0, 0, 0, 0, 0]
-
+    initial_guess = [0.07658378838509723, -4.684932528822857, 3.012661208605935, 10.201778328372775, -109.95099629724574, -81111191.13794741]
     data = []
     for x_dot in np.linspace(30,30,1):
-        for body_slip in np.linspace(-0.18, 0.18, 10):
-            for steered_angle in np.linspace(-3, 3, 10):
-                for yaw_rate in np.linspace(0.1, 0.1, 1):
+        for body_slip in np.linspace(-0.1, 0.1, 10):
+            for steered_angle in np.linspace(-2, 2, 10):
+                for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
                     vehicle.state.body_slip = body_slip
                     vehicle.state.steered_angle = steered_angle
                     vehicle.state.x_dot = x_dot
@@ -26,9 +25,9 @@ def main():
 
                     output_states = josie_solver(specific_residual_func, initial_guess)
                     data.append([x_dot, body_slip, steered_angle, yaw_rate, *output_states])
-    
+    #print(data)
     columns = ["x_dot", "body_slip", "steered_angle", "yaw_rate",
-                             "ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+                            "ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
 
     df = pd.DataFrame(data, columns = columns)
     df.to_csv("MMM.csv")
@@ -44,7 +43,12 @@ def DOF6_motion_residuals(x, vehicle):
     rotational_velocities = vehicle.rotational_velocities
 
     # vehicle loads
-    forces, torques = vehicle.get_loads(roll, pitch, ride_height)
+    forces, moments = vehicle.get_loads(roll, pitch, ride_height)
+
+    # kinetic moment
+    cg_relative_pos = np.array([0, 0, vehicle.params.cg_total_position[2]])
+    kinetic_moment = np.cross(translation_accelerations, (vehicle.params.mass * cg_relative_pos))
+    moments = np.add(moments, kinetic_moment)
 
     # residuals
     residuals_translation = vehicle.params.mass * (translation_accelerations +\
@@ -52,7 +56,7 @@ def DOF6_motion_residuals(x, vehicle):
 
     residuals_rotation = np.dot(vehicle.params.sprung_inertia, rotational_accelerations) +\
         np.cross(rotational_velocities, np.dot(vehicle.params.sprung_inertia, rotational_velocities)) -\
-        + np.dot(vehicle.params.unsprung_inertia, rotational_accelerations) - torques
+        + np.dot(vehicle.params.unsprung_inertia, rotational_accelerations) - moments
 
     return np.array([*residuals_translation, *residuals_rotation])
 

@@ -22,7 +22,7 @@ class Suspension():
         self.front_track = 1.27
         self.rear_track = 1.17
 
-        self.front_roll_stiffness = 500 * math.pi/180 #385 * math.pi/180  # N*m/rad
+        self.front_roll_stiffness = 385 * math.pi/180 #385 * math.pi/180  # N*m/rad
         self.rear_roll_stiffness = 385 * math.pi/180 # N*m/rad
         self.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
         self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
@@ -73,9 +73,7 @@ class Suspension():
             slip_angle = math.atan2(tire_velocity[1], tire_velocity[0])
 
             slip_angle += steered_angle if tire.steerable else 0 # TODO: Add in proper steering geometry later
-
             tire_force = tire.get_force(slip_angle, 0, 0)  # Tire force in tire frame TODO: Current IA = 0 and SR = 0
-
             # Rotate the tire force into intermediate frame and add moments/forces to total
             # TODO: conversions utilities
             rotation_matrix = np.array([[cos(slip_angle),-sin(slip_angle),0],[sin(slip_angle),cos(slip_angle),0],[0,0,1]])
@@ -104,6 +102,9 @@ class Suspension():
             unsprung_height = tire.unloaded_radius + unsprung_deformation_static
             static_chassis_height = self.ride_height #static_forces[name]/wheelrate_stiffness + unsprung_height # this is your STATIC CHASSIS CORNER HEIGHT FELLAS
 
+
+            #print(roll_stiffness * roll)
+            #print(wheelrate_stiffness * (static_chassis_height - z_c))
             tire.unsprung_displacement = (roll_stiffness * roll + wheelrate_stiffness * (static_chassis_height - z_c)) \
                 / tire.stiffness - unsprung_deformation_static      
 
