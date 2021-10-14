@@ -14,10 +14,19 @@ def main():
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
     initial_guess = [0.0761, 0, 0, 0, 0, 0]
 
+    # #
+    # initial_guess = [0.0761, 0, 0, 0, 0, 0]
+    # vehicle.state.body_slip = 0.1
+    # vehicle.state.steered_angle = 0.2
+    # vehicle.state.x_dot = 10
+    # vehicle.state.yaw_rate = 0
+    # output_states = josie_solver(specific_residual_func, initial_guess)
+    # print(output_states)
+    # #
     data = []
     for x_dot in np.linspace(30,30,1):
-        for body_slip in np.linspace(-0.18, 0.18, 10):
-            for steered_angle in np.linspace(-3, 3, 10):
+        for body_slip in np.linspace(-0.18, 0.18, 40):
+            for steered_angle in np.linspace(-3, 3, 40):
                 for yaw_rate in np.linspace(0.1, 0.1, 1):
                     vehicle.state.body_slip = body_slip
                     vehicle.state.steered_angle = steered_angle
@@ -26,7 +35,7 @@ def main():
 
                     output_states = josie_solver(specific_residual_func, initial_guess)
                     data.append([x_dot, body_slip, steered_angle, yaw_rate, *output_states])
-    
+
     columns = ["x_dot", "body_slip", "steered_angle", "yaw_rate",
                              "ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
 
@@ -50,6 +59,8 @@ def DOF6_motion_residuals(x, vehicle):
     residuals_translation = vehicle.params.mass * (translation_accelerations +\
         np.cross(rotational_velocities, translation_velocities)) - forces
 
+    cg_position_intermediate_frame = [0, 0, vehicle.params.cg_total_position[2]]
+    kinetic_moment = np.cross((vehicle.params.mass * translation_accelerations), cg_position_intermediate_frame)
     residuals_rotation = np.dot(vehicle.params.sprung_inertia, rotational_accelerations) +\
         np.cross(rotational_velocities, np.dot(vehicle.params.sprung_inertia, rotational_velocities)) -\
         + np.dot(vehicle.params.unsprung_inertia, rotational_accelerations) - torques
