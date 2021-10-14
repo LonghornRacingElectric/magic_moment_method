@@ -62,10 +62,10 @@ class Suspension():
         # normal forces (from unsprung displacements)
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
         moments = np.array([0, 0, 0])
-        # # NOTE - THIS IS BEING DONE WITHIN TIRE
 
         # inclination angle (steered angle, unsprung displacements) # STATIC CAMBER GOES HERE
 
+        # # NOTE - THIS IS BEING DONE WITHIN TIRE
         # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
         # tire forces (inclination angle, slip angles, normal forces) # TODO slip ratio
         for name, tire in self.tires.__dict__.items():
@@ -102,9 +102,7 @@ class Suspension():
             unsprung_height = tire.unloaded_radius + unsprung_deformation_static
             static_chassis_height = self.ride_height #static_forces[name]/wheelrate_stiffness + unsprung_height # this is your STATIC CHASSIS CORNER HEIGHT FELLAS
 
-
-            #print(roll_stiffness * roll)
-            #print(wheelrate_stiffness * (static_chassis_height - z_c))
+            # TODO: Change roll_stiffness in terms of differences of (chassis corner - unsprung displacements)
             tire.unsprung_displacement = (roll_stiffness * roll + wheelrate_stiffness * (static_chassis_height - z_c)) \
                 / tire.stiffness - unsprung_deformation_static      
 

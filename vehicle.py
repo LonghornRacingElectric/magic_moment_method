@@ -59,5 +59,6 @@ class Vehicle:
         # TODO: Don't pass both bodyslip and ydot
         suspension_forces, suspension_moments = self.suspension.get_loads(*self.state.__dict__.values(), self.y_dot, roll, pitch, ride_height)
 
+
         forces, torques = aero_forces + suspension_forces, aero_moments + suspension_moments
         return forces, torques
