@@ -12,12 +12,12 @@ def main():
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
-    initial_guess = [0.07658378838509723, -4.684932528822857, 3.012661208605935, 10.201778328372775, 0, 0]
+    initial_guess = [0.07658378838509723, 0, 0, 0, 0, 0]
     data = []
-    for x_dot in np.linspace(30,30,1):
-        for body_slip in np.linspace(-0.1, 0.1, 10):
-            for steered_angle in np.linspace(-2, 2, 10):
-                for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
+    for x_dot in np.linspace(5,5,1):
+        for body_slip in np.linspace(-0.08, 0.08, 9):
+            for steered_angle in np.linspace(-0.2,0.2,9):
+                for yaw_rate in [0]: #1.7np.linspace(0.1, 0.1, 1):
                     vehicle.state.body_slip = body_slip
                     vehicle.state.steered_angle = steered_angle
                     vehicle.state.x_dot = x_dot
@@ -30,7 +30,7 @@ def main():
                             "ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
 
     df = pd.DataFrame(data, columns = columns)
-    df.to_csv("MMM.csv")
+    df.to_csv("export/MMM.csv")
 
 def DOF6_motion_residuals(x, vehicle):
     # solving for these bois
