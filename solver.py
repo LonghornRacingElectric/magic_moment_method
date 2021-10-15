@@ -14,7 +14,7 @@ def main():
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
     initial_guess = [0.07658378838509723, -4.684932528822857, 3.012661208605935, 10.201778328372775, 0, 0]
     data = []
-    for x_dot in np.linspace(15,15,1):
+    for x_dot in np.linspace(30,30,1):
         for body_slip in np.linspace(-0.1, 0.1, 10):
             for steered_angle in np.linspace(-2, 2, 10):
                 for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
