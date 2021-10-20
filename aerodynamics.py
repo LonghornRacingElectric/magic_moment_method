@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 class Aerodynamics:
-    def __init__(self, params = None):
+    def __init__(self, params):
         # TODO: make param files later; currently all initialized here
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
