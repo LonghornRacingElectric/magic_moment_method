@@ -15,8 +15,8 @@ def main():
     initial_guess = [0.07658378838509723, 0, 0, 0, 0, 0]
     data = []
     for x_dot in np.linspace(5,5,1):
-        for body_slip in np.linspace(-0.08, 0.08, 9):
-            for steered_angle in np.linspace(-0.2,0.2,9):
+        for body_slip in np.linspace(-0.18, 0.18, 21):
+            for steered_angle in np.linspace(-0.2,0.2,21):
                 for yaw_rate in [0]: #1.7np.linspace(0.1, 0.1, 1):
                     vehicle.state.body_slip = body_slip
                     vehicle.state.steered_angle = steered_angle

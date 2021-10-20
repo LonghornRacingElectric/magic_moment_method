@@ -12,7 +12,7 @@ class Vehicle:
         self.params.sprung_inertia = np.array([[119.8, 1, 1], [1, 33.4, 1], [1, 1, 108.2]])  # TODO
         self.params.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
         self.params.gravity = 9.81
-        self.params.cg_bias = 0.5  # Position of the cg from front to rear, value from 0-1
+        self.params.cg_bias = 0.65  # Position of the cg from front to rear, value from 0-1
         self.params.wheelbase = 1.55
         self.params.cg_total_position = np.array([self.params.cg_bias * self.params.wheelbase, 0, 0.0254 * 10])
         self.params.mass_unsprung_front = 13.5

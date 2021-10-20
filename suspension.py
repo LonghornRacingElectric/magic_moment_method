@@ -25,7 +25,7 @@ class Suspension():
         self.front_roll_stiffness = 385 * math.pi/180 #385 * math.pi/180  # N*m/rad
         self.rear_roll_stiffness = 385 * math.pi/180 # N*m/rad
         self.front_wheelrate_stiffness = (.574**2) * 25 / (.0254 * .224)#(.574**2) * 400 / (.0254 * .224)
-        self.rear_wheelrate_stiffness = (.747**2) * 1000000 / (.0254 * .224)#(.747**2) * 450 / (.0254 * .224)
+        self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
 
         self.front_toe = 0#4
         self.rear_toe = 0
@@ -95,7 +95,7 @@ class Suspension():
             
             # calculate unsprung displacements (from chasis displacement, stiffness); unsprung FBD
             roll_stiffness = self.front_roll_stiffness if tire.steerable else self.rear_roll_stiffness
-            roll_stiffness *= np.sign(roll) if tire.direction_left else -np.sign(roll)
+            roll_stiffness *= 1 if tire.direction_left else -1
             wheelrate_stiffness = self.front_wheelrate_stiffness if tire.steerable else self.rear_wheelrate_stiffness
 
             unsprung_deformation_static = static_forces[name]/tire.stiffness
