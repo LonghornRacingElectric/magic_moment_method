@@ -9,14 +9,15 @@ def main():
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
-    initial_guess = [0.07658378838509723, -4.684932528822857, 3.012661208605935, 10.201778328372775, 0, 0]
+    initial_guess = [0.0762, 0, 0, 0, 0, 0]
 
     state_names = ["x_dot", "body_slip", "steered_angle", "yaw_rate"]
     output_var_names = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+    
     df = None
 
     for x_dot in [5]: #np.linspace(7.22,7.22,1):
-        for body_slip in np.linspace(-0.4, 0.4, 15):
+        for body_slip in np.linspace(-0.40, 0.40, 30):
             for steered_angle in np.linspace(-0.3, 0.3, 15):
                 for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
                     vehicle.state.body_slip = body_slip

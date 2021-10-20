@@ -92,9 +92,9 @@ class Vehicle:
 
     def get_loads(self, roll, pitch, ride_height):
         # Define aero loads
-        aero_forces, aero_moments = 0,0 #self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
-                               # ride_height)
-        # Define suspension loads (suspension handles vehicle weight through tire normals)
+        aero_forces, aero_moments = self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
+                               ride_height)
+        # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments = self.dynamics.get_loads(self.state, roll, pitch, ride_height)
 
         return aero_forces + tire_forces, aero_moments + tire_moments

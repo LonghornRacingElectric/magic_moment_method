@@ -61,25 +61,24 @@ class Dynamics():
             tire_velocity = np.array([state.x_dot, y_dot, 0]) + np.cross(np.array([0, state.yaw_rate, 0]),tire.position)
             tire.outputs.velocity = tire_velocity
 
-            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.toe
-             # TODO: Add in proper steering geometry later
-            slip_angle += state.steered_angle if tire is FrontTire else 0
+            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0])
+            # TODO: Add in proper steering geometry later into FrontTire object
+            slip_angle += tire.steering_induced_slip(state.steered_angle)
             tire.outputs.slip_angle = slip_angle
 
     def set_unsprung_displacements(self, roll, pitch, ride_height):
         for tire in self.tires.__dict__.values():
-            # corner displacement of chasis
+            # corner displacement of chassis
             # TODO: note rotation is about CG instead of roll / pitch centers
             z_c = ride_height + (tire.position[0]*sin(roll) + tire.position[1]*cos(roll)*sin(pitch)) \
                 / (cos(roll) *cos(pitch))
             
-            # calculate unsprung displacements (from chassis displacement, stiffness); unsprung FBD
-            roll_stiffness = self.params.front_roll_stiffness if type(tire) is FrontTire else self.params.rear_roll_stiffness
-            roll_stiffness *= 1 if tire.direction_left else -1
-            wheelrate_stiffness = self.params.front_wheelrate_stiffness if type(tire) is FrontTire else self.params.rear_wheelrate_stiffness
-            unsprung_deformation_static = tire.static_unsprung_displacement 
-            static_chassis_height = self.params.ride_height
-
+            # corner displacement of suspension
+            # TODO: make sure this math makes sense
             # TODO: Change roll_stiffness in terms of differences of (chassis corner - unsprung displacements)
-            tire.outputs.unsprung_displacement = (roll_stiffness * roll + wheelrate_stiffness * (static_chassis_height - z_c)) \
-                / tire.stiffness - unsprung_deformation_static    
+            z_roll = tire.roll_stiffness * roll
+            z_wr = tire.wheelrate * (self.params.ride_height - z_c)
+            z_total = z_roll + z_wr
+            
+            # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
+            tire.set_unsprung_displacement(z_total)    

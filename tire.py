@@ -36,6 +36,10 @@ class Tire:
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.stiffness
 
+    # takes corner displacement of chassis
+    def set_unsprung_displacement(self, z_total):
+        self.outputs.unsprung_displacement = (z_total) / self.stiffness - self.static_unsprung_displacement
+
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     def get_loads(self):
@@ -72,6 +76,10 @@ class Tire:
 
         return self.outputs.vehicle_centric_forces, self.outputs.moments 
 
+    @abstractmethod
+    def steering_induced_slip(self, steered_angle):
+        pass
+
     @abstractproperty
     def toe(self):
         pass
@@ -86,6 +94,14 @@ class Tire:
 
     @abstractproperty
     def static_normal_load(self):
+        pass
+
+    @abstractproperty
+    def roll_stiffness(self):
+        pass
+
+    @abstractproperty
+    def wheelrate(self):
         pass
 
     # def get_Fx(self, slip_angle, camber, Fz):
@@ -106,6 +122,9 @@ class FrontTire(Tire):
     def __init__(self, car_params, location, direction_left):
         super().__init__(car_params, location, direction_left)
 
+    def steering_induced_slip(self, steered_angle):
+        return steered_angle + self.toe
+
     @property
     def toe(self):
         return self.params.front_toe * (1 if self.direction_left else -1)
@@ -122,9 +141,21 @@ class FrontTire(Tire):
     def lateral_coeffs(self):
         return self.params.front_tire_coeff_Fy
 
+    @property
+    def roll_stiffness(self):
+        return self.params.front_roll_stiffness * (1 if self.direction_left else -1)
+
+    @property
+    def wheelrate(self):
+        return self.params.front_wheelrate_stiffness
+
 class RearTire(Tire):
     def __init__(self, car_params, location, direction_left):
         super().__init__(car_params, location, direction_left)
+
+    # NOT a function of steered angle, don't use for calcs
+    def steering_induced_slip(self, steered_angle):
+        return self.toe
 
     @property
     def toe(self):
@@ -142,3 +173,11 @@ class RearTire(Tire):
     @property
     def lateral_coeffs(self):
         return self.params.rear_tire_coeff_Fy
+
+    @property
+    def roll_stiffness(self):
+        return self.params.rear_roll_stiffness * (1 if self.direction_left else -1)
+
+    @property
+    def wheelrate(self):
+        return self.params.rear_wheelrate_stiffness
