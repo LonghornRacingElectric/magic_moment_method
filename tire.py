@@ -1,5 +1,8 @@
+from abc import abstractmethod, abstractproperty
+from math import sin, cos
 import math
 import numpy as np
+import types
 
 """
 Coordinate Systems:
@@ -10,48 +13,80 @@ Units:
     Mass: kg
 """
 class Tire:
-    def __init__(self, pacejka_fit_params, location, stiffness, direction_left, steerable, toe):
-        # Pacejka Coefficients, specific to each tire
-        self.pacejka_fit = PacejkaFit(*pacejka_fit_params)
-        self.stiffness = stiffness
+    def __init__(self, car_params, location, direction_left):
+        self.params = car_params
         self.direction_left = direction_left # Boolean
-        self.steerable = steerable
         self.position = np.array(location)  # Position of the center of the contact patch relative to vehicle frame
-        self.unloaded_radius = 9 * 0.0254
 
-        self.unsprung_displacement = None
-
-        self.toe = toe
+        self.outputs = types.SimpleNamespace()
+        self.outputs.unsprung_displacement = None
+        self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
+        self.outputs.velocity = None
+        self.outputs.slip_angle = None
+        self.outputs.inclination_angle = 0
+        self.outputs.vehicle_centric_forces = None # tire forces in the vehicle coordinate system
+        self.outputs.moments = None
+        #self.outputs.slip_ratio = None
 
     @property
     def normal_load(self):
-        return self.stiffness*self.unsprung_displacement
+        return self.stiffness * self.outputs.unsprung_displacement
+
+    @property
+    def static_unsprung_displacement(self):
+        return self.static_normal_load / self.stiffness
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
-    def get_force(self, slip_angle, inclination_angle, slip_ratio = None):
-        # TODO: Pacejka fit coefficient currently takes SA as deg, need to change to rad (explicit conversion for now)
+    def get_loads(self):
+        # TODO: need to consider slip ratio
+        # multiplier is done for any non-symmetries in fit
         multiplier = -1 if self.direction_left else 1
-        
-        slip_angle = slip_angle * 180/math.pi * multiplier
-        
+        slip_degrees = self.outputs.slip_angle * 180/math.pi * multiplier
+
         [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
-         a17] = self.pacejka_fit.Fy_coefficients
+             a17] = self.lateral_coeffs
         Fz = self.normal_load
+        inclination_angle = self.outputs.inclination_angle
 
         C = a0
         D = Fz * (a1 * Fz + a2) * (1 - a15 * inclination_angle ** 2)
         BCD = a3 * math.sin(math.atan(Fz / a4) * 2) * (1 - a5 * abs(inclination_angle))
         B = BCD / (C * D)
         H = a8 * Fz + a9 + a10 * inclination_angle
-        E = (a6 * Fz + a7) * (1 - (a16 * inclination_angle + a17) * math.copysign(1, slip_angle + H))
+        E = (a6 * Fz + a7) * (1 - (a16 * inclination_angle + a17) * math.copysign(1, slip_degrees + H))
         V = a11 * Fz + a12 + (a13 * Fz + a14) * inclination_angle * Fz
-        Bx1 = B * (slip_angle + H)
+        Bx1 = B * (slip_degrees + H)
 
         Fy = multiplier * 2/3* (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
 
-        return np.array([0, Fy * (1 if self.direction_left else 1), self.normal_load])
+        self.outputs.tire_centric_forces = np.array([0, Fy, self.normal_load])
 
+        # Rotate the tire force into intermediate frame and add moments/forces to total
+        # TODO: conversions utilities
+        slip_radians = self.outputs.slip_angle
+        rotation_matrix = np.array([[cos(slip_radians),-sin(slip_radians),0],[sin(slip_radians),cos(slip_radians),0],[0,0,1]])
+        self.outputs.vehicle_centric_forces = rotation_matrix.dot(self.outputs.tire_centric_forces)
+
+        self.outputs.moments = np.cross(self.outputs.vehicle_centric_forces, self.position)
+
+        return self.outputs.vehicle_centric_forces, self.outputs.moments 
+
+    @abstractproperty
+    def toe(self):
+        pass
+    
+    @abstractproperty
+    def stiffness(self):
+        pass
+
+    @abstractproperty
+    def lateral_coeffs(self):
+        pass
+
+    @abstractproperty
+    def static_normal_load(self):
+        pass
 
     # def get_Fx(self, slip_angle, camber, Fz):
     #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
@@ -67,12 +102,43 @@ class Tire:
     #     # return D*math.sin(C*math.atan(Bx1-E*(Bx1-math.atan(Bx1)))) + V
     #     return 0
 
+class FrontTire(Tire):
+    def __init__(self, car_params, location, direction_left):
+        super().__init__(car_params, location, direction_left)
 
-# Stores predetermined pacejka fits for several tires
-class PacejkaFit:
-    def __init__(self, Fx_coefficients=None,
-                 Fy_coefficients=None,
-                 Mz_coefficients=None):
-        self.Fx_coefficients = Fx_coefficients
-        self.Fy_coefficients = Fy_coefficients
-        self.Mz_coefficients = Mz_coefficients
+    @property
+    def toe(self):
+        return self.params.front_toe * (1 if self.direction_left else -1)
+
+    @property
+    def stiffness(self):
+        return self.params.front_tire_spring_rate
+    
+    @property
+    def static_normal_load(self):
+        return -1 * self.params.gravity * self.params.mass * (1 - self.params.cg_bias) / 2
+
+    @property
+    def lateral_coeffs(self):
+        return self.params.front_tire_coeff_Fy
+
+class RearTire(Tire):
+    def __init__(self, car_params, location, direction_left):
+        super().__init__(car_params, location, direction_left)
+
+    @property
+    def toe(self):
+        return self.params.rear_toe * (1 if self.direction_left else -1)
+
+    # TODO: make linear instead of constant
+    @property
+    def stiffness(self):
+        return self.params.rear_tire_spring_rate
+    
+    @property
+    def static_normal_load(self):
+        return -1 * self.params.gravity * self.params.mass * self.params.cg_bias / 2
+
+    @property
+    def lateral_coeffs(self):
+        return self.params.rear_tire_coeff_Fy

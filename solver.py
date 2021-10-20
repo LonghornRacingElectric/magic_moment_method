@@ -1,11 +1,8 @@
 import numpy as np
-from suspension import Suspension
 from vehicle import Vehicle
-from aerodynamics import Aerodynamics
-import math as deez_nuts
 from scipy.optimize import fsolve as josie_solver
 import pandas as pd
-import matplotlib.pyplot as plt
+from copy import copy
 
 def main():
     vehicle = Vehicle()
@@ -13,23 +10,29 @@ def main():
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch
     initial_guess = [0.07658378838509723, -4.684932528822857, 3.012661208605935, 10.201778328372775, 0, 0]
-    data = []
-    for x_dot in np.linspace(30,30,1):
-        for body_slip in np.linspace(-0.1, 0.1, 10):
-            for steered_angle in np.linspace(-2, 2, 10):
+
+    state_names = ["x_dot", "body_slip", "steered_angle", "yaw_rate"]
+    output_var_names = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+    df = None
+
+    for x_dot in [5]: #np.linspace(7.22,7.22,1):
+        for body_slip in np.linspace(-0.4, 0.4, 15):
+            for steered_angle in np.linspace(-0.3, 0.3, 15):
                 for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
                     vehicle.state.body_slip = body_slip
                     vehicle.state.steered_angle = steered_angle
                     vehicle.state.x_dot = x_dot
                     vehicle.state.yaw_rate = yaw_rate
 
-                    output_states = josie_solver(specific_residual_func, initial_guess)
-                    data.append([x_dot, body_slip, steered_angle, yaw_rate, *output_states])
-    #print(data)
-    columns = ["x_dot", "body_slip", "steered_angle", "yaw_rate",
-                            "ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+                    output_vars = josie_solver(specific_residual_func, initial_guess)
 
-    df = pd.DataFrame(data, columns = columns)
+                    # save data
+                    data_dict = copy(vehicle.outputs())
+                    data_dict.update(dict(zip(state_names, [x_dot, body_slip, steered_angle, yaw_rate])))
+                    data_dict.update(dict(zip(output_var_names, output_vars)))
+
+                    df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
+    
     df.to_csv("MMM.csv")
 
 def DOF6_motion_residuals(x, vehicle):
@@ -46,6 +49,7 @@ def DOF6_motion_residuals(x, vehicle):
     forces, moments = vehicle.get_loads(roll, pitch, ride_height)
 
     # kinetic moment
+    # TODO: where does this belong?
     cg_relative_pos = np.array([0, 0, vehicle.params.cg_total_position[2]])
     kinetic_moment = np.cross(vehicle.params.mass * translation_accelerations, cg_relative_pos)
     moments = np.add(moments, kinetic_moment)
