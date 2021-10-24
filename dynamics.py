@@ -7,7 +7,8 @@ from tire import FrontTire, RearTire
 """
 Coordinate Systems:
     SAE z-down wheel/tire centered coordinates: https://www.mathworks.com/help/vdynblks/ug/coordinate-systems-in-vehicle-dynamics-blockset.html
-
+    but with z up, y left^^^
+    
 Units: 
     Length: meters
     Mass: kg
@@ -51,7 +52,22 @@ class Dynamics():
     # function of steered angle and unsprung displacement, roll
     # TODO: implement 
     def set_unsprung_inclination_angles(self, state, roll):
-        pass
+        for tire in self.tires.__dict__.values():
+            disp = tire.outputs.unsprung_displacement
+            if type(tire).__name__ == "FrontTire":
+                l_static = np.sqrt(self.params.ride_height ** 2 + (self.params.front_track / 2) ** 2)
+                ang_disp = np.arcsin(disp * self.params.front_track / (2 * l_static \
+                                   * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
+                cgain_h = - self.params.front_camber_gain * ang_disp
+            else:
+                l_static = np.sqrt(self.params.ride_height ** 2 + (self.params.rear_track / 2) ** 2)
+                ang_disp = np.arcsin(disp * self.params.rear_track / (2 * l_static \
+                                    * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
+                cgain_h = - self.params.rear_camber_gain * ang_disp
+            if tire.direction_left:
+                tire.outputs.inclination_angle = cgain_h - np.sign(state.body_slip) * roll
+            else:
+                tire.outputs.inclination_angle = cgain_h + np.sign(state.body_slip) * roll
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, state):

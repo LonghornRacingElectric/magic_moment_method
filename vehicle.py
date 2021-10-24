@@ -38,8 +38,8 @@ class Vehicle:
         self.params.front_toe = 0 # TODO: makesure implemented right
         # self.front_static_camber = 0
         # self.rear_static_camber = 0
-        # self.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
-        # self.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
+        self.params.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
+        self.params.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
         # self.front_roll_center_height = -.75 * .0254
         # self.rear_roll_center_height = -.5 * .0254
         # self.pitch_center_x = -2.5 * 0.0254

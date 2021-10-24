@@ -34,7 +34,7 @@ def main():
 
                     df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
     
-    df.to_csv("MMM.csv")
+    df.to_csv("MMM_inc_angle_test.csv")
 
 def DOF6_motion_residuals(x, vehicle):
     # solving for these bois

@@ -23,7 +23,7 @@ class Tire:
         self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
         self.outputs.velocity = None
         self.outputs.slip_angle = None
-        self.outputs.inclination_angle = 0
+        self.outputs.inclination_angle = None
         self.outputs.vehicle_centric_forces = None # tire forces in the vehicle coordinate system
         self.outputs.moments = None
         #self.outputs.slip_ratio = None
