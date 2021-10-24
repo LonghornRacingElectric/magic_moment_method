@@ -54,20 +54,25 @@ class Dynamics():
     def set_unsprung_inclination_angles(self, state, roll):
         for tire in self.tires.__dict__.values():
             disp = tire.outputs.unsprung_displacement
+            delta = state.steered_angle
+            # steer_inc = - self.params.caster * delta + (1/2) * self.params.KPI * np.sign(delta) * delta ** 2
+
             if type(tire).__name__ == "FrontTire":
-                l_static = np.sqrt(self.params.ride_height ** 2 + (self.params.front_track / 2) ** 2)
-                ang_disp = np.arcsin(disp * self.params.front_track / (2 * l_static \
-                                   * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
-                cgain_h = - self.params.front_camber_gain * ang_disp
+                track = self.params.front_track
+                cgain = self.params.front_camber_gain
             else:
-                l_static = np.sqrt(self.params.ride_height ** 2 + (self.params.rear_track / 2) ** 2)
-                ang_disp = np.arcsin(disp * self.params.rear_track / (2 * l_static \
+                track = self.params.rear_track
+                cgain = self.params.rear_camber_gain
+
+            l_static = np.sqrt(self.params.ride_height ** 2 + (track / 2) ** 2)
+            ang_disp = np.arcsin(disp * track / (2 * l_static \
                                     * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
-                cgain_h = - self.params.rear_camber_gain * ang_disp
+            cgain_inc = - cgain * ang_disp
+
             if tire.direction_left:
-                tire.outputs.inclination_angle = cgain_h - np.sign(state.body_slip) * roll
+                tire.outputs.inclination_angle = cgain_inc - np.sign(state.body_slip) * roll # + steer_inc
             else:
-                tire.outputs.inclination_angle = cgain_h + np.sign(state.body_slip) * roll
+                tire.outputs.inclination_angle = cgain_inc + np.sign(state.body_slip) * roll # + steer_inc
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, state):
