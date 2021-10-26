@@ -15,7 +15,7 @@ class Vehicle:
         self.params.sprung_inertia = np.array([[119.8, 1, 1], [1, 33.4, 1], [1, 1, 108.2]])  # TODO
         self.params.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
         self.params.gravity = 9.81
-        self.params.cg_bias = 0.6  # Position of the cg from front to rear, value from 0-1
+        self.params.cg_bias = 0.54  # Position of the cg from front to rear, value from 0-1
         self.params.cg_height = 10 * 0.0254
         self.params.mass_unsprung_front = 13.5
         self.params.unsprung_front_height = 0.0254 * 8
@@ -27,7 +27,7 @@ class Vehicle:
         ### dynamics params
         
         # suspension
-        self.params.front_roll_stiffness = 500 * math.pi/180 #385 * math.pi/180  # N*m/rad
+        self.params.front_roll_stiffness = 385 * math.pi/180 #385 * math.pi/180  # N*m/rad
         self.params.rear_roll_stiffness = 385 * math.pi/180 # N*m/rad
         self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
         self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
@@ -45,17 +45,34 @@ class Vehicle:
         # self.pitch_center_x = -2.5 * 0.0254
 
         # tires
-        self.params.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        self.params.rear_tire_coeff_Fy = [0.01131, -0.0314, 282.1, -650, -1490, 0.03926, -0.0003027, 0.9385, 5.777 * 10 ** -5, -0.06358,
-                          -0.1176, 0.02715, 4.998, 5.5557 * 10 ** -5, 0.05059, 0.005199, 0.001232, 0.004013]
-        self.params.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        self.params.rear_tire_spring_rate = 669 * 175
+        
+        ### 2022
+        # TODO: Make tire spring rate not a constant value
+        #self.params.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.params.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
+                          -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        #self.params.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.params.rear_tire_spring_rate = 617 * 175
 
-        self.params.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        self.params.front_tire_coeff_Fy = [1.311, -0.0003557, -2.586, 550.1, 1403, 0.00956, 3.087e-07,0.0004554, 0.0003098, 0.1428,
-                         -0.1516, -0.1516, 0.304, 2.038e-05, 0.02862, 0.001671, -71.72, -281.9]
-        self.params.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        self.params.front_tire_spring_rate = 551 * 175
+        #self.params.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.params.front_tire_coeff_Fy = [1.69, 0.0004384, 2.769, 614.3, 1496, 0.01784, 0.000432, 0.7237, 0.0001746, 0.1366,
+                         -0.1482, -0.06455, 10.45, 3.036e-05, 0.04111, 0.002054, 0.01834, -0.06673]
+        #self.params.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.params.front_tire_spring_rate = 588 * 175
+
+        ### LORRAINE
+        #self.params.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        # self.params.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
+        #                   -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        #self.params.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        # self.params.rear_tire_spring_rate = 617 * 175
+
+        #self.params.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        # self.params.front_tire_coeff_Fy = [1.311, -0.0003557, -2.586, 550.1, 1403, 0.00956, 3.087e-07,0.0004554, 0.0003098, 0.1428,
+        #                  -0.1516, -0.1516, 0.304, 2.038e-05, 0.02862, 0.001671, -71.72, -281.9]
+        #self.params.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        # TODO: Double check below spring rate
+        # self.params.front_tire_spring_rate = 551 * 175
 
         ### aerodynamics params
         self.params.ClA_tot = 3.955
