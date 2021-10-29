@@ -36,10 +36,14 @@ class Vehicle:
         self.params.rear_track = 1.17
         self.params.rear_toe = 0 # TODO: makesure implemented right
         self.params.front_toe = 0 # TODO: makesure implemented right
-        # self.front_static_camber = 0
-        # self.rear_static_camber = 0
+        # self.params.front_static_camber = 0
+        # self.params.rear_static_camber = 0
         self.params.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
         self.params.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
+        self.params.front_KPI = 5 * (np.pi / 180) # 5 deg -> radians; 2021 number
+        self.params.rear_KPI = 3 * (np.pi / 180) # 3 deg -> radians; 2021 number
+        self.params.front_caster = 1 * (np.pi / 180) # 1 deg -> radians; 2021 number
+        self.params.rear_caster = 2 * (np.pi / 180)  # 2 deg -> radians; 2021 number
         # self.front_roll_center_height = -.75 * .0254
         # self.rear_roll_center_height = -.5 * .0254
         # self.pitch_center_x = -2.5 * 0.0254

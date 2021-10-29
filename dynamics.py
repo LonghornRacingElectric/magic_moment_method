@@ -55,24 +55,28 @@ class Dynamics():
         for tire in self.tires.__dict__.values():
             disp = tire.outputs.unsprung_displacement
             delta = state.steered_angle
-            # steer_inc = - self.params.caster * delta + (1/2) * self.params.KPI * np.sign(delta) * delta ** 2
 
             if type(tire).__name__ == "FrontTire":
                 track = self.params.front_track
                 cgain = self.params.front_camber_gain
+                caster = self.params.front_caster
+                KPI = self.params.front_KPI
             else:
                 track = self.params.rear_track
                 cgain = self.params.rear_camber_gain
+                caster = self.params.rear_caster
+                KPI = self.params.rear_KPI
 
             l_static = np.sqrt(self.params.ride_height ** 2 + (track / 2) ** 2)
             ang_disp = np.arcsin(disp * track / (2 * l_static \
                                     * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
             cgain_inc = - cgain * ang_disp
+            steer_inc = - caster * delta + (1 / 2) * KPI * np.sign(delta) * delta ** 2
 
             if tire.direction_left:
-                tire.outputs.inclination_angle = cgain_inc - np.sign(state.body_slip) * roll # + steer_inc
+                tire.outputs.inclination_angle = cgain_inc - np.sign(state.body_slip) * roll + steer_inc
             else:
-                tire.outputs.inclination_angle = cgain_inc + np.sign(state.body_slip) * roll # + steer_inc
+                tire.outputs.inclination_angle = cgain_inc + np.sign(state.body_slip) * roll + steer_inc
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, state):
