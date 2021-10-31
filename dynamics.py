@@ -70,15 +70,8 @@ class Dynamics():
         for tire in self.tires.__dict__.values():
             # corner displacement of chassis
             # TODO: note rotation is about CG instead of roll / pitch centers
-            z_c = ride_height + (tire.position[0]*sin(roll) + tire.position[1]*cos(roll)*sin(pitch)) \
-                / (cos(roll) *cos(pitch))
-            
-            # corner displacement of suspension
-            # TODO: make sure this math makes sense
-            # TODO: Change roll_stiffness in terms of differences of (chassis corner - unsprung displacements)
-            z_roll = tire.roll_stiffness * roll
-            z_wr = tire.wheelrate * (self.params.ride_height - z_c)
-            z_total = z_roll + z_wr
+            z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
+                / (cos(pitch) *cos(roll))
             
             # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
-            tire.set_unsprung_displacement(z_total)    
+            tire.set_unsprung_displacement(z_c, roll)
