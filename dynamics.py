@@ -35,7 +35,7 @@ class Dynamics():
         # calculate unsprung states
         self.set_unsprung_displacements(roll, pitch, ride_height)
         self.set_unsprung_slip_angles(state)
-        self.set_unsprung_inclination_angles(state, roll)
+        self.set_unsprung_inclination_angles(state)
 
         # TODO: is gravity weight correct to go here?
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
@@ -49,34 +49,33 @@ class Dynamics():
 
         return forces, moments
 
-    # function of steered angle and unsprung displacement, roll
-    # TODO: implement 
-    def set_unsprung_inclination_angles(self, state, roll):
+    # function of steered angle and unsprung displacement
+    def set_unsprung_inclination_angles(self, state):
         for tire in self.tires.__dict__.values():
             disp = tire.outputs.unsprung_displacement
             delta = state.steered_angle
 
-            if type(tire).__name__ == "FrontTire":
+            if type(tire) is FrontTire:
                 track = self.params.front_track
                 cgain = self.params.front_camber_gain
                 caster = self.params.front_caster
                 KPI = self.params.front_KPI
+                static_camber = self.params.front_static_camber
+                steer_inc = - caster * delta + (1 / 2) * KPI * np.sign(delta) * delta ** 2
             else:
                 track = self.params.rear_track
                 cgain = self.params.rear_camber_gain
                 caster = self.params.rear_caster
                 KPI = self.params.rear_KPI
+                static_camber = self.params.rear_static_camber
+                steer_inc = 0
 
             l_static = np.sqrt(self.params.ride_height ** 2 + (track / 2) ** 2)
             ang_disp = np.arcsin(disp * track / (2 * l_static \
                                     * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
             cgain_inc = - cgain * ang_disp
-            steer_inc = - caster * delta + (1 / 2) * KPI * np.sign(delta) * delta ** 2
 
-            if tire.direction_left:
-                tire.outputs.inclination_angle = cgain_inc - np.sign(state.body_slip) * roll + steer_inc
-            else:
-                tire.outputs.inclination_angle = cgain_inc + np.sign(state.body_slip) * roll + steer_inc
+            tire.outputs.inclination_angle = cgain_inc + steer_inc + static_camber
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, state):
@@ -95,8 +94,8 @@ class Dynamics():
         for tire in self.tires.__dict__.values():
             # corner displacement of chassis
             # TODO: note rotation is about CG instead of roll / pitch centers
-            z_c = ride_height + (tire.position[0]*sin(roll) + tire.position[1]*cos(roll)*sin(pitch)) \
-                / (cos(roll) *cos(pitch))
+            z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll))
+            #    / (cos(roll) *cos(pitch))  what's this normalization???
             
             # corner displacement of suspension
             # TODO: make sure this math makes sense

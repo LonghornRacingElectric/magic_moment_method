@@ -36,8 +36,8 @@ class Vehicle:
         self.params.rear_track = 1.17
         self.params.rear_toe = 0 # TODO: makesure implemented right
         self.params.front_toe = 0 # TODO: makesure implemented right
-        # self.params.front_static_camber = 0
-        # self.params.rear_static_camber = 0
+        self.params.front_static_camber = -2 * (np.pi / 180)
+        self.params.rear_static_camber = -2 * (np.pi / 180)
         self.params.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
         self.params.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
         self.params.front_KPI = 5 * (np.pi / 180) # 5 deg -> radians; 2021 number
