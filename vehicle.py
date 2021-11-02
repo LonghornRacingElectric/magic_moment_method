@@ -34,7 +34,7 @@ class Vehicle:
         self.params.rear_roll_stiffness = 0 * (180/math.pi) / (self.params.rear_track / 2)  # N/rad
         self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
         self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
-        self.params.rear_toe = 1 * math.pi/180 # rad
+        self.params.rear_toe = 0 * math.pi/180 # rad
         self.params.front_toe = 0 # rad
         # self.front_static_camber = 0
         # self.rear_static_camber = 0
