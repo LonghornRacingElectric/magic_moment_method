@@ -27,15 +27,15 @@ class Vehicle:
         ### dynamics params
         
         # suspension
-        self.params.front_roll_stiffness = 385 * math.pi/180 #385 * math.pi/180  # N*m/rad
-        self.params.rear_roll_stiffness = 385 * math.pi/180 # N*m/rad
-        self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
-        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
         self.params.wheelbase = 1.55
         self.params.front_track = 1.27
         self.params.rear_track = 1.17
-        self.params.rear_toe = 0 # TODO: makesure implemented right
-        self.params.front_toe = 0 # TODO: makesure implemented right
+        self.params.front_roll_stiffness = 0 * (180/math.pi) / (self.params.front_track / 2) # N/rad
+        self.params.rear_roll_stiffness = 0 * (180/math.pi) / (self.params.rear_track / 2)  # N/rad
+        self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
+        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
+        self.params.rear_toe = 0 * math.pi/180 # rad
+        self.params.front_toe = 0 # rad
         # self.front_static_camber = 0
         # self.rear_static_camber = 0
         # self.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO

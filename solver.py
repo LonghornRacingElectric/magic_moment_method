@@ -3,6 +3,7 @@ from vehicle import Vehicle
 from scipy.optimize import fsolve as josie_solver
 import pandas as pd
 from copy import copy
+import math
 
 def main():
     vehicle = Vehicle()
@@ -16,23 +17,26 @@ def main():
     
     df = None
 
-    for x_dot in [5]: #np.linspace(7.22,7.22,1):
-        for body_slip in np.linspace(-0.40, 0.40, 30):
-            for steered_angle in np.linspace(-0.3, 0.3, 15):
-                for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
-                    vehicle.state.body_slip = body_slip
-                    vehicle.state.steered_angle = steered_angle
-                    vehicle.state.x_dot = x_dot
-                    vehicle.state.yaw_rate = yaw_rate
+    peak_slip_angle = 18 * math.pi / 180 # rad
 
-                    output_vars = josie_solver(specific_residual_func, initial_guess)
+    for x_dot in [15]: #np.linspace(7.22,7.22,1):
+        for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+            for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+                if abs(body_slip + steered_angle) < peak_slip_angle:
+                    for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
+                        vehicle.state.body_slip = body_slip
+                        vehicle.state.steered_angle = steered_angle
+                        vehicle.state.x_dot = x_dot
+                        vehicle.state.yaw_rate = yaw_rate
 
-                    # save data
-                    data_dict = copy(vehicle.outputs())
-                    data_dict.update(dict(zip(state_names, [x_dot, body_slip, steered_angle, yaw_rate])))
-                    data_dict.update(dict(zip(output_var_names, output_vars)))
+                        output_vars = josie_solver(specific_residual_func, initial_guess)
 
-                    df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
+                        # save data
+                        data_dict = copy(vehicle.outputs())
+                        data_dict.update(dict(zip(state_names, [x_dot, body_slip, steered_angle, yaw_rate])))
+                        data_dict.update(dict(zip(output_var_names, output_vars)))
+
+                        df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
     
     df.to_csv("MMM.csv")
 

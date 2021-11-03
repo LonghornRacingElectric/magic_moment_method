@@ -26,6 +26,9 @@ class Tire:
         self.outputs.inclination_angle = 0
         self.outputs.vehicle_centric_forces = None # tire forces in the vehicle coordinate system
         self.outputs.moments = None
+        self.outputs.z_c = None
+        self.outputs.f_roll = None
+        self.outputs.f_heave = None
         #self.outputs.slip_ratio = None
 
     @property
@@ -36,9 +39,15 @@ class Tire:
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.stiffness
 
-    # takes corner displacement of chassis
-    def set_unsprung_displacement(self, z_total):
-        self.outputs.unsprung_displacement = (z_total) / self.stiffness - self.static_unsprung_displacement
+    # takes corner displacement of chassis and roll angle
+    def set_unsprung_displacement(self, z_c, roll):
+        self.outputs.z_c = z_c
+        self.outputs.f_roll = self.roll_stiffness * roll
+
+        unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.stiffness + self.wheelrate)
+        
+        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp)
+        self.outputs.unsprung_displacement = unsprung_disp
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
