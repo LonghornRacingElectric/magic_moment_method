@@ -19,7 +19,7 @@ def main():
 
     peak_slip_angle = 18 * math.pi / 180 # rad
 
-    for x_dot in [20]: #np.linspace(7.22,7.22,1):
+    for x_dot in [15]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # w r = v ; v^2/r = a
@@ -32,12 +32,11 @@ def main():
 
                     output_vars = josie_solver(specific_residual_func, initial_guess)
 
-                    not_saturated = True
+                    saturated = True
                     for tire in vehicle.dynamics.tires.__dict__.values():
-                        not_saturated = not_saturated and tire.outputs.slip_angle < peak_slip_angle
+                        saturated = saturated and tire.outputs.slip_angle > peak_slip_angle
                     
-                    ( x and x and x and x)
-                    if not_saturated:
+                    if not saturated:
                         # save data
                         data_dict = copy(vehicle.outputs())
                         data_dict.update(dict(zip(state_names, [x_dot, body_slip, steered_angle, yaw_rate])))
@@ -55,7 +54,7 @@ def DOF6_motion_residuals(x, vehicle):
 
     # magical mushroom states
     translation_velocities = vehicle.translational_velocities
-    rotational_velocities = vehicle.rotational_velocities(y_double_dot)
+    rotational_velocities = np.array([0,0,0]) #vehicle.rotational_velocities(y_double_dot)
 
     # vehicle loads
     forces, moments = vehicle.get_loads(roll, pitch, ride_height)
