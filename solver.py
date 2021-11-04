@@ -19,18 +19,25 @@ def main():
 
     peak_slip_angle = 18 * math.pi / 180 # rad
 
-    for x_dot in [15]: #np.linspace(7.22,7.22,1):
+    for x_dot in [20]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
-                if abs(body_slip + steered_angle) < peak_slip_angle:
-                    for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
-                        vehicle.state.body_slip = body_slip
-                        vehicle.state.steered_angle = steered_angle
-                        vehicle.state.x_dot = x_dot
-                        vehicle.state.yaw_rate = yaw_rate
+                # w r = v ; v^2/r = a
+                # r = v^2/a; w = v/(v^2/a) = v * a
+                for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1): 
+                    vehicle.state.body_slip = body_slip
+                    vehicle.state.steered_angle = steered_angle
+                    vehicle.state.x_dot = x_dot
+                    vehicle.state.yaw_rate = yaw_rate
 
-                        output_vars = josie_solver(specific_residual_func, initial_guess)
+                    output_vars = josie_solver(specific_residual_func, initial_guess)
 
+                    not_saturated = True
+                    for tire in vehicle.dynamics.tires.__dict__.values():
+                        not_saturated = not_saturated and tire.outputs.slip_angle < peak_slip_angle
+                    
+                    ( x and x and x and x)
+                    if not_saturated:
                         # save data
                         data_dict = copy(vehicle.outputs())
                         data_dict.update(dict(zip(state_names, [x_dot, body_slip, steered_angle, yaw_rate])))
@@ -48,7 +55,7 @@ def DOF6_motion_residuals(x, vehicle):
 
     # magical mushroom states
     translation_velocities = vehicle.translational_velocities
-    rotational_velocities = vehicle.rotational_velocities
+    rotational_velocities = vehicle.rotational_velocities(y_double_dot)
 
     # vehicle loads
     forces, moments = vehicle.get_loads(roll, pitch, ride_height)

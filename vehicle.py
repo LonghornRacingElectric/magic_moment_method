@@ -15,8 +15,8 @@ class Vehicle:
         self.params.sprung_inertia = np.array([[119.8, 1, 1], [1, 33.4, 1], [1, 1, 108.2]])  # TODO
         self.params.unsprung_inertia = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])  # TODO
         self.params.gravity = 9.81
-        self.params.cg_bias = 0.54  # Position of the cg from front to rear, value from 0-1
-        self.params.cg_height = 10 * 0.0254
+        self.params.cg_bias = 0.55  # Position of the cg from front to rear, value from 0-1
+        self.params.cg_height = 12 * 0.0254
         self.params.mass_unsprung_front = 13.5
         self.params.unsprung_front_height = 0.0254 * 8
         self.params.mass_unsprung_rear = 13.2
@@ -30,7 +30,7 @@ class Vehicle:
         self.params.wheelbase = 1.55
         self.params.front_track = 1.27
         self.params.rear_track = 1.17
-        self.params.front_roll_stiffness = 0 * (180/math.pi) / (self.params.front_track / 2) # N/rad
+        self.params.front_roll_stiffness = 50 * (180/math.pi) / (self.params.front_track / 2) # N/rad
         self.params.rear_roll_stiffness = 0 * (180/math.pi) / (self.params.rear_track / 2)  # N/rad
         self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
         self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
@@ -95,9 +95,11 @@ class Vehicle:
         self.state.x_dot = 0  # m/s
         self.state.yaw_rate = 0  # rad/s (using x_dot and body_slip, this essentially defines turn radius)
 
-    @property
-    def rotational_velocities(self):
-        return np.array([0, 0, self.state.yaw_rate])
+    def rotational_velocities(self, accel):
+        if accel == 0:
+            return np.array([0, 0 , 0])
+        temp_yaw_rate = self.state.x_dot/(self.state.x_dot**2/accel)
+        return np.array([0, 0, temp_yaw_rate])
 
     @property
     def translational_velocities(self):
