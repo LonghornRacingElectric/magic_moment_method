@@ -19,11 +19,11 @@ def main():
 
     peak_slip_angle = 18 * math.pi / 180 # rad
 
-    for x_dot in [15]: #np.linspace(7.22,7.22,1):
+    for x_dot in np.linspace(5, 30, num=6): #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 if abs(body_slip + steered_angle) < peak_slip_angle:
-                    for yaw_rate in [0]: #np.linspace(0.1, 0.1, 1):
+                    for yaw_rate in np.linspace(0, 0, num=1):#np.linspace(0.1, 0.1, 1):
                         vehicle.state.body_slip = body_slip
                         vehicle.state.steered_angle = steered_angle
                         vehicle.state.x_dot = x_dot
