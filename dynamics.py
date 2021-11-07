@@ -57,25 +57,17 @@ class Dynamics():
 
             if type(tire) is FrontTire:
                 track = self.params.front_track
-                cgain = self.params.front_camber_gain
-                caster = self.params.front_caster
-                KPI = self.params.front_KPI
-                static_camber = self.params.front_static_camber
-                steer_inc = - caster * delta + (1 / 2) * KPI * np.sign(delta) * delta ** 2
+                steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * delta ** 2
             else:
                 track = self.params.rear_track
-                cgain = self.params.rear_camber_gain
-                caster = self.params.rear_caster
-                KPI = self.params.rear_KPI
-                static_camber = self.params.rear_static_camber
                 steer_inc = 0
 
             l_static = np.sqrt(self.params.ride_height ** 2 + (track / 2) ** 2)
             ang_disp = np.arcsin(disp * track / (2 * l_static \
                                     * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
-            cgain_inc = - cgain * ang_disp
+            cgain_inc = - tire.camber_gain * ang_disp
 
-            tire.outputs.inclination_angle = cgain_inc + steer_inc + static_camber
+            tire.outputs.inclination_angle = cgain_inc + steer_inc + tire.static_camber
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, state):

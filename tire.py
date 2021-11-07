@@ -104,6 +104,22 @@ class Tire:
     def wheelrate(self):
         pass
 
+    @abstractproperty
+    def KPI(self):
+        pass
+
+    @abstractproperty
+    def static_camber(self):
+        pass
+
+    @abstractproperty
+    def camber_gain(self):
+        pass
+
+    @abstractproperty
+    def caster(self):
+        pass
+
     # def get_Fx(self, slip_angle, camber, Fz):
     #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
     #     # C = b0;
@@ -149,6 +165,22 @@ class FrontTire(Tire):
     def wheelrate(self):
         return self.params.front_wheelrate_stiffness
 
+    @property
+    def KPI(self):
+        return self.params.front_KPI
+
+    @property
+    def static_camber(self):
+        return self.params.front_static_camber
+
+    @property
+    def camber_gain(self):
+        return self.params.front_camber_gain
+
+    @property
+    def caster(self):
+        return self.params.front_caster
+
 class RearTire(Tire):
     def __init__(self, car_params, location, direction_left):
         super().__init__(car_params, location, direction_left)
@@ -181,3 +213,22 @@ class RearTire(Tire):
     @property
     def wheelrate(self):
         return self.params.rear_wheelrate_stiffness
+
+    @property
+    def KPI(self):
+        return self.params.rear_KPI
+
+
+    @property
+    def static_camber(self):
+        return self.params.rear_static_camber
+
+
+    @property
+    def camber_gain(self):
+        return self.params.rear_camber_gain
+
+
+    @property
+    def caster(self):
+        return self.params.rear_caster
