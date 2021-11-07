@@ -14,12 +14,6 @@ Units:
     Mass: kg
 """
 
-def bool_sgn(bool_var):
-    if bool_var:
-        return 1
-    else:
-        return -1
-
 class Dynamics():
     def __init__(self, params):
         # TODO: this seems kinda funky but fine
@@ -54,10 +48,9 @@ class Dynamics():
 
         return forces, moments
 
-    # function of steered angle and unsprung displacement
     def set_unsprung_inclination_angles(self, state):
         for tire in self.tires.__dict__.values():
-            disp = tire.outputs.unsprung_displacement
+            disp = tire.outputs.chassis_height + tire.outputs.unsprung_displacement
             delta = state.steered_angle
 
             if type(tire) is FrontTire:
@@ -68,10 +61,11 @@ class Dynamics():
                 steer_inc = 0
 
             l_static = np.sqrt(self.params.ride_height ** 2 + (track / 2) ** 2)
-            ang_disp = np.arcsin(disp * track / (2 * l_static \
-                                    * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height)))
+            ang_disp = np.sign(disp) * np.abs(np.arcsin(disp * track / (2 * l_static \
+                                    * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height))))
             cgain_inc = - tire.camber_gain * ang_disp
 
+            tire.outputs.steering_inc = steer_inc
             tire.outputs.inclination_angle = cgain_inc + steer_inc + tire.static_camber
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
@@ -93,8 +87,7 @@ class Dynamics():
             # TODO: note rotation is about CG instead of roll / pitch centers
             z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll))
             #    / (cos(roll) *cos(pitch))  what's this normalization???
-            
-            # corner displacement of suspension
+
             # TODO: make sure this math makes sense
             # TODO: Change roll_stiffness in terms of differences of (chassis corner - unsprung displacements)
             z_roll = tire.roll_stiffness * roll
@@ -102,4 +95,4 @@ class Dynamics():
             z_total = z_roll + z_wr
             
             # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
-            tire.set_unsprung_displacement(z_total)    
+            tire.set_unsprung_displacement(z_total, z_c - ride_height)

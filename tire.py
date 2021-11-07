@@ -20,12 +20,14 @@ class Tire:
 
         self.outputs = types.SimpleNamespace()
         self.outputs.unsprung_displacement = None
+        self.outputs.chassis_height = None
         self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
         self.outputs.velocity = None
         self.outputs.slip_angle = None
         self.outputs.inclination_angle = None
         self.outputs.vehicle_centric_forces = None # tire forces in the vehicle coordinate system
         self.outputs.moments = None
+        self.outputs.steering_inc = None
         #self.outputs.slip_ratio = None
 
     @property
@@ -37,8 +39,9 @@ class Tire:
         return self.static_normal_load / self.stiffness
 
     # takes corner displacement of chassis
-    def set_unsprung_displacement(self, z_total):
+    def set_unsprung_displacement(self, z_total, z_c):
         self.outputs.unsprung_displacement = (z_total) / self.stiffness - self.static_unsprung_displacement
+        self.outputs.chassis_height = z_c
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
