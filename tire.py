@@ -218,16 +218,13 @@ class RearTire(Tire):
     def KPI(self):
         return self.params.rear_KPI
 
-
     @property
     def static_camber(self):
         return self.params.rear_static_camber
 
-
     @property
     def camber_gain(self):
         return self.params.rear_camber_gain
-
 
     @property
     def caster(self):

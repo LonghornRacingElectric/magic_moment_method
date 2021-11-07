@@ -14,6 +14,11 @@ Units:
     Mass: kg
 """
 
+def bool_sgn(bool_var):
+    if bool_var:
+        return 1
+    else:
+        return -1
 
 class Dynamics():
     def __init__(self, params):
