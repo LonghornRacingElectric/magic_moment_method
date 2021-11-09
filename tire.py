@@ -2,7 +2,7 @@ from abc import abstractmethod, abstractproperty
 from math import sin, cos
 import math
 import numpy as np
-import types
+from better_namespace import BetterNamespace
 
 """
 Coordinate Systems:
@@ -18,7 +18,7 @@ class Tire:
         self.direction_left = direction_left # Boolean
         self.position = np.array(location)  # Position of the center of the contact patch relative to vehicle frame
 
-        self.outputs = types.SimpleNamespace()
+        self.outputs = BetterNamespace()
         self.outputs.unsprung_displacement = None
         self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
         self.outputs.velocity = None
@@ -38,21 +38,27 @@ class Tire:
     @property
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.stiffness
-
+    
+    @property
+    def is_saturated(self):
+        # TODO: implement better method
+        peak_slip_angle = 18 * math.pi / 180 # rad
+        return self.outputs.slip_angle > peak_slip_angle
+        
     # takes corner displacement of chassis and roll angle
     def set_unsprung_displacement(self, z_c, roll):
         self.outputs.z_c = z_c
-        self.outputs.f_roll = self.roll_stiffness * roll
+        self.outputs.f_roll = self.roll_stiffness * roll # ARB force at tire
 
         unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.stiffness + self.wheelrate)
         
-        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp)
+        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp) # spring force at tire
         self.outputs.unsprung_displacement = unsprung_disp
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     def get_loads(self):
-        # note: is this correct?
+        # note: don't allow normal force of 0 to produce tire forces
         Fz = self.normal_load
         if Fz < 0:
             self.outputs.vehicle_centric_forces = np.array([0, 0, 0])
