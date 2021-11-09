@@ -103,6 +103,7 @@ class Vehicle:
         self.outputs.vehicle = BetterNamespace()
         self.outputs.vehicle.yaw_rate = None # rad/s  ## Using velocity and normal acceleration
         self.outputs.vehicle.turn_radius = None # m  ## Using velocity and normal acceleration
+        self.outputs.vehicle.accelerations_NTB = None # m/s^2
 
     def set_turn_radius_and_yaw_velocity(self, normal_accel):
         # no slip condition; yaw rate guaranteed by acceleration and velocity

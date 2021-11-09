@@ -11,12 +11,8 @@ def main():
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
     initial_guess = [0.0762, 0, 0, 0, 0, 0]
-
-    state_names = ["x_dot", "body_slip", "steered_angle", "yaw_rate"]
     output_var_names = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
-    
     df = None
-
     # TODO: better saturation method
     peak_slip_angle = 18 * math.pi / 180 # rad
 
@@ -40,9 +36,9 @@ def main():
                     data_dict = copy(vehicle.output_log())
                     data_dict.update(dict(vehicle.state.items()))
                     data_dict.update(dict(zip(output_var_names, output_vars)))
-
                     df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
     
+    # export data to CSV
     df.to_csv("MMM.csv")
 
 def DOF6_motion_residuals(x, vehicle):
@@ -52,6 +48,7 @@ def DOF6_motion_residuals(x, vehicle):
     # accelerations
     translation_accelerations_imf = np.array([x_double_dot, y_double_dot, 0])
     translation_accelerations_ntb = vehicle.intermediate_frame_to_ntb_transform(translation_accelerations_imf)
+    vehicle.outputs.vehicle.accelerations_NTB = translation_accelerations_ntb # for logging purposes
     rotational_accelerations = np.array([0, 0, yaw_acceleration])
 
     # vehicle loads

@@ -149,7 +149,7 @@ class FrontTire(Tire):
 
     @property
     def toe(self):
-        return self.params.front_toe * (1 if self.direction_left else -1)
+        return self.params.front_toe * (1 if self.direction_left else -1) # TODO: verify this
 
     @property
     def stiffness(self):
@@ -177,11 +177,11 @@ class RearTire(Tire):
 
     # NOT a function of steered angle, don't use for calcs
     def steering_induced_slip(self, steered_angle):
-        return self.toe
+        return self.toe * (1 if self.direction_left else -1)
 
     @property
     def toe(self):
-        return self.params.rear_toe * (1 if self.direction_left else -1)
+        return self.params.rear_toe * (1 if self.direction_left else -1) #TODO : verify this
 
     # TODO: make linear instead of constant
     @property

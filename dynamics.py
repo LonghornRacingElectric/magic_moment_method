@@ -41,7 +41,6 @@ class Dynamics():
         self.set_unsprung_slip_angles(vehicle_velocity_array, yaw_rate, steered_angle)
         self.set_unsprung_inclination_angles(roll)
 
-        # TODO: is gravity weight correct to go here?
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
         moments = np.array([0, 0, 0])
 
