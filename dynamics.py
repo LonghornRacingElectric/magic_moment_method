@@ -50,12 +50,14 @@ class Dynamics():
 
     def set_unsprung_inclination_angles(self, state):
         for tire in self.tires.__dict__.values():
-            disp = tire.outputs.chassis_height + tire.outputs.unsprung_displacement
-            delta = state.steered_angle
+            disp = tire.outputs.z_c - self.params.ride_height + tire.outputs.unsprung_displacement
+            delta = tire.steer_angle_multiplier * state.steered_angle
 
             if type(tire) is FrontTire:
                 track = self.params.front_track
-                steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
+                # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
+                steer_inc = np.arccos(np.sin(tire.KPI) * np.cos(delta)) + tire.KPI + \
+                            np.arccos(np.sin(tire.caster) * np.sin(delta)) - np.pi
             else:
                 track = self.params.rear_track
                 steer_inc = 0

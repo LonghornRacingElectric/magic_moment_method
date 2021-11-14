@@ -20,7 +20,6 @@ class Tire:
 
         self.outputs = types.SimpleNamespace()
         self.outputs.unsprung_displacement = None
-        self.outputs.chassis_height = None
         self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
         self.outputs.velocity = None
         self.outputs.slip_angle = None
@@ -40,6 +39,13 @@ class Tire:
     @property
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.stiffness
+
+    @property
+    def steer_angle_multiplier(self):
+        if self.direction_left:
+            return 1
+        else:
+            return -1
 
     # takes corner displacement of chassis and roll angle
     def set_unsprung_displacement(self, z_c, roll):
