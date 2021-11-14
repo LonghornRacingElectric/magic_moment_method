@@ -40,7 +40,7 @@ class Vehicle:
         self.params.rear_static_camber = -2 * (np.pi / 180)
         self.params.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
         self.params.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
-        self.params.front_KPI = 5 * (np.pi / 180) # 5 deg -> radians; 2021 number
+        self.params.front_KPI = 5.1 * (np.pi / 180) # 5 deg -> radians; 2021 number
         self.params.rear_KPI = 3 * (np.pi / 180) # 3 deg -> radians; 2021 number
         self.params.front_caster = 1 * (np.pi / 180) # 1 deg -> radians; 2021 number
         self.params.rear_caster = 2 * (np.pi / 180)  # 2 deg -> radians; 2021 number

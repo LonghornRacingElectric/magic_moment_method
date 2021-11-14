@@ -55,7 +55,7 @@ class Dynamics():
 
             if type(tire) is FrontTire:
                 track = self.params.front_track
-                steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * delta ** 2
+                steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
             else:
                 track = self.params.rear_track
                 steer_inc = 0
