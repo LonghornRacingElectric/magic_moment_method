@@ -28,6 +28,9 @@ class Tire:
         self.outputs.vehicle_centric_forces = None # tire forces in the vehicle coordinate system
         self.outputs.moments = None
         self.outputs.steering_inc = None
+        self.outputs.z_c = None
+        self.outputs.f_roll = None
+        self.outputs.f_heave = None
         #self.outputs.slip_ratio = None
 
     @property
@@ -38,44 +41,56 @@ class Tire:
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.stiffness
 
-    # takes corner displacement of chassis
-    def set_unsprung_displacement(self, z_total, z_c):
-        self.outputs.unsprung_displacement = (z_total) / self.stiffness - self.static_unsprung_displacement
-        self.outputs.chassis_height = z_c
+    # takes corner displacement of chassis and roll angle
+    def set_unsprung_displacement(self, z_c, roll):
+        self.outputs.z_c = z_c
+        self.outputs.f_roll = self.roll_stiffness * roll
+
+        unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.stiffness + self.wheelrate)
+        
+        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp)
+        self.outputs.unsprung_displacement = unsprung_disp
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     def get_loads(self):
-        # TODO: need to consider slip ratio
-        # multiplier is done for any non-symmetries in fit
-        multiplier = -1 if self.direction_left else 1
-        slip_degrees = self.outputs.slip_angle * 180/math.pi * multiplier
-
-        [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
-             a17] = self.lateral_coeffs
+        # note: is this correct?
         Fz = self.normal_load
-        inclination_angle = self.outputs.inclination_angle
+        if Fz < 0:
+            self.outputs.vehicle_centric_forces = np.array([0, 0, 0])
+            self.outputs.tire_centric_forces = np.array([0, 0, 0])
+            self.outputs.moments = np.zeros(3)
+        else:
+            # TODO: need to consider slip ratio
+            # multiplier is done for any non-symmetries in fit
+            multiplier = -1 if self.direction_left else 1
+            slip_degrees = self.outputs.slip_angle * 180/math.pi * multiplier
 
-        C = a0
-        D = Fz * (a1 * Fz + a2) * (1 - a15 * inclination_angle ** 2)
-        BCD = a3 * math.sin(math.atan(Fz / a4) * 2) * (1 - a5 * abs(inclination_angle))
-        B = BCD / (C * D)
-        H = a8 * Fz + a9 + a10 * inclination_angle
-        E = (a6 * Fz + a7) * (1 - (a16 * inclination_angle + a17) * math.copysign(1, slip_degrees + H))
-        V = a11 * Fz + a12 + (a13 * Fz + a14) * inclination_angle * Fz
-        Bx1 = B * (slip_degrees + H)
+            [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
+                a17] = self.lateral_coeffs
+            
+            inclination_angle = self.outputs.inclination_angle
 
-        Fy = multiplier * 2/3* (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
+            C = a0
+            D = Fz * (a1 * Fz + a2) * (1 - a15 * inclination_angle ** 2)
+            BCD = a3 * math.sin(math.atan(Fz / a4) * 2) * (1 - a5 * abs(inclination_angle))
+            B = BCD / (C * D)
+            H = a8 * Fz + a9 + a10 * inclination_angle
+            E = (a6 * Fz + a7) * (1 - (a16 * inclination_angle + a17) * math.copysign(1, slip_degrees + H))
+            V = a11 * Fz + a12 + (a13 * Fz + a14) * inclination_angle * Fz
+            Bx1 = B * (slip_degrees + H)
 
-        self.outputs.tire_centric_forces = np.array([0, Fy, self.normal_load])
+            Fy = multiplier * 2/3* (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
 
-        # Rotate the tire force into intermediate frame and add moments/forces to total
-        # TODO: conversions utilities
-        slip_radians = self.outputs.slip_angle
-        rotation_matrix = np.array([[cos(slip_radians),-sin(slip_radians),0],[sin(slip_radians),cos(slip_radians),0],[0,0,1]])
-        self.outputs.vehicle_centric_forces = rotation_matrix.dot(self.outputs.tire_centric_forces)
+            self.outputs.tire_centric_forces = np.array([0, Fy, self.normal_load])
 
-        self.outputs.moments = np.cross(self.outputs.vehicle_centric_forces, self.position)
+            # Rotate the tire force into intermediate frame and add moments/forces to total
+            # TODO: conversions utilities
+            slip_radians = self.outputs.slip_angle
+            rotation_matrix = np.array([[cos(slip_radians),-sin(slip_radians),0],[sin(slip_radians),cos(slip_radians),0],[0,0,1]])
+            self.outputs.vehicle_centric_forces = rotation_matrix.dot(self.outputs.tire_centric_forces)
+
+            self.outputs.moments = np.cross(self.outputs.vehicle_centric_forces, self.position)
 
         return self.outputs.vehicle_centric_forces, self.outputs.moments 
 
