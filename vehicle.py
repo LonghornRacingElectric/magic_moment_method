@@ -25,7 +25,7 @@ class Vehicle:
         self.params.ride_height = 0.0762  # m
 
         ### dynamics params
-        
+
         # suspension
         self.params.wheelbase = 1.55
         self.params.front_track = 1.27
@@ -33,7 +33,7 @@ class Vehicle:
         self.params.front_roll_stiffness = 0 * (180/math.pi) / (self.params.front_track / 2) # N/rad
         self.params.rear_roll_stiffness = 0 * (180/math.pi) / (self.params.rear_track / 2)  # N/rad
         self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
-        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
+        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m
         self.params.rear_toe = 0 * math.pi/180 # rad
         self.params.front_toe = 0 # rad
         # self.front_static_camber = 0
@@ -45,7 +45,7 @@ class Vehicle:
         # self.pitch_center_x = -2.5 * 0.0254
 
         # tires
-        
+
         ### 2022
         # TODO: Make tire spring rate not a constant value
         #self.params.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -75,10 +75,16 @@ class Vehicle:
         # self.params.front_tire_spring_rate = 551 * 175
 
         ### aerodynamics params
-        self.params.ClA_tot = 3.955
         self.params.CdA0 = 0.7155
-        self.params.CdA_full = 1.512
         self.params.CsA_tot = 33.91
+        self.params.aeroActive = False
+
+        if self.params.aeroActive:
+            self.params.ClA_tot = 3.955
+            self.params.CdA_full = 1.512
+        else:
+            self.params.ClA_tot = 2.729
+            self.params.CdA_full = 1.512 - 0.98
 
         ### dependent params
         self.params.cg_total_position = np.array([self.params.cg_bias * self.params.wheelbase, 0, self.params.cg_height])

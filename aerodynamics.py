@@ -9,9 +9,9 @@ class Aerodynamics:
         CdA_tot   = abs(self.vehicle_params.CdA_full - self.vehicle_params.CdA0)
 
         # distribution of downforce across components
-        ClA_dist = [0.371, 0.282, 0.347]   # [front, undertray, rear]
-        CdA_dist = [0.324, 0.186, 0.490]
-        CsA_dist = [0.250, 0.000, 0.750]
+        ClA_dist = [[0.283, 0.321, 0.396], [0.454, 0.407, 0.139]]   # [active, deactive] -> [front, undertray, rear]
+        CdA_dist = [[0.260, 0.170, 0.570], [0.426, 0.404, 0.170]]
+        CsA_dist = [[0.250, 0.000, 0.750], [0.250, 0.000, 0.750]]
 
         # pitch, body_slip, and roll sensitivities,
         #            Cl              Cd               Cs
@@ -34,12 +34,18 @@ class Aerodynamics:
                              [-43.5 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 7.13 * self.in_to_m],
                              [-67.6 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 42.91 * self.in_to_m]])
 
+        # sets values for active/deactive aero
+        if self.vehicle_params.aeroActive:
+            distrArray = 0
+        else:
+            distrArray = 1
+
         # gets aero coefficients for each component
-        self.ClA = [self.vehicle_params.ClA_tot * ClA_dist[0], self.vehicle_params.ClA_tot * ClA_dist[1],
-                    self.vehicle_params.ClA_tot * ClA_dist[2]]
-        self.CdA = [CdA_tot * CdA_dist[0], CdA_tot * CdA_dist[1], CdA_tot * CdA_dist[2]]
-        self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[0], self.vehicle_params.CsA_tot * CsA_dist[1],
-                    self.vehicle_params.CsA_tot * CsA_dist[2]]
+        self.ClA = [self.vehicle_params.ClA_tot * ClA_dist[distrArray][0], self.vehicle_params.ClA_tot * ClA_dist[distrArray][1],
+                    self.vehicle_params.ClA_tot * ClA_dist[distrArray][2]]
+        self.CdA = [CdA_tot * CdA_dist[distrArray][0], CdA_tot * CdA_dist[distrArray][1], CdA_tot * CdA_dist[distrArray][2]]
+        self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[distrArray][0], self.vehicle_params.CsA_tot * CsA_dist[distrArray][1],
+                    self.vehicle_params.CsA_tot * CsA_dist[distrArray][2]]
 
     def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
 
@@ -80,4 +86,3 @@ class Aerodynamics:
         drag_no_aero = 0.5 * 1.225 * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
         return forces, moments
-
