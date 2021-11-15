@@ -2,7 +2,7 @@ from abc import abstractmethod, abstractproperty
 from math import sin, cos
 import math
 import numpy as np
-import types
+from better_namespace import BetterNamespace
 
 """
 Coordinate Systems:
@@ -18,7 +18,7 @@ class Tire:
         self.direction_left = direction_left # Boolean
         self.position = np.array(location)  # Position of the center of the contact patch relative to vehicle frame
 
-        self.outputs = types.SimpleNamespace()
+        self.outputs = BetterNamespace()
         self.outputs.unsprung_displacement = None
         self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
         self.outputs.velocity = None
@@ -33,34 +33,49 @@ class Tire:
         #self.outputs.slip_ratio = None
 
     @property
+    def wheel_displacement(self):
+        return self.outputs.z_c - self.params.ride_height + self.outputs.unsprung_displacement
+
+    @property
     def normal_load(self):
         return self.stiffness * self.outputs.unsprung_displacement
 
     @property
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.stiffness
+    
+    # input steered angle is in intermediate frame
+    # TODO: should toe be included in this steered angle or added afterwards?
+    def steered_inclination_angle_gain(self, steered_angle):
+        # convert steered angle to tire frame
+        steered_angle = steered_angle * 1 if self.direction_left else -1
+        
+        # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
+        steer_inc = np.arccos(np.sin(self.KPI) * np.cos(steered_angle)) + self.KPI + \
+                    np.arccos(np.sin(self.caster) * np.sin(steered_angle)) - np.pi
+                    
+        return steer_inc
 
     @property
-    def steer_angle_multiplier(self):
-        if self.direction_left:
-            return 1
-        else:
-            return -1
-
+    def is_saturated(self):
+        # TODO: implement better method
+        peak_slip_angle = 18 * math.pi / 180 # rad
+        return self.outputs.slip_angle > peak_slip_angle
+        
     # takes corner displacement of chassis and roll angle
     def set_unsprung_displacement(self, z_c, roll):
         self.outputs.z_c = z_c
-        self.outputs.f_roll = self.roll_stiffness * roll
+        self.outputs.f_roll = self.roll_stiffness * roll # ARB force at tire
 
         unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.stiffness + self.wheelrate)
         
-        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp)
+        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp) # spring force at tire
         self.outputs.unsprung_displacement = unsprung_disp
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     def get_loads(self):
-        # note: is this correct?
+        # note: don't allow normal force of 0 to produce tire forces
         Fz = self.normal_load
         if Fz < 0:
             self.outputs.vehicle_centric_forces = np.array([0, 0, 0])
@@ -102,6 +117,10 @@ class Tire:
 
     @abstractmethod
     def steering_induced_slip(self, steered_angle):
+        pass
+
+    @abstractproperty
+    def trackwidth(self):
         pass
 
     @abstractproperty
@@ -167,7 +186,7 @@ class FrontTire(Tire):
 
     @property
     def toe(self):
-        return self.params.front_toe * (1 if self.direction_left else -1)
+        return self.params.front_toe * (1 if self.direction_left else -1) # TODO: verify this
 
     @property
     def stiffness(self):
@@ -205,17 +224,21 @@ class FrontTire(Tire):
     def caster(self):
         return self.params.front_caster
 
+    @property
+    def trackwidth(self):
+        return self.params.front_track
+
 class RearTire(Tire):
     def __init__(self, car_params, location, direction_left):
         super().__init__(car_params, location, direction_left)
 
     # NOT a function of steered angle, don't use for calcs
     def steering_induced_slip(self, steered_angle):
-        return self.toe
+        return self.toe * (1 if self.direction_left else -1)
 
     @property
     def toe(self):
-        return self.params.rear_toe * (1 if self.direction_left else -1)
+        return self.params.rear_toe * (1 if self.direction_left else -1) #TODO : verify this
 
     # TODO: make linear instead of constant
     @property
@@ -253,3 +276,7 @@ class RearTire(Tire):
     @property
     def caster(self):
         return self.params.rear_caster
+    
+    @property
+    def trackwidth(self):
+        return self.params.rear_track

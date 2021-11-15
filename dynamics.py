@@ -1,6 +1,6 @@
 import math
-from math import sin, cos, tan, tanh
-import types
+from math import sin, cos
+from better_namespace import BetterNamespace
 import numpy as np
 from tire import FrontTire, RearTire
 
@@ -16,10 +16,10 @@ Units:
 
 class Dynamics():
     def __init__(self, params):
-        # TODO: this seems kinda funky but fine
         self.params = params
+        self.outputs = BetterNamespace()
 
-        self.tires = types.SimpleNamespace()
+        self.tires = BetterNamespace()
         front_left_loc = [self.params.wheelbase * self.params.cg_bias, self.params.front_track/2, 0]
         front_right_loc = [self.params.wheelbase * self.params.cg_bias, -self.params.front_track/2, 0]
         rear_left_loc = [-self.params.wheelbase * (1-self.params.cg_bias), self.params.rear_track/2, 0]
@@ -30,67 +30,57 @@ class Dynamics():
         self.tires.rear_left = RearTire(self.params, rear_left_loc, True)
         self.tires.rear_right = RearTire(self.params, rear_right_loc, False)
 
-    def get_loads(self, state, roll, pitch, ride_height):
+    # see if point is saturated (i.e. all 4 tires slip angles are saturated)
+    @property
+    def tires_saturated(self):
+        return not False in [tire.is_saturated for tire in self.tires.values()]
+
+    def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
         # calculate unsprung states
         self.set_unsprung_displacements(roll, pitch, ride_height)
-        self.set_unsprung_slip_angles(state)
-        self.set_unsprung_inclination_angles(state)
+        self.set_unsprung_slip_angles(vehicle_velocity, yaw_rate, steered_angle)
+        self.set_unsprung_inclination_angles(steered_angle)
 
-        # TODO: is gravity weight correct to go here?
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
         moments = np.array([0, 0, 0])
 
         # tire forces (inclination angle, slip angles, normal forces) # TODO slip ratio
-        for tire in self.tires.__dict__.values():
+        for tire in self.tires.values():
             f, m = tire.get_loads()
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
 
         return forces, moments
 
-    def set_unsprung_inclination_angles(self, state):
-        for tire in self.tires.__dict__.values():
-            disp = tire.outputs.z_c - self.params.ride_height + tire.outputs.unsprung_displacement
-            delta = tire.steer_angle_multiplier * state.steered_angle
+    def set_unsprung_inclination_angles(self, steered_angle):
+        for tire in self.tires.values():
+            disp = tire.wheel_displacement
 
-            if type(tire) is FrontTire:
-                track = self.params.front_track
-                # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
-                steer_inc = np.arccos(np.sin(tire.KPI) * np.cos(delta)) + tire.KPI + \
-                            np.arccos(np.sin(tire.caster) * np.sin(delta)) - np.pi
-            else:
-                track = self.params.rear_track
-                steer_inc = 0
-
-            l_static = np.sqrt(self.params.ride_height ** 2 + (track / 2) ** 2)
-            ang_disp = np.sign(disp) * np.abs(np.arcsin(disp * track / (2 * l_static \
+            l_static = np.sqrt(self.params.ride_height ** 2 + (tire.trackwidth / 2) ** 2)
+            ang_disp = np.sign(disp) * np.abs(np.arcsin(disp * tire.trackwidth / (2 * l_static \
                                     * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height))))
             cgain_inc = - tire.camber_gain * ang_disp
 
-            tire.outputs.steering_inc = steer_inc
-            tire.outputs.inclination_angle = cgain_inc + steer_inc + tire.static_camber
+            tire.outputs.steering_inc = tire.steered_inclination_angle_gain(steered_angle) if type(tire) is FrontTire else 0
+            tire.outputs.inclination_angle = cgain_inc + tire.outputs.steering_inc + tire.static_camber
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
-    def set_unsprung_slip_angles(self, state):
-        y_dot = state.x_dot * math.tan(state.body_slip)
-        for tire in self.tires.__dict__.values():
-            # calculate tire velocities in intermediate frame
-            tire_velocity = np.array([state.x_dot, y_dot, 0]) + np.cross(np.array([0, state.yaw_rate, 0]),tire.position)
+    def set_unsprung_slip_angles(self, vehicle_velocity, yaw_rate, steered_angle):
+        for tire in self.tires.values():
+            # calculate tire velocities in IMF
+            tire_velocity = vehicle_velocity + np.cross(np.array([0, yaw_rate, 0]),tire.position)
+            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
+            
             tire.outputs.velocity = tire_velocity
-
-            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0])
-            # TODO: Add in proper steering geometry later into FrontTire object
-            slip_angle += tire.steering_induced_slip(state.steered_angle)
             tire.outputs.slip_angle = slip_angle
 
     def set_unsprung_displacements(self, roll, pitch, ride_height):
-        for tire in self.tires.__dict__.values():
+        for tire in self.tires.values():
             # corner displacement of chassis
             # TODO: note rotation is about CG instead of roll / pitch centers
-
-            z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll))
-            #    / (cos(roll) *cos(pitch))  what's this normalization???
-
+            # TODO: verify equation - why is it normalized with roll and pitch on the bottom?
+            z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
+                / (cos(pitch) *cos(roll))
+            
             # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
             tire.set_unsprung_displacement(z_c, roll)
-

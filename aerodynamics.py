@@ -1,8 +1,10 @@
 import math
 import numpy as np
+from better_namespace import BetterNamespace
 
 class Aerodynamics:
     def __init__(self, params):
+        self.outputs = BetterNamespace()
         # TODO: make param files later; currently all initialized here
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
