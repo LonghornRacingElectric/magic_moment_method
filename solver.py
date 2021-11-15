@@ -17,7 +17,7 @@ def main():
     peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for x_dot in [20]: #np.linspace(7.22,7.22,1):
+    for x_dot in [5]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set vehicle states for each individual sweep
@@ -63,6 +63,7 @@ def DOF6_motion_residuals(x, vehicle):
     # solving for summation of forces = m * accel
     summation_forces = vehicle.params.mass * translation_accelerations_ntb - vehicle_forces_ntb
     # solving for summation of moments = I * alpha
+    # only rotational acceleration being considered is yaw acceleration; which is why it isnt transformed (no roll/pitch accel)
     summation_moments = np.dot(vehicle.params.sprung_inertia, rotational_accelerations) - parallel_axis_moment - vehicle_moments_ntb
 
     return np.array([*summation_forces, *summation_moments])

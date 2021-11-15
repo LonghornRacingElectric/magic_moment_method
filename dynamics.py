@@ -35,10 +35,10 @@ class Dynamics():
     def tires_saturated(self):
         return not False in [tire.is_saturated for tire in self.tires.values()]
 
-    def get_loads(self, vehicle_velocity_array, yaw_rate, steered_angle, roll, pitch, ride_height):
+    def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
         # calculate unsprung states
         self.set_unsprung_displacements(roll, pitch, ride_height)
-        self.set_unsprung_slip_angles(vehicle_velocity_array, yaw_rate, steered_angle)
+        self.set_unsprung_slip_angles(vehicle_velocity, yaw_rate, steered_angle)
         self.set_unsprung_inclination_angles(roll)
 
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
@@ -58,10 +58,10 @@ class Dynamics():
         pass
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
-    def set_unsprung_slip_angles(self, vehicle_velocity_array, yaw_rate, steered_angle):
+    def set_unsprung_slip_angles(self, vehicle_velocity, yaw_rate, steered_angle):
         for tire in self.tires.values():
             # calculate tire velocities in IMF
-            tire_velocity = vehicle_velocity_array + np.cross(np.array([0, yaw_rate, 0]),tire.position)
+            tire_velocity = vehicle_velocity + np.cross(np.array([0, yaw_rate, 0]),tire.position)
             slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
             
             tire.outputs.velocity = tire_velocity
