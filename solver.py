@@ -56,7 +56,8 @@ def DOF6_motion_residuals(x, vehicle):
     vehicle_forces_ntb = vehicle.intermediate_frame_to_ntb_transform(forces)
     vehicle_moments_ntb = vehicle.intermediate_frame_to_ntb_transform(moments)
 
-    # parallel axis due to summation of moments not being done about CG
+    # Kinetic moment summation of moments not being done about CG
+    # TODO: Make sure sprung inertia is about the intermediate axis
     cg_relative_ntb = np.array([0, 0, vehicle.params.cg_total_position[2]])
     kinetic_moment = np.cross(vehicle.params.mass * translation_accelerations_ntb, cg_relative_ntb)
     
