@@ -105,14 +105,15 @@ class Vehicle:
         self.outputs.vehicle.turn_radius = None # m  ## Using velocity and normal acceleration
         self.outputs.vehicle.accelerations_NTB = None # m/s^2
 
-    def set_turn_radius_and_yaw_velocity(self, normal_accel):
+    # normal to path acceleration (lateral accel) passed in; yaw rate dependent state on this as described by below equations
+    def set_turn_radius_and_yaw_velocity(self, lateral_accel):
         # no slip condition; yaw rate guaranteed by acceleration and velocity
-        if normal_accel == 0:
+        if lateral_accel == 0:
             self.outputs.vehicle.turn_radius = 0
             self.outputs.vehicle.yaw_rate = 0
         else:
             # v^2/r = a; w*r = v; w = v/r = v/(v^2/a); alpha = a/r
-            self.outputs.vehicle.turn_radius = self.velocity ** 2 / normal_accel
+            self.outputs.vehicle.turn_radius = self.velocity ** 2 / lateral_accel
             self.outputs.vehicle.yaw_rate = self.velocity / self.outputs.vehicle.turn_radius
 
     # Intermediate Frame rotational velocities
@@ -141,9 +142,9 @@ class Vehicle:
     def y_dot(self):
         return self.state.x_dot * math.tan(self.state.body_slip)
 
-    def get_loads(self, roll, pitch, ride_height, normal_accel):
+    def get_loads(self, roll, pitch, ride_height, lateral_accel):
         # only use normal acceleration for yaw velocity & turn radius calc!
-        self.set_turn_radius_and_yaw_velocity(normal_accel)
+        self.set_turn_radius_and_yaw_velocity(lateral_accel)
         
         # Define aero loads
         aero_forces, aero_moments = self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,

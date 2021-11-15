@@ -58,13 +58,14 @@ def DOF6_motion_residuals(x, vehicle):
 
     # parallel axis due to summation of moments not being done about CG
     cg_relative_ntb = np.array([0, 0, vehicle.params.cg_total_position[2]])
-    parallel_axis_moment = np.cross(vehicle.params.mass * translation_accelerations_ntb, cg_relative_ntb)
+    kinetic_moment = np.cross(vehicle.params.mass * translation_accelerations_ntb, cg_relative_ntb)
     
     # solving for summation of forces = m * accel
     summation_forces = vehicle.params.mass * translation_accelerations_ntb - vehicle_forces_ntb
+    
     # solving for summation of moments = I * alpha
     # only rotational acceleration being considered is yaw acceleration; which is why it isnt transformed (no roll/pitch accel)
-    summation_moments = np.dot(vehicle.params.sprung_inertia, rotational_accelerations) - parallel_axis_moment - vehicle_moments_ntb
+    summation_moments = np.dot(vehicle.params.sprung_inertia, rotational_accelerations) - kinetic_moment - vehicle_moments_ntb
 
     return np.array([*summation_forces, *summation_moments])
 
