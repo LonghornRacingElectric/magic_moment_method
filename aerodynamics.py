@@ -6,11 +6,9 @@ class Aerodynamics:
         # TODO: make param files later; currently all initialized here
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
-        CdA_tot   = abs(self.vehicle_params.CdA_full - self.vehicle_params.CdA0)
-
         # distribution of downforce across components
-        ClA_dist = [[0.283, 0.321, 0.396], [0.454, 0.407, 0.139]]   # [active, deactive] -> [front, undertray, rear]
-        CdA_dist = [[0.260, 0.170, 0.570], [0.426, 0.404, 0.170]]
+        ClA_dist = [[0.440, 0.184, 0.376], [0.454, 0.407, 0.139]]   # [active, deactive] -> [front, undertray, rear]
+        CdA_dist = [[0.415, 0.150, 0.445], [0.426, 0.404, 0.170]]
         CsA_dist = [[0.250, 0.000, 0.750], [0.250, 0.000, 0.750]]
 
         # pitch, body_slip, and roll sensitivities,
@@ -30,9 +28,9 @@ class Aerodynamics:
         # positions of component CoPs (magnitudes, equation takes signs into account)
         # TODO: make positions relative to intermediate frame
         # Front, Undertray and Rear [x , y , z]
-        self.CoP = np.array([[23.65 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 9.30 * self.in_to_m],
-                             [-43.5 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 7.13 * self.in_to_m],
-                             [-67.6 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 42.91 * self.in_to_m]])
+        self.CoP = np.array([[23.71 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 6.6 * self.in_to_m],
+                             [-63.52 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 14.85 * self.in_to_m],
+                             [-65.16 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 37.84 * self.in_to_m]])
 
         # sets values for active/deactive aero
         if self.vehicle_params.aeroActive:
@@ -43,7 +41,8 @@ class Aerodynamics:
         # gets aero coefficients for each component
         self.ClA = [self.vehicle_params.ClA_tot * ClA_dist[distrArray][0], self.vehicle_params.ClA_tot * ClA_dist[distrArray][1],
                     self.vehicle_params.ClA_tot * ClA_dist[distrArray][2]]
-        self.CdA = [CdA_tot * CdA_dist[distrArray][0], CdA_tot * CdA_dist[distrArray][1], CdA_tot * CdA_dist[distrArray][2]]
+        self.CdA = [self.vehicle_params.CdA_tot * CdA_dist[distrArray][0], self.vehicle_params.CdA_tot * CdA_dist[distrArray][1],
+                    self.vehicle_params.CdA_tot * CdA_dist[distrArray][2]]
         self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[distrArray][0], self.vehicle_params.CsA_tot * CsA_dist[distrArray][1],
                     self.vehicle_params.CsA_tot * CsA_dist[distrArray][2]]
 

@@ -77,14 +77,16 @@ class Vehicle:
         ### aerodynamics params
         self.params.CdA0 = 0.7155
         self.params.CsA_tot = 33.91
-        self.params.aeroActive = False
+        self.params.aeroActive = True
 
         if self.params.aeroActive:
             self.params.ClA_tot = 3.955
             self.params.CdA_full = 1.512
         else:
             self.params.ClA_tot = 2.729
-            self.params.CdA_full = 1.512 - 0.98
+            self.params.CdA_full = 1.14
+
+        self.params.CdA_tot = abs(self.params.CdA_full - self.params.CdA0)
 
         ### dependent params
         self.params.cg_total_position = np.array([self.params.cg_bias * self.params.wheelbase, 0, self.params.cg_height])
