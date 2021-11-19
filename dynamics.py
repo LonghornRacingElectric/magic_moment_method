@@ -56,13 +56,17 @@ class Dynamics():
         for tire in self.tires.values():
             disp = tire.wheel_displacement
 
-            l_static = np.sqrt(self.params.ride_height ** 2 + (tire.trackwidth / 2) ** 2)
-            ang_disp = np.sign(disp) * np.abs(np.arcsin(disp * tire.trackwidth / (2 * l_static \
-                                    * np.sqrt(disp ** 2 + l_static ** 2 - 2 * disp * self.params.ride_height))))
-            cgain_inc = - tire.camber_gain * ang_disp
+            # Tire swing length is the distance from the contact patch to (y, z) = (0, ride height).
+            # Approximation: the angular displacement is the angle swept by this line as the tire displaces vertically
+            tire_swing_length = np.sqrt(self.params.ride_height ** 2 + np.abs(tire.position[1]) ** 2)
+            angular_displacement = np.sign(disp) * np.abs(np.arcsin(disp * np.abs(tire.position[1]) / (tire_swing_length \
+                                    * np.sqrt(disp ** 2 + tire_swing_length ** 2 - 2 * disp * self.params.ride_height))))
+            camber_gain_inclination = - tire.camber_gain * angular_displacement
 
-            tire.outputs.steering_inc = tire.steered_inclination_angle_gain(steered_angle) if type(tire) is FrontTire else 0
-            tire.outputs.inclination_angle = cgain_inc + tire.outputs.steering_inc + tire.static_camber
+            # Steering inclination: change in inclination angle due to steering
+            tire.outputs.steering_inclination = tire.steered_inclination_angle_gain(steered_angle) if type(tire) is FrontTire else 0
+
+            tire.outputs.inclination_angle = camber_gain_inclination + tire.outputs.steering_inclination + tire.static_camber
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, vehicle_velocity, yaw_rate, steered_angle):
