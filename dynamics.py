@@ -18,17 +18,12 @@ class Dynamics():
     def __init__(self, params):
         self.params = params
         self.outputs = BetterNamespace()
-
+        
         self.tires = BetterNamespace()
-        front_left_loc = [self.params.wheelbase * self.params.cg_bias, self.params.front_track/2, 0]
-        front_right_loc = [self.params.wheelbase * self.params.cg_bias, -self.params.front_track/2, 0]
-        rear_left_loc = [-self.params.wheelbase * (1-self.params.cg_bias), self.params.rear_track/2, 0]
-        rear_right_loc = [-self.params.wheelbase * (1-self.params.cg_bias), -self.params.rear_track/2, 0]
-
-        self.tires.front_left = FrontTire(self.params, front_left_loc, True)
-        self.tires.front_right = FrontTire(self.params, front_right_loc, False)
-        self.tires.rear_left = RearTire(self.params, rear_left_loc, True)
-        self.tires.rear_right = RearTire(self.params, rear_right_loc, False)
+        self.tires.front_left = FrontTire(self.params, True)
+        self.tires.front_right = FrontTire(self.params, False)
+        self.tires.rear_left = RearTire(self.params, True)
+        self.tires.rear_right = RearTire(self.params, False)
 
     # see if point is saturated (i.e. all 4 tires slip angles are saturated)
     @property
@@ -41,10 +36,11 @@ class Dynamics():
         self.set_unsprung_slip_angles(vehicle_velocity, yaw_rate, steered_angle)
         self.set_unsprung_inclination_angles(steered_angle)
 
+        # get unsprung forces
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
         moments = np.array([0, 0, 0])
 
-        # tire forces (inclination angle, slip angles, normal forces) # TODO slip ratio
+        # tire forces (inclination angle, slip angles, normal forces)
         for tire in self.tires.values():
             f, m = tire.get_loads()
             forces = np.add(f, forces)  
