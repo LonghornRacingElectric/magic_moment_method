@@ -14,8 +14,8 @@ class Vehicle:
         ### vehicle params
         self.params.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2
         self.params.gravity = 9.81 # m/s^2
-        self.params.cg_bias = 0.55  # Position of the cg from front to rear, value from 0->1
-        self.params.cg_height = 12 * 0.0254 # m 
+        self.params.cg_bias = 0.53  # Position of the cg from front to rear, value from 0->1
+        self.params.cg_height = 11.09 * 0.0254 # m 
         self.params.mass_sprung = 245.46 # kg
 
         ### dynamics params
@@ -23,7 +23,7 @@ class Vehicle:
         # suspension
         self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
         self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
-        self.params.wheelbase = 1.55
+        self.params.wheelbase = 61 * 0.0254 # m
         self.params.front_track = 1.27
         self.params.rear_track = 1.17
         self.params.ride_height = 0.0762  # m
