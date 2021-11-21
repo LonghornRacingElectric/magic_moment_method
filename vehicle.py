@@ -21,26 +21,30 @@ class Vehicle:
         ### dynamics params
         
         # suspension
-        self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224)
-        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224)
+        self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
+        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m
         self.params.wheelbase = 61 * 0.0254 # m
-        self.params.front_track = 1.27
-        self.params.rear_track = 1.17
+        self.params.front_track = 1.27 # m
+        self.params.rear_track = 1.17 # m
         self.params.ride_height = 0.0762  # m
-        self.params.front_roll_stiffness = 50 * (180/math.pi) / (self.params.front_track / 2) # N/rad # 143 is Lorraine!! 50 is using Lorraine heave stiffness for balance
+        
+        # These are ARB stiffnesses!
+        # 143 is Lorraine!! 50 is using Lorraine heave stiffness for balance
+        self.params.front_roll_stiffness = 50 * (180/math.pi) / (self.params.front_track / 2) # N/rad 
         self.params.rear_roll_stiffness = 0 * (180/math.pi) / (self.params.rear_track / 2)  # N/rad
+        
         self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
         self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
         self.params.rear_toe = 0 * math.pi/180 # rad
         self.params.front_toe = 0 # rad
-        self.params.front_static_camber = -2 * (np.pi / 180)
-        self.params.rear_static_camber = -2 * (np.pi / 180)
-        self.params.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
+        self.params.front_static_camber = -1 * (np.pi / 180)
+        self.params.rear_static_camber = -1 * (np.pi / 180)
+        self.params.front_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
         self.params.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
-        self.params.front_KPI = 5.1 * (np.pi / 180) # 5 deg -> radians; 2021 number
+        self.params.front_KPI = 4.2 * (np.pi / 180) # 5 deg -> radians; 2021 number
         self.params.rear_KPI = 3 * (np.pi / 180) # 3 deg -> radians; 2021 number
-        self.params.front_caster = 1 * (np.pi / 180) # 1 deg -> radians; 2021 number
-        self.params.rear_caster = 2 * (np.pi / 180)  # 2 deg -> radians; 2021 number
+        self.params.front_caster = 2 * (np.pi / 180) # 1 deg -> radians
+        self.params.rear_caster = 2 * (np.pi / 180)  # 2 deg -> radians
         # self.front_roll_center_height = -.75 * .0254
         # self.rear_roll_center_height = -.5 * .0254
         # self.pitch_center_x = -2.5 * 0.0254
