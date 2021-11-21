@@ -17,7 +17,7 @@ def main():
     peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for x_dot in [5]: #np.linspace(7.22,7.22,1):
+    for x_dot in [1]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set vehicle states for each individual sweep
@@ -39,7 +39,7 @@ def main():
                     df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
     
     # export data to CSV
-    df.to_csv("MMM.csv")
+    df.to_csv("analysis/MMM.csv")
 
 def DOF6_motion_residuals(x, vehicle):
     # solving for these bois
