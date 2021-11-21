@@ -4,22 +4,26 @@ from scipy.optimize import fsolve as josie_solver
 import pandas as pd
 from copy import copy
 import math
+from conversions import Conversions
 
 def main():
     vehicle = Vehicle()
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
-    initial_guess = [0.0762, 0, 0, 0, 0, 0]
+    initial_guess = [Conversions.inch_to_meter(4), 0, 0, 0, 0, 0]
     output_var_names = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
     df = None
     # TODO: better saturation method
+
     peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for x_dot in [5]: #np.linspace(7.22,7.22,1):
-        for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
-            for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+    for x_dot in np.linspace(5, 30, num=30): #np.linspace(7.22,7.22,1):
+        # for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+        #     for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+        for body_slip in [0]:
+            for steered_angle in [0]:
                 # set vehicle states for each individual sweep
                 vehicle.state.body_slip = body_slip
                 vehicle.state.steered_angle = steered_angle

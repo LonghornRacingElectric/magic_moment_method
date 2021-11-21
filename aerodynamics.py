@@ -44,8 +44,9 @@ class Aerodynamics:
                     self.vehicle_params.CsA_tot * CsA_dist[2]]
 
     def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
+        # TODO: Implement rake into undertray
 
-        forces  = np.array([0, 0, 0])
+        forces = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
 
         p_dir = pitch <= 0

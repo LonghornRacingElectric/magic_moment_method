@@ -4,7 +4,7 @@ from better_namespace import BetterNamespace
 import numpy as np
 import math
 from math import cos, sin
-
+from conversions import Conversions
 
 class Vehicle:
     def __init__(self):
@@ -27,10 +27,24 @@ class Vehicle:
         self.params.ride_height = 0.0762  # m
         self.params.front_roll_stiffness = 50 * (180/math.pi) / (self.params.front_track / 2) # N/rad
         self.params.rear_roll_stiffness = 0 * (180/math.pi) / (self.params.rear_track / 2)  # N/rad
-        self.params.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
-        self.params.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
+        # self.params.front_wheelrate_stiffness = (.574**2) * Conversions.lbf_to_Nm(400) # N/m
+        # self.params.rear_wheelrate_stiffness = (.574**2) * Conversions.lbf_to_Nm(400)#(.747**2) * Conversions.lbf_to_Nm(450) # N/m
+        self.params.front_wheelrate_stiffness = Conversions.lbf_to_Nm(400) # N/m
+        self.params.rear_wheelrate_stiffness = Conversions.lbf_to_Nm(400)#(.747**2) * Conversions.lbf_to_Nm(450) # N/m
         self.params.rear_toe = 0 * math.pi/180 # rad
         self.params.front_toe = 0 # rad
+
+        self.params.ride_height_front_static = Conversions.inch_to_meter(5.0)
+        self.params.ride_height_rear_static = Conversions.inch_to_meter(5.0)
+        self.params.front_tire_radius_unloaded = Conversions.inch_to_meter(8.0)
+        self.params.rear_tire_radius_unloaded = Conversions.inch_to_meter(12.0)
+
+        # TODO: technically not real rake, since static deflection changes slightly, but hard to initialize in static loaded state
+        self.params.rake = np.arctan((self.params.ride_height_rear_static - self.params.ride_height_front_static)\
+                                   /self.params.wheelbase)
+
+
+
         # self.front_static_camber = 0
         # self.rear_static_camber = 0
         # self.front_camber_gain = 0.6 # 0.5 deg/deg -> deg/m TODO
@@ -147,8 +161,8 @@ class Vehicle:
         self.set_turn_radius_and_yaw_velocity(lateral_accel)
         
         # Define aero loads
-        aero_forces, aero_moments = self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
-                               ride_height)
+        aero_forces, aero_moments = 0,0 #self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
+                              # ride_height)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments = self.dynamics.get_loads(self.translational_velocities_IMF, self.outputs.vehicle.yaw_rate,

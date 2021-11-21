@@ -3,6 +3,7 @@ from math import sin, cos
 import math
 import numpy as np
 from better_namespace import BetterNamespace
+from conversions import Conversions
 
 """
 Coordinate Systems:
@@ -33,7 +34,9 @@ class Tire:
 
     @property
     def normal_load(self):
-        return self.stiffness * self.outputs.unsprung_displacement
+        # temp
+        tire_radius = Conversions.inch_to_meter(8)
+        return self.stiffness * (-self.outputs.unsprung_displacement + tire_radius)
 
     @property
     def static_unsprung_displacement(self):
@@ -47,12 +50,16 @@ class Tire:
         
     # takes corner displacement of chassis and roll angle
     def set_unsprung_displacement(self, z_c, roll):
+        # z_c compression positive convention
         self.outputs.z_c = z_c
-        self.outputs.f_roll = self.roll_stiffness * roll # ARB force at tire
+        self.outputs.f_roll = self.roll_stiffness * roll # ARB force on tire
 
-        unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.stiffness + self.wheelrate)
-        
-        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp) # spring force at tire
+        # TODO: f_roll shouldn't be referenced as an output, need to clean up definition of what outputs/states/params are
+        unsprung_disp = ((self.unloaded_radius*self.stiffness) + (z_c-self.ride_height_static+self.unloaded_radius)
+                         *self.wheelrate+self.outputs.f_roll)/(self.wheelrate + self.stiffness)
+
+
+        # self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp) # spring force at tire
         self.outputs.unsprung_displacement = unsprung_disp
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
@@ -126,6 +133,13 @@ class Tire:
     def wheelrate(self):
         pass
 
+    @abstractproperty
+    def unloaded_radius(self):
+        pass
+
+    @abstractproperty
+    def ride_height_static(self):
+        pass
     # def get_Fx(self, slip_angle, camber, Fz):
     #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
     #     # C = b0;
@@ -171,6 +185,14 @@ class FrontTire(Tire):
     def wheelrate(self):
         return self.params.front_wheelrate_stiffness
 
+    @property
+    def unloaded_radius(self):
+        return self.params.front_tire_radius_unloaded
+
+    @property
+    def ride_height_static(self):
+        return self.params.ride_height_front_static
+
 class RearTire(Tire):
     def __init__(self, car_params, location, direction_left):
         super().__init__(car_params, location, direction_left)
@@ -203,3 +225,11 @@ class RearTire(Tire):
     @property
     def wheelrate(self):
         return self.params.rear_wheelrate_stiffness
+
+    @property
+    def unloaded_radius(self):
+        return self.params.rear_tire_radius_unloaded
+
+    @property
+    def ride_height_static(self):
+        return self.params.ride_height_rear_static
