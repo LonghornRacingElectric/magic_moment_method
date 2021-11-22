@@ -31,7 +31,7 @@ class Dynamics():
         return not False in [tire.is_saturated for tire in self.tires.values()]
 
     def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
-        # calculate unsprung states
+        # calculate unsprung intermediate (dependent) states
         self.set_unsprung_displacements(roll, pitch, ride_height)
         self.set_unsprung_slip_angles(vehicle_velocity, yaw_rate, steered_angle)
         self.set_unsprung_inclination_angles(steered_angle)

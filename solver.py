@@ -17,13 +17,13 @@ def main():
     peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for x_dot in [1]: #np.linspace(7.22,7.22,1):
+    for s_dot in [1]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set vehicle states for each individual sweep
                 vehicle.state.body_slip = body_slip
                 vehicle.state.steered_angle = steered_angle
-                vehicle.state.x_dot = x_dot
+                vehicle.state.s_dot = s_dot # total velocity in body slip direction
                 
                 # solve for unique output variable set
                 output_vars = josie_solver(specific_residual_func, initial_guess)
@@ -34,7 +34,6 @@ def main():
                 if not vehicle.dynamics.tires_saturated:
                     # save data
                     data_dict = copy(vehicle.output_log())
-                    data_dict.update(dict(vehicle.state.items()))
                     data_dict.update(dict(zip(output_var_names, output_vars)))
                     df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
     
@@ -58,6 +57,7 @@ def DOF6_motion_residuals(x, vehicle):
 
     # Kinetic moment summation of moments not being done about CG
     # TODO: Make sure sprung inertia is about the intermediate axis
+    # TODO: CoG movement
     cg_relative_ntb = np.array([0, 0, vehicle.params.cg_total_position[2]])
     kinetic_moment = np.cross(vehicle.params.mass * translation_accelerations_ntb, cg_relative_ntb)
     
