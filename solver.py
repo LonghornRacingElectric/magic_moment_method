@@ -4,9 +4,10 @@ from scipy.optimize import fsolve as josie_solver
 import pandas as pd
 from copy import copy
 import math
+from vehicle_params.concept_2022 import Concept2022
 
 def main():
-    vehicle = Vehicle()
+    vehicle = Vehicle(Concept2022())
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
