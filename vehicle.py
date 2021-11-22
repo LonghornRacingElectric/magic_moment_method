@@ -14,9 +14,9 @@ class Vehicle:
         ### vehicle params
         self.params.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2
         self.params.gravity = 9.81 # m/s^2
-        self.params.cg_bias = 0.53  # Position of the cg from front to rear, value from 0->1
-        self.params.cg_height = 11.09 * 0.0254 # m 
-        self.params.mass_sprung = 245.46 # kg
+        self.params.cg_bias = 0.516  # Position of the cg from front to rear, value from 0->1
+        self.params.cg_height = 12.09 * 0.0254 # m 
+        self.params.mass_sprung = 220 # kg
 
         ### dynamics params
         
@@ -40,7 +40,7 @@ class Vehicle:
         self.params.front_static_camber = -1 * (np.pi / 180)
         self.params.rear_static_camber = -1 * (np.pi / 180)
         self.params.front_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
-        self.params.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m TODO
+        self.params.rear_camber_gain = 1 # 0.5 deg/deg -> deg/m TODO
         self.params.front_KPI = 4.2 * (np.pi / 180) # 5 deg -> radians; 2021 number
         self.params.rear_KPI = 3 * (np.pi / 180) # 3 deg -> radians; 2021 number
         self.params.front_caster = 2 * (np.pi / 180) # 1 deg -> radians
