@@ -17,18 +17,19 @@ Units:
 class Dynamics():
     def __init__(self, params):
         self.params = params
+        
         self.outputs = BetterNamespace()
+        # These two are metrics for throwing out data point as invalid
+        self.outputs.tires_saturated = None
+        self.outputs.two_tires_lifting = None
+        self.outputs.total_inclination_angle_percent_loss = None
+        self.outputs.total_inclination_angle_force_loss = None
         
         self.tires = BetterNamespace()
         self.tires.front_left = FrontTire(self.params, True)
         self.tires.front_right = FrontTire(self.params, False)
         self.tires.rear_left = RearTire(self.params, True)
         self.tires.rear_right = RearTire(self.params, False)
-
-    # see if point is saturated (i.e. all 4 tires slip angles are saturated)
-    @property
-    def tires_saturated(self):
-        return not False in [tire.is_saturated for tire in self.tires.values()]
 
     def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
         # calculate unsprung intermediate (dependent) states
@@ -46,8 +47,18 @@ class Dynamics():
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
 
+        # see if point is saturated (i.e. all 4 tires slip angles are saturated)
+        self.outputs.tires_saturated = not False in [tire.is_saturated for tire in self.tires.values()]
+        self.outputs.two_tires_lifting = sum([1 if tire.lifting else 0 for tire in self.tires.values()]) == 2
+        self.log_overall_inclination_angle_loss()
         return forces, moments
 
+    def log_overall_inclination_angle_loss(self):
+        loss = sum([abs(tire.outputs.inclination_angle_force_loss) for tire in self.tires.values()])
+        force = sum([abs(tire.outputs.tire_centric_forces[1]) for tire in self.tires.values()])
+        self.outputs.total_inclination_angle_force_loss = loss
+        self.outputs.total_inclination_angle_percent_loss = loss / (force + loss)
+            
     def set_unsprung_inclination_angles(self, steered_angle):
         for tire in self.tires.values():
             disp = tire.wheel_displacement

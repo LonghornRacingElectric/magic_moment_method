@@ -1,4 +1,5 @@
 import numpy as np
+from better_namespace import BetterNamespace
 from vehicle import Vehicle
 from scipy.optimize import fsolve as josie_solver
 import pandas as pd
@@ -12,31 +13,32 @@ def main():
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
     initial_guess = [0.0762, 0, 0, 0, 0, 0]
-    output_var_names = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+    
     df = None
-    # TODO: better saturation method
-    peak_slip_angle = 18 * math.pi / 180 # rad
+    state = BetterNamespace()
+    est_peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for s_dot in [20]: #np.linspace(7.22,7.22,1):
-        for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
-            for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+    for s_dot in [15]: #np.linspace(7.22,7.22,1):
+        for body_slip in np.linspace(-est_peak_slip_angle, est_peak_slip_angle, 21):
+            for steered_angle in np.linspace(-est_peak_slip_angle, est_peak_slip_angle, 21):
                 # set vehicle states for each individual sweep
-                vehicle.state.body_slip = body_slip
-                vehicle.state.steered_angle = steered_angle
-                vehicle.state.s_dot = s_dot # total velocity in body slip direction
+                state.body_slip = body_slip
+                state.steered_angle = steered_angle
+                state.s_dot = s_dot # total velocity in body slip direction
+                vehicle.set_state(state)
                 
                 # solve for unique output variable set
                 output_vars = josie_solver(specific_residual_func, initial_guess)
+                output_dict = dict(zip(["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"], output_vars))
+                output_dict.update(copy(vehicle.output_log()))
                 
                 # see if point is saturated (i.e. all 4 tires slip angles are saturated)
                 # saturation will yield to useless data point since it will wrap back around with less acceleration
                 # if not saturated, the point will be saved
-                if not vehicle.dynamics.tires_saturated:
-                    # save data
-                    data_dict = copy(vehicle.output_log())
-                    data_dict.update(dict(zip(output_var_names, output_vars)))
-                    df = pd.DataFrame([data_dict]) if df is None else df.append(data_dict, ignore_index=True)
+                # TODO: Better saturation method implementation in tires
+                if not output_dict["dynamics_tires_saturated"] and not output_dict["dynamics_two_tires_lifting"]:
+                    df = pd.DataFrame([output_dict]) if df is None else df.append(output_dict, ignore_index=True)
     
     # export data to CSV
     df.to_csv("analysis/MMM.csv")
@@ -48,8 +50,7 @@ def DOF6_motion_residuals(x, vehicle):
     # accelerations
     translation_accelerations_imf = np.array([x_double_dot, y_double_dot, 0])
     translation_accelerations_ntb = vehicle.intermediate_frame_to_ntb_transform(translation_accelerations_imf)
-    vehicle.outputs.vehicle.accelerations_NTB = translation_accelerations_ntb # for logging purposes
-    rotational_accelerations = np.array([0, 0, yaw_acceleration])
+    vehicle.log_linear_accelerations_ntb(translation_accelerations_ntb)
 
     # vehicle loads
     forces, moments = vehicle.get_loads(roll, pitch, ride_height, translation_accelerations_ntb[1])
@@ -58,16 +59,16 @@ def DOF6_motion_residuals(x, vehicle):
 
     # Kinetic moment summation of moments not being done about CG
     # TODO: Make sure sprung inertia is about the intermediate axis
-    # TODO: CoG movement
-    cg_relative_ntb = np.array([0, 0, vehicle.params.cg_total_position[2]])
-    kinetic_moment = np.cross(vehicle.params.mass * translation_accelerations_ntb, cg_relative_ntb)
+    # TODO: CoG movements
+    kinetic_moments = vehicle.get_kinetic_moments(translation_accelerations_ntb) 
     
     # solving for summation of forces = m * accel
-    summation_forces = vehicle.params.mass * translation_accelerations_ntb - vehicle_forces_ntb
+    summation_forces = vehicle.get_inertial_forces(translation_accelerations_ntb) - vehicle_forces_ntb
     
     # solving for summation of moments = I * alpha
     # only rotational acceleration being considered is yaw acceleration; which is why it isnt transformed (no roll/pitch accel)
-    summation_moments = np.dot(vehicle.params.sprung_inertia, rotational_accelerations) - kinetic_moment - vehicle_moments_ntb
+    yaw_moment = vehicle.get_yaw_moment(yaw_acceleration)
+    summation_moments = np.array([0, 0, yaw_moment]) - kinetic_moments - vehicle_moments_ntb
 
     return np.array([*summation_forces, *summation_moments])
 

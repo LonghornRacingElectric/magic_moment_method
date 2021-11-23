@@ -28,13 +28,38 @@ class Vehicle:
         self.outputs.rear_left_tire = self.dynamics.tires.rear_left.outputs
         self.outputs.rear_right_tire = self.dynamics.tires.rear_right.outputs
         
+        # NOTE: these outputs are for LOGGING PURPOSES ONLY. Dont use in the code
         self.outputs.vehicle = BetterNamespace()
         self.outputs.vehicle.yaw_rate = None # rad/s  ## Using velocity and normal acceleration
         self.outputs.vehicle.turn_radius = None # m  ## Using velocity and normal acceleration
-        self.outputs.vehicle.accelerations_NTB = None # m/s^2
+        self.outputs.vehicle.accelerations_NTB = None # m/s^2 
+        self.outputs.vehicle.yaw_moment = None # N*m
+        self.outputs.vehicle.kinetic_moments = None # N*m
+        self.outputs.vehicle.inertial_forces = None # N
+
+    def set_state(self, state):
+        self.state = state
+
+    def get_yaw_moment(self, yaw_acceleration):
+        self.outputs.vehicle.yaw_moment = self.params.sprung_inertia[2][2] * yaw_acceleration
+        return self.outputs.vehicle.yaw_moment
+
+    def get_kinetic_moments(self, linear_accelerations):
+        # TODO: CoG movements
+        cg_relative_ntb = np.array([0, 0, self.params.cg_total_position[2]])
+        self.outputs.vehicle.kinetic_moment = np.cross(self.params.mass * linear_accelerations, cg_relative_ntb)
+        return self.outputs.vehicle.kinetic_moment
+    
+    def get_inertial_forces(self, linear_accelerations):
+        self.outputs.vehicle.inertial_forces =  self.params.mass * linear_accelerations
+        return self.outputs.vehicle.inertial_forces
+    
+    def log_linear_accelerations_ntb(self, linear_accelerations_ntb):
+        self.outputs.vehicle.accelerations_NTB = linear_accelerations_ntb
 
     # normal to path acceleration (lateral accel) passed in; yaw rate dependent state on this as described by below equations
-    def set_turn_radius_and_yaw_velocity(self, lateral_accel):
+    # NOTE: turn radius and yaw rate being added to outputs for logging
+    def get_yaw_rate(self, lateral_accel):
         # no slip condition; yaw rate guaranteed by acceleration and velocity
         if lateral_accel == 0:
             self.outputs.vehicle.turn_radius = 0
@@ -43,6 +68,7 @@ class Vehicle:
             # v^2/r = a; w*r = v; w = v/r = v/(v^2/a); alpha = a/r
             self.outputs.vehicle.turn_radius = self.state.s_dot ** 2 / lateral_accel
             self.outputs.vehicle.yaw_rate = self.state.s_dot / self.outputs.vehicle.turn_radius
+        return self.outputs.vehicle.yaw_rate
 
     # Intermediate Frame rotational velocities
     @property
@@ -70,15 +96,15 @@ class Vehicle:
         return self.state.s_dot * sin(self.state.body_slip)
 
     def get_loads(self, roll, pitch, ride_height, lateral_accel):
-        # only use normal acceleration for yaw velocity & turn radius calc!
-        self.set_turn_radius_and_yaw_velocity(lateral_accel)
+        # NOTE: only use normal acceleration for yaw velocity & turn radius calc!
+        yaw_rate = self.get_yaw_rate(lateral_accel)
         
         # Define aero loads
         aero_forces, aero_moments = self.aero.get_loads(self.x_dot, self.state.body_slip, pitch, roll,
                                ride_height)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
-        tire_forces, tire_moments = self.dynamics.get_loads(self.translational_velocities_IMF, self.outputs.vehicle.yaw_rate,
+        tire_forces, tire_moments = self.dynamics.get_loads(self.translational_velocities_IMF, yaw_rate,
                                                             self.state.steered_angle, roll, pitch, ride_height)
 
         return aero_forces + tire_forces, aero_moments + tire_moments
