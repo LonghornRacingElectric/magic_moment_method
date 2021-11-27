@@ -73,10 +73,11 @@ class Dynamics():
             # TODO: note rotation is about CG instead of roll / pitch centers
             # TODO: verify equation
             static_ride_height = 3/39.37
-            # z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
-            #     / (cos(pitch) *cos(roll))
+            z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
+                / (cos(pitch) *cos(roll))
 
-            z_c = ride_height
+            # z_c = ride_height
+
             
             # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
             tire.set_unsprung_displacement(z_c, roll)

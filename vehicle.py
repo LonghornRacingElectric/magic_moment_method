@@ -14,7 +14,7 @@ class Vehicle:
         ### vehicle params
         self.params.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2
         self.params.gravity = 9.81 # m/s^2
-        self.params.cg_bias = 0.55  # Position of the cg from front to rear, value from 0->1
+        self.params.cg_bias = 0.50  # Position of the cg from front to rear, value from 0->1
         self.params.cg_height = 12 * 0.0254 # m 
         self.params.mass_sprung = 245.46 # kg
 
@@ -30,14 +30,14 @@ class Vehicle:
         # self.params.front_wheelrate_stiffness = (.574**2) * Conversions.lbf_to_Nm(400) # N/m
         # self.params.rear_wheelrate_stiffness = (.574**2) * Conversions.lbf_to_Nm(400)#(.747**2) * Conversions.lbf_to_Nm(450) # N/m
         self.params.front_wheelrate_stiffness = Conversions.lbf_to_Nm(400) # N/m
-        self.params.rear_wheelrate_stiffness = Conversions.lbf_to_Nm(400)#(.747**2) * Conversions.lbf_to_Nm(450) # N/m
+        self.params.rear_wheelrate_stiffness = Conversions.lbf_to_Nm(450)#(.747**2) * Conversions.lbf_to_Nm(450) # N/m
         self.params.rear_toe = 0 * math.pi/180 # rad
         self.params.front_toe = 0 # rad
 
-        self.params.ride_height_front_static = Conversions.inch_to_meter(5.0)
-        self.params.ride_height_rear_static = Conversions.inch_to_meter(5.0)
+        self.params.ride_height_front_static = Conversions.inch_to_meter(3.0)
+        self.params.ride_height_rear_static = Conversions.inch_to_meter(3.0)
         self.params.front_tire_radius_unloaded = Conversions.inch_to_meter(8.0)
-        self.params.rear_tire_radius_unloaded = Conversions.inch_to_meter(12.0)
+        self.params.rear_tire_radius_unloaded = Conversions.inch_to_meter(8.0)
 
         # TODO: technically not real rake, since static deflection changes slightly, but hard to initialize in static loaded state
         self.params.rake = np.arctan((self.params.ride_height_rear_static - self.params.ride_height_front_static)\
@@ -162,8 +162,9 @@ class Vehicle:
         
         # Define aero loads
         aero_forces, aero_moments = 0,0 #self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
-                              # ride_height)
-        
+                              #ride_height)
+
+        # aero_forces, aero_moments = 0,0
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments = self.dynamics.get_loads(self.translational_velocities_IMF, self.outputs.vehicle.yaw_rate,
                                                             self.state.steered_angle, roll, pitch, ride_height)

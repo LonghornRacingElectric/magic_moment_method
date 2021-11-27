@@ -12,6 +12,8 @@ def main():
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
     initial_guess = [Conversions.inch_to_meter(4), 0, 0, 0, 0, 0]
+
+
     output_var_names = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
     df = None
     # TODO: better saturation method

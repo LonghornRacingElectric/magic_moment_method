@@ -45,7 +45,6 @@ class Aerodynamics:
 
     def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
         # TODO: Implement rake into undertray
-
         forces = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
 
@@ -82,5 +81,8 @@ class Aerodynamics:
         # account for drag from rest of car
         drag_no_aero = 0.5 * 1.225 * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
+
+        self.outputs.forces = forces
+        self.outputs.moments = moments
         return forces, moments
 
