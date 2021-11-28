@@ -6,7 +6,7 @@ from math import cos, sin
 
 
 class Vehicle:
-    def __init__(self, params):
+    def __init__(self, params, state):
         self.params = params
 
         # Initiate component classes and vehicle parameters
@@ -14,7 +14,7 @@ class Vehicle:
         self.aero = Aerodynamics(self.params)
 
         # set defaults, these are the prescribed MMM states
-        self.state = BetterNamespace()
+        self.state = state
         self.state.body_slip = 0  # rad
         self.state.steered_angle = 0  # rad
         self.state.s_dot = 0  # m/s # Intermediate Frame
@@ -36,12 +36,9 @@ class Vehicle:
         self.outputs.vehicle.yaw_moment = None # N*m
         self.outputs.vehicle.kinetic_moments = None # N*m
         self.outputs.vehicle.inertial_forces = None # N
-
-    def set_state(self, state):
-        self.state = state
-
+    
     def get_yaw_moment(self, yaw_acceleration):
-        self.outputs.vehicle.yaw_moment = self.params.sprung_inertia[2][2] * yaw_acceleration
+        self.outputs.vehicle.yaw_moment = np.dot(self.params.sprung_inertia, [0, 0, yaw_acceleration])[2]
         return self.outputs.vehicle.yaw_moment
 
     def get_kinetic_moments(self, linear_accelerations):

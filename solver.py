@@ -8,25 +8,25 @@ import math
 from vehicle_params.concept_2022 import Concept2022
 
 def main():
-    vehicle = Vehicle(Concept2022())
+    state = BetterNamespace()
+    vehicle = Vehicle(Concept2022(), state)
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
     initial_guess = [0.0762, 0, 0, 0, 0, 0]
     
     df = None
-    state = BetterNamespace()
-    est_peak_slip_angle = 18 * math.pi / 180 # rad
+
+    peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for s_dot in [15]: #np.linspace(7.22,7.22,1):
-        for body_slip in np.linspace(-est_peak_slip_angle, est_peak_slip_angle, 21):
-            for steered_angle in np.linspace(-est_peak_slip_angle, est_peak_slip_angle, 21):
+    for s_dot in [1]: #np.linspace(7.22,7.22,1):
+        for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
+            for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set vehicle states for each individual sweep
                 state.body_slip = body_slip
                 state.steered_angle = steered_angle
                 state.s_dot = s_dot # total velocity in body slip direction
-                vehicle.set_state(state)
                 
                 # solve for unique output variable set
                 output_vars = josie_solver(specific_residual_func, initial_guess)

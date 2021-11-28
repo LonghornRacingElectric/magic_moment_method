@@ -25,7 +25,7 @@ class Concept2022(BetterNamespace):
         
         # These are ARB stiffnesses! 50 is using Lorraine heave stiffness for balance
         self.front_roll_stiffness = 0 * (180/math.pi) / (self.front_track / 2) # N/rad 
-        self.rear_roll_stiffness = 100 * (180/math.pi) / (self.rear_track / 2)  # N/rad
+        self.rear_roll_stiffness = 0 * (180/math.pi) / (self.rear_track / 2)  # N/rad
         
         self.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
         self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
