@@ -47,11 +47,14 @@ class Dynamics():
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
 
+        self.log_overall_inclination_angle_loss()
+        self.log_saturation()
+        return forces, moments
+
+    def log_saturation(self):
         # see if point is saturated (i.e. all 4 tires slip angles are saturated)
         self.outputs.tires_saturated = not False in [tire.is_saturated for tire in self.tires.values()]
         self.outputs.two_tires_lifting = sum([1 if tire.lifting else 0 for tire in self.tires.values()]) == 2
-        self.log_overall_inclination_angle_loss()
-        return forces, moments
 
     def log_overall_inclination_angle_loss(self):
         loss = sum([abs(tire.outputs.inclination_angle_force_loss) for tire in self.tires.values()])

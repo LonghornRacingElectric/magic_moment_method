@@ -21,7 +21,7 @@ class Concept2022(BetterNamespace):
         self.wheelbase = 65 * 0.0254 # m
         self.front_track = 1.27 # m
         self.rear_track = 1.17 # m
-        self.ride_height = 0.0762  # m
+        self.ride_height = 0.0762 # m
         
         # These are ARB stiffnesses! 50 is using Lorraine heave stiffness for balance
         self.front_roll_stiffness = 0 * (180/math.pi) / (self.front_track / 2) # N/rad 
