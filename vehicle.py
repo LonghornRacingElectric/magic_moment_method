@@ -99,7 +99,7 @@ class Vehicle:
         self.state = BetterNamespace()
         self.state.body_slip = 0  # rad
         self.state.steered_angle = 0  # rad
-        self.state.x_dot = 0  # m/s # Intermediate Frame
+        self.state.s_dot = 0  # m/s # Intermediate Frame
         
         # Intermediate states calculated along the way, saved for analysis :)
         self.outputs = BetterNamespace()
@@ -123,8 +123,8 @@ class Vehicle:
             self.outputs.vehicle.yaw_rate = 0
         else:
             # v^2/r = a; w*r = v; w = v/r = v/(v^2/a); alpha = a/r
-            self.outputs.vehicle.turn_radius = self.velocity ** 2 / lateral_accel
-            self.outputs.vehicle.yaw_rate = self.velocity / self.outputs.vehicle.turn_radius
+            self.outputs.vehicle.turn_radius = self.state.s_dot ** 2 / lateral_accel
+            self.outputs.vehicle.yaw_rate = self.state.s_dot / self.outputs.vehicle.turn_radius
 
     # Intermediate Frame rotational velocities
     @property
@@ -134,12 +134,7 @@ class Vehicle:
     # Intermediate Frame translational velocities
     @property
     def translational_velocities_IMF(self):
-        return np.array([self.state.x_dot, self.y_dot, 0])
-
-    # Velocity magnitude
-    @property
-    def velocity(self):
-        return (self.state.x_dot**2 + self.y_dot**2) ** (1/2)
+        return np.array([self.x_dot, self.y_dot, 0])
     
     # Transform input array to NTB from Intermediate Frame using body slip
     def intermediate_frame_to_ntb_transform(self, intermediate_frame_vector):
@@ -149,15 +144,19 @@ class Vehicle:
         return np.dot(transformation_matrix, intermediate_frame_vector)       
     
     @property
+    def x_dot(self):
+        return self.state.s_dot * cos(self.state.body_slip)
+    
+    @property
     def y_dot(self):
-        return self.state.x_dot * math.tan(self.state.body_slip)
+        return self.state.s_dot * sin(self.state.body_slip)
 
     def get_loads(self, roll, pitch, ride_height, lateral_accel):
         # only use normal acceleration for yaw velocity & turn radius calc!
         self.set_turn_radius_and_yaw_velocity(lateral_accel)
         
         # Define aero loads
-        aero_forces, aero_moments = self.aero.get_loads(self.state.x_dot, self.state.body_slip, pitch, roll,
+        aero_forces, aero_moments = self.aero.get_loads(self.x_dot, self.state.body_slip, pitch, roll,
                                ride_height)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
@@ -166,7 +165,7 @@ class Vehicle:
 
         return aero_forces + tire_forces, aero_moments + tire_moments
 
-    # TODO: output more sheit here
+    # grab all input states and dependent (solved) states for output analysis
     def output_log(self):
         return_dict = {}
         for output_name, output in self.outputs.items():
@@ -176,4 +175,5 @@ class Vehicle:
                         return_dict[output_name + "_"+ data_name + "_" + str(i)] = data[i]
                 else:
                     return_dict[output_name + "_"+ data_name] = data
+        return_dict.update(dict(self.state.items()))
         return return_dict
