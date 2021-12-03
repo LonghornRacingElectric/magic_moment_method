@@ -15,21 +15,27 @@ Units:
 class Tire:
     def __init__(self, car_params, direction_left):
         self.params = car_params
-        self.direction_left = direction_left # Boolean
+        self.direction_left = direction_left # boolean
         
         self.outputs = BetterNamespace()
-        self.outputs.unsprung_displacement = None
-        self.outputs.tire_centric_forces = None # tire forces in the tire coordinate system
-        self.outputs.velocity = None
-        self.outputs.slip_angle = None
-        self.outputs.inclination_angle = None
-        self.outputs.vehicle_centric_forces = None # tire forces in the vehicle coordinate system
-        self.outputs.moments = None
-        self.outputs.steering_inclination = None
-        self.outputs.z_c = None
-        self.outputs.f_roll = None
-        self.outputs.f_heave = None
-        #self.outputs.slip_ratio = None
+        self.outputs.unsprung_displacement = None # m
+        self.outputs.tire_centric_forces = None # N; tire forces in the tire coordinate system
+        self.outputs.velocity = None # m/s
+        self.outputs.slip_angle = None # rad
+        self.outputs.inclination_angle = None # rad
+        self.outputs.vehicle_centric_forces = None # N; tire forces in the vehicle coordinate system
+        self.outputs.moments = None # N*m
+        self.outputs.steering_inclination = None # rad
+        self.outputs.z_c = None # m
+        self.outputs.f_roll = None # N
+        self.outputs.f_heave = None # N
+        self.outputs.inclination_angle_percent_loss = None # %; loss in lateral force production due to IA
+        self.outputs.inclination_angle_force_loss = None # N
+        #self.outputs.slip_ratio = None # not implemented
+
+    @property
+    def lifting(self):
+        return self.outputs.tire_centric_forces[2] == 0
 
     @property
     def wheel_displacement(self):
@@ -51,7 +57,7 @@ class Tire:
         
         # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
         steer_inc = np.arccos(np.sin(self.KPI) * np.cos(steered_angle)) + self.KPI + \
-                    np.arccos(np.sin(self.caster) * np.sin(steered_angle)) - np.pi
+                    np.arccos(np.sin(self.caster) * np.sin(steered_angle)) - math.pi
                     
         return steer_inc
 
@@ -75,44 +81,56 @@ class Tire:
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     def get_loads(self):
         # note: don't allow normal force of 0 to produce tire forces
-        Fz = self.normal_load
-        if Fz < 0:
+        if self.normal_load < 0:
             self.outputs.vehicle_centric_forces = np.array([0, 0, 0])
             self.outputs.tire_centric_forces = np.array([0, 0, 0])
             self.outputs.moments = np.zeros(3)
+            self.outputs.inclination_angle_percent_loss = 0
+            self.outputs.inclination_angle_force_loss = 0
         else:
             # TODO: need to consider slip ratio
-            # multiplier is done for any non-symmetries in fit
-            multiplier = -1 if self.direction_left else 1
-            slip_degrees = self.outputs.slip_angle * 180/math.pi * multiplier
+            # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
+            multiplier =  -1 if self.direction_left else 1
+            slip_degrees = self.outputs.slip_angle * 180 / math.pi * multiplier # degrees
+            inclination_angle = self.outputs.inclination_angle * 180 / math.pi # degrees
 
-            [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
-                a17] = self.lateral_coeffs
-            
-            inclination_angle = self.outputs.inclination_angle
+            lateral_force = self.lateral_pacejka(inclination_angle, self.normal_load, slip_degrees) * multiplier
 
-            C = a0
-            D = Fz * (a1 * Fz + a2) * (1 - a15 * inclination_angle ** 2)
-            BCD = a3 * math.sin(math.atan(Fz / a4) * 2) * (1 - a5 * abs(inclination_angle))
-            B = BCD / (C * D)
-            H = a8 * Fz + a9 + a10 * inclination_angle
-            E = (a6 * Fz + a7) * (1 - (a16 * inclination_angle + a17) * math.copysign(1, slip_degrees + H))
-            V = a11 * Fz + a12 + (a13 * Fz + a14) * inclination_angle * Fz
-            Bx1 = B * (slip_degrees + H)
+            self.outputs.tire_centric_forces = np.array([0, lateral_force, self.normal_load])
 
-            Fy = multiplier * 2/3* (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
-
-            self.outputs.tire_centric_forces = np.array([0, Fy, self.normal_load])
-
-            # Rotate the tire force into intermediate frame and add moments/forces to total
-            # TODO: conversions utilities
-            slip_radians = self.outputs.slip_angle
-            rotation_matrix = np.array([[cos(slip_radians),-sin(slip_radians),0],[sin(slip_radians),cos(slip_radians),0],[0,0,1]])
-            self.outputs.vehicle_centric_forces = rotation_matrix.dot(self.outputs.tire_centric_forces)
-
+            # Rotate the tire force into intermediate frame
+            self.outputs.vehicle_centric_forces = self.tire_heading_frame_to_intermediate_transform(self.outputs.tire_centric_forces)
             self.outputs.moments = np.cross(self.outputs.vehicle_centric_forces, self.position)
 
+            # calculate inclination_angle losses!
+            lateral_force_no_IA = self.lateral_pacejka(0, self.normal_load, slip_degrees) * multiplier
+            self.outputs.inclination_angle_percent_loss = (lateral_force_no_IA - lateral_force) / lateral_force_no_IA
+            self.outputs.inclination_angle_force_loss = (lateral_force_no_IA - lateral_force)
+            
         return self.outputs.vehicle_centric_forces, self.outputs.moments 
+
+    # Transform input array to Intermediate Frame from tire heading using tire slip angle
+    def tire_heading_frame_to_intermediate_transform(self, tire_heading_frame_vector):
+        rotation_matrix = np.array([[cos(self.outputs.slip_angle), -sin(self.outputs.slip_angle), 0],
+                                    [sin(self.outputs.slip_angle), cos(self.outputs.slip_angle),0],
+                                    [0,0,1]])
+        return np.dot(rotation_matrix, tire_heading_frame_vector)     
+
+    # TODO; BIG NOTE - ATM inclination angle and slip angle MUST be taken in ~~DEGREES~~ here
+    def lateral_pacejka(self, inclination_angle, normal_force, slip_degrees):
+        [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17] = self.lateral_coeffs
+        C = a0
+        D = normal_force * (a1 * normal_force + a2) * (1 - a15 * inclination_angle ** 2)
+        BCD = a3 * math.sin(math.atan(normal_force / a4) * 2) * (1 - a5 * abs(inclination_angle))
+        B = BCD / (C * D)
+        H = a8 * normal_force + a9 + a10 * inclination_angle
+        E = (a6 * normal_force + a7) * (1 - (a16 * inclination_angle + a17) * math.copysign(1, slip_degrees + H))
+        V = a11 * normal_force + a12 + (a13 * normal_force + a14) * inclination_angle * normal_force
+        Bx1 = B * (slip_degrees + H)
+        
+        # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
+        test_condition_multiplier = 2/3
+        return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
 
     @abstractmethod
     def steering_induced_slip(self, steered_angle):
