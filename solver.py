@@ -17,7 +17,7 @@ def main():
     
     df = None
 
-    peak_slip_angle = 18 * math.pi / 180 # rad
+    peak_slip_angle = 16 * math.pi / 180 # rad
 
     for x_dot in np.linspace(5, 30, num=6): #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):

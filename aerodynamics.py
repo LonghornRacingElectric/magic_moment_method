@@ -13,13 +13,13 @@ class Aerodynamics:
 
         # pitch, body_slip, and roll sensitivities,
         #            Cl              Cd               Cs
-        self.p_sens	= [[[.01,   -.06],   [.07,   -.055],  [0,0]], # front [pos, neg] -> [%/deg]
+        self.p_sens	= [[[-.157, -.106], [-.075,  -.125],  [0,0]], # front [pos, neg] -> [%/deg]
                       [[.0076, -.0457], [.0546, -.0434],  [0,0]], # undertray
-                      [[.0178, -.0245], [.0294, -.0478], [0,0]]]  # rear
+                      [[-.0072, -.0406], [.0202, -.0594], [0,0]]]  # rear
 
         #                 front               undertray           rear
-        self.bs_sens	= [[.008,  .0114, 0], [.0061,  .0089, 0], [-.0018, -.0058, 0]] # [Cl, Cd, Cs] -> [%/deg]
-        self.r_sens	=     [[-.018,  0,    0], [-.0137,  0,    0], [-.005,  -.0145, 0]]
+        self.bs_sens	= [[-.024,  -.007, 0], [.0061,  .0089, 0], [-.0096, .0033, 0]] # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	=     [[-.101,  -0.131,    0], [-.0137,  0,    0], [-.0424,  -.0202, 0]]
 
         # conversion factors
         self.in_to_m = 0.0254
