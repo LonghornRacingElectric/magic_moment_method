@@ -20,7 +20,7 @@ def main():
     peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for s_dot in [1]: #np.linspace(7.22,7.22,1):
+    for s_dot in [20]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set vehicle states for each individual sweep

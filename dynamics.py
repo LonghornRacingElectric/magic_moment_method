@@ -24,6 +24,8 @@ class Dynamics():
         self.outputs.two_tires_lifting = None
         self.outputs.total_inclination_angle_percent_loss = None
         self.outputs.total_inclination_angle_force_loss = None
+        self.outputs.front_tube_forces = None
+        self.outputs.rear_tube_forces = None
         
         self.tires = BetterNamespace()
         self.tires.front_left = FrontTire(self.params, True)
