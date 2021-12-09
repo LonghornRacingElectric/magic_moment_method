@@ -7,14 +7,14 @@ class Aerodynamics:
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
         # distribution of downforce across components
-        ClA_dist = [[0.440, 0.184, 0.376], [0.454, 0.407, 0.139]]   # [active, deactive] -> [front, undertray, rear]
-        CdA_dist = [[0.415, 0.150, 0.445], [0.426, 0.404, 0.170]]
-        CsA_dist = [[0.250, 0.000, 0.750], [0.250, 0.000, 0.750]]
+        ClA_dist = [[0.521, 0.317, 0.259], [0.454, 0.407, 0.139]]   # [active, deactive] -> [front, undertray, rear]
+        CdA_dist = [[0.424, 0.178, 0.396], [0.426, 0.404, 0.170]]
+        CsA_dist = [[0.500, 0.000, 0.500], [0.250, 0.000, 0.750]]
 
         # pitch, body_slip, and roll sensitivities,
         #            Cl              Cd               Cs
         self.p_sens	= [[[-.157, -.106], [-.075,  -.125],  [0,0]], # front [pos, neg] -> [%/deg]
-                      [[.0076, -.0457], [.0546, -.0434],  [0,0]], # undertray
+                      [[.0739, -.0719], [.101, -.1515],  [0,0]], # undertray
                       [[-.0072, -.0406], [.0202, -.0594], [0,0]]]  # rear
 
         #                 front               undertray           rear

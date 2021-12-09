@@ -76,11 +76,11 @@ class Vehicle:
 
         ### aerodynamics params
         self.params.CdA0 = 0.7155
-        self.params.CsA_tot = 33.91
+        self.params.CsA_tot = 10.32
         self.params.aeroActive = True
 
         if self.params.aeroActive:
-            self.params.ClA_tot = 3.955
+            self.params.ClA_tot = 3.995
             self.params.CdA_full = 1.512
         else:
             self.params.ClA_tot = 2.729
