@@ -124,7 +124,7 @@ class Tire:
             # calculate tube forces
             self.outputs.tube_force_FUCA, self.outputs.tube_force_RUCA, self.outputs.tube_force_FLCA \
             , self.outputs.tube_force_RLCA, self.outputs.tube_force_p_rod, self.outputs.tube_force_toe_link \
-                    = [float(x) for x in self.get_tube_forces(self.outputs.vehicle_centric_forces)]
+                    = [float(x) for x in self.get_tube_forces(self.outputs.vehicle_centric_forces * np.array([1, multiplier, 1]))]
 
         return self.outputs.vehicle_centric_forces, self.outputs.moments 
 
