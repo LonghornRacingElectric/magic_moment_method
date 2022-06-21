@@ -43,7 +43,7 @@ class EasyDriver(BetterNamespace):
         self.rear_arb_stiffness = 0
         
         # ~~~ Linkages & HDPTs ~~~ #
-        self.rear_toe = 0 * (math.pi / 180) # rad  # TODO: not correct to car
+        self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
         self.front_toe = 0 * (math.pi / 180) # rad # TODO: not correct to car
         self.front_static_camber = -1 * (np.pi / 180) # rad # TODO: not correct to car
         self.rear_static_camber = -1 * (np.pi / 180) # rad # TODO: not correct to car

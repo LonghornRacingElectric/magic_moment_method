@@ -86,7 +86,7 @@ class Suspension():
     def set_unsprung_slip_angles(self, vehicle_velocity, yaw_rate, steered_angle):
         for tire in self.tires.values():
             # calculate tire velocities in IMF
-            tire_velocity = vehicle_velocity + np.cross(np.array([0, yaw_rate, 0]),tire.position)
+            tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]),tire.position)
             slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
             
             tire.outputs.velocity = tire_velocity
