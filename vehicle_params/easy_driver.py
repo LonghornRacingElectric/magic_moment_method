@@ -47,8 +47,8 @@ class EasyDriver(BetterNamespace):
         self.front_toe = 0 * (math.pi / 180) # rad # TODO: not correct to car
         self.front_static_camber = -1 * (np.pi / 180) # rad # TODO: not correct to car
         self.rear_static_camber = -1 * (np.pi / 180) # rad # TODO: not correct to car
-        self.front_camber_gain = 0.5 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
-        self.rear_camber_gain = 0.5 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
+        self.front_camber_gain = 0.7 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
+        self.rear_camber_gain = 0.7 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
         self.front_KPI = 4.2 * (np.pi / 180) # rad
         self.rear_KPI = 3 * (np.pi / 180) # rad
         self.front_caster = 2 * (np.pi / 180) # rad

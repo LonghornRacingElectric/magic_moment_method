@@ -49,17 +49,9 @@ class Tire:
     def static_unsprung_displacement(self):
         return self.static_normal_load / self.tire_springrate
     
-    # input steered angle is in intermediate frame
-    # TODO: should toe be included in this steered angle or added afterwards?
-    def steered_inclination_angle_gain(self, steered_angle):
-        # convert steered angle to tire frame
-        steered_angle = steered_angle * (1 if self.direction_left else -1) + self.toe
-        
-        # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
-        steer_inc = np.arccos(np.sin(self.KPI) * np.cos(steered_angle)) + self.KPI + \
-                    np.arccos(np.sin(self.caster) * np.sin(steered_angle)) - math.pi
-                    
-        return steer_inc
+    @abstractmethod
+    def steered_inclination_angle_gain(self):
+        pass
 
     @property
     def is_saturated(self):

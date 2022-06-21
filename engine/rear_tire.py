@@ -62,3 +62,6 @@ class RearTire(Tire):
     def position(self): # [m, m, m]
         y_pos = self.trackwidth/2 * (1 if self.direction_left else -1)
         return [-self.params.wheelbase * (1 - self.params.cg_bias), y_pos, 0]
+    
+    def steered_inclination_angle_gain(self, steered_angle):
+        return 0 # TODO: implement, toe gain near 0 right now though

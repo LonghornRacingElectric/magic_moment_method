@@ -38,7 +38,7 @@ class Suspension():
         # calculate unsprung intermediate (dependent) states
         self.set_unsprung_displacements(roll, pitch, ride_height)
         self.set_unsprung_slip_angles(vehicle_velocity, yaw_rate, steered_angle)
-        self.set_unsprung_inclination_angles(steered_angle)
+        self.set_unsprung_inclination_angles(roll, steered_angle)
 
         # get unsprung forces
         forces = np.array([0, 0, -self.params.mass * self.params.gravity])
@@ -65,22 +65,26 @@ class Suspension():
         self.outputs.total_inclination_angle_force_loss = loss
         self.outputs.total_inclination_angle_percent_loss = loss / (force + loss)
             
-    def set_unsprung_inclination_angles(self, steered_angle):
+    def set_unsprung_inclination_angles(self, roll, steered_angle):
         for tire in self.tires.values():
             disp = tire.wheel_displacement
 
             # TODO: what the fuck does the following mean lol
             # Tire swing length is the distance from the contact patch to (y, z) = (0, ride height).
             # Approximation: the angular displacement is the angle swept by this line as the tire displaces vertically
-            tire_swing_length = np.sqrt(self.params.ride_height ** 2 + np.abs(tire.position[1]) ** 2)
-            angular_displacement = np.sign(disp) * np.abs(np.arcsin(disp * np.abs(tire.position[1]) / (tire_swing_length \
-                                    * np.sqrt(disp ** 2 + tire_swing_length ** 2 - 2 * disp * self.params.ride_height))))
-            camber_gain_inclination = - tire.camber_gain * angular_displacement
+            # tire_swing_length = np.sqrt(self.params.ride_height ** 2 + np.abs(tire.position[1]) ** 2)
+            # angular_displacement = np.sign(disp) * np.abs(np.arcsin(disp * np.abs(tire.position[1]) / (tire_swing_length \
+            #                         * np.sqrt(disp ** 2 + tire_swing_length ** 2 - 2 * disp * self.params.ride_height))))
+            #camber_gain_inclination = - tire.camber_gain * angular_displacement
 
             # Steering inclination: change in inclination angle due to steering
-            tire.outputs.steering_inclination = tire.steered_inclination_angle_gain(steered_angle) if type(tire) is FrontTire else 0
+            # TODO: include heave/pitch induced camber gain
+            
+            tire.outputs.steering_inclination = tire.steered_inclination_angle_gain(steered_angle)
+            
+            roll_induced = roll - (roll * tire.camber_gain)
 
-            tire.outputs.inclination_angle = camber_gain_inclination + tire.outputs.steering_inclination + tire.static_camber
+            tire.outputs.inclination_angle = roll_induced + tire.outputs.steering_inclination + tire.static_camber
 
     # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
     def set_unsprung_slip_angles(self, vehicle_velocity, yaw_rate, steered_angle):
