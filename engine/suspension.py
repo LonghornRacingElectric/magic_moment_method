@@ -1,6 +1,6 @@
 import math
 from math import sin, cos
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 import numpy as np
 from engine.front_tire import FrontTire
 from engine.rear_tire import RearTire

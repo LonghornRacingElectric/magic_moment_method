@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 
 class Aerodynamics:
     def __init__(self, params):

@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
 class EasyDriver(BetterNamespace):
@@ -61,8 +61,8 @@ class EasyDriver(BetterNamespace):
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
         self.front_tire_coeff_Fy = [1.69, 0.0004384, 2.769, 614.3, 1496, 0.01784, 0.000432, 0.7237, 0.0001746, 0.1366,
                         -0.1482, -0.06455, 10.45, 3.036e-05, 0.04111, 0.002054, 0.01834, -0.06673]
-        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
-                -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        self.rear_tire_coeff_Fy = self.front_tire_coeff_Fy #[1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
+               # -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
         
         # TODO: Make tire spring rate not a constant value (nonlinear solver) (its pretty constant tho)
         self.front_tire_spring_rate = 588 * 175 # N/m

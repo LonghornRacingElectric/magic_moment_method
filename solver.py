@@ -1,5 +1,5 @@
 import numpy as np
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 from engine.vehicle import Vehicle
 from scipy.optimize import fsolve as josie_solver
 import pandas as pd

@@ -1,6 +1,6 @@
 from engine.aerodynamics import Aerodynamics
 from engine.suspension import Suspension
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 import numpy as np
 from math import cos, sin
 
