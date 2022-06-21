@@ -2,7 +2,8 @@ import math
 from math import sin, cos
 from better_namespace import BetterNamespace
 import numpy as np
-from tire import FrontTire, RearTire
+from engine.front_tire import FrontTire
+from engine.rear_tire import RearTire
 
 """
 Coordinate Systems:
@@ -14,14 +15,16 @@ Units:
     Mass: kg
 """
 
-class Dynamics():
+class Suspension():  
     def __init__(self, params):
         self.params = params
         
         self.outputs = BetterNamespace()
         # These two are metrics for throwing out data point as invalid
+        # Since they couldn't exist in the real world
         self.outputs.tires_saturated = None
         self.outputs.two_tires_lifting = None
+        
         self.outputs.total_inclination_angle_percent_loss = None
         self.outputs.total_inclination_angle_force_loss = None
         
@@ -54,7 +57,7 @@ class Dynamics():
     def log_saturation(self):
         # see if point is saturated (i.e. all 4 tires slip angles are saturated)
         self.outputs.tires_saturated = not False in [tire.is_saturated for tire in self.tires.values()]
-        self.outputs.two_tires_lifting = sum([1 if tire.lifting else 0 for tire in self.tires.values()]) == 2
+        self.outputs.two_tires_lifting = sum([1 if tire.lifting else 0 for tire in self.tires.values()]) > 1
 
     def log_overall_inclination_angle_loss(self):
         loss = sum([abs(tire.outputs.inclination_angle_force_loss) for tire in self.tires.values()])
@@ -66,6 +69,7 @@ class Dynamics():
         for tire in self.tires.values():
             disp = tire.wheel_displacement
 
+            # TODO: what the fuck does the following mean lol
             # Tire swing length is the distance from the contact patch to (y, z) = (0, ride height).
             # Approximation: the angular displacement is the angle swept by this line as the tire displaces vertically
             tire_swing_length = np.sqrt(self.params.ride_height ** 2 + np.abs(tire.position[1]) ** 2)
@@ -98,3 +102,30 @@ class Dynamics():
             
             # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
             tire.set_unsprung_displacement(z_c, roll)
+        
+    @property
+    def avg_front_roll_stiffness(self): # Nm / rad
+        return (abs(self.tires.front_right.roll_stiffness) + abs(self.tires.front_left.roll_stiffness)) / 2
+        
+    @property
+    def avg_rear_roll_stiffness(self): # Nm / rad
+        return (abs(self.tires.rear_right.roll_stiffness) + abs(self.tires.rear_left.roll_stiffness)) / 2
+        
+    @property
+    def rear_roll_stiffness_dist(self): # % rear/total 0->1 # TODO: does this need to account for roll height axis?
+        return self.avg_rear_roll_stiffness / (self.avg_front_roll_stiffness + self.avg_rear_roll_stiffness)
+    
+    @property
+    def roll_stiffness(self): # Nm / rad
+        return self.avg_rear_roll_stiffness + self.avg_front_roll_stiffness
+
+    @property
+    def cg_weighted_roll_center(self): # m
+        return (self.params.front_roll_center_height * (1 - self.params.cg_bias)
+                + self.params.rear_roll_center_height * self.params.cg_bias) / 2
+    
+    @property
+    def roll_stiffness_per_g(self): # rad/g # NOTE: roll calculation from M&M 18.4 (pg 682)
+        cg_to_roll_axis = self.params.cg_total_position[2] - self.cg_weighted_roll_center
+        kinetic_moment = self.params.mass_sprung * self.params.gravity * cg_to_roll_axis
+        return - kinetic_moment / (self.roll_stiffness - kinetic_moment)

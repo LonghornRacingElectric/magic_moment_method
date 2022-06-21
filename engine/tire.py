@@ -43,11 +43,11 @@ class Tire:
 
     @property
     def normal_load(self):
-        return self.stiffness * self.outputs.unsprung_displacement
+        return self.tire_springrate * self.outputs.unsprung_displacement
 
     @property
     def static_unsprung_displacement(self):
-        return self.static_normal_load / self.stiffness
+        return self.static_normal_load / self.tire_springrate
     
     # input steered angle is in intermediate frame
     # TODO: should toe be included in this steered angle or added afterwards?
@@ -70,11 +70,11 @@ class Tire:
     # takes corner displacement of chassis and roll angle
     def set_unsprung_displacement(self, z_c, roll):
         self.outputs.z_c = z_c
-        self.outputs.f_roll = self.roll_stiffness * roll # ARB force at tire
+        self.outputs.f_roll = self.arb_stiffness * roll # TODO: more long term fix
 
-        unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.stiffness + self.wheelrate)
+        unsprung_disp = (self.outputs.f_roll + self.wheelrate * z_c) / (self.tire_springrate + self.wheelrate)
         
-        self.outputs.f_heave = self.wheelrate * (z_c - unsprung_disp) # spring force at tire
+        self.outputs.f_heave = self.riderate * (z_c )# self.params.ride_height) # spring force at tire
         self.outputs.unsprung_displacement = unsprung_disp
 
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
@@ -132,8 +132,22 @@ class Tire:
         test_condition_multiplier = 2/3
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V)
 
+    @property
+    def roll_stiffness(self): # Nm/rad (assumes small angle approximation)
+        ride_contribution = self.riderate * self.trackwidth ** 2 / 2 * (1 if self.direction_left else -1)
+        arb_contribution = self.arb_stiffness
+        return (ride_contribution + arb_contribution)
+
     @abstractmethod
     def steering_induced_slip(self, steered_angle):
+        pass
+
+    @abstractproperty
+    def riderate(self):
+        pass
+    
+    @abstractproperty
+    def arb_stiffness(self):
         pass
 
     @abstractproperty
@@ -141,7 +155,11 @@ class Tire:
         pass
     
     @abstractproperty
-    def stiffness(self):
+    def toe_gain(self):
+        pass
+    
+    @abstractproperty
+    def tire_springrate(self):
         pass
 
     @abstractproperty
@@ -150,10 +168,6 @@ class Tire:
 
     @abstractproperty
     def static_normal_load(self):
-        pass
-
-    @abstractproperty
-    def roll_stiffness(self):
         pass
 
     @abstractproperty
@@ -197,117 +211,3 @@ class Tire:
 
     #     # return D*math.sin(C*math.atan(Bx1-E*(Bx1-math.atan(Bx1)))) + V
     #     return 0
-
-class FrontTire(Tire):
-    def __init__(self, car_params, direction_left):
-        super().__init__(car_params, direction_left)
-
-    def steering_induced_slip(self, steered_angle):
-        return steered_angle + self.toe
-
-    @property
-    def toe(self):
-        return self.params.front_toe * (1 if self.direction_left else -1) # TODO: verify this
-
-    @property
-    def stiffness(self):
-        return self.params.front_tire_spring_rate
-    
-    @property
-    def static_normal_load(self):
-        return -1 * self.params.gravity * self.params.mass * (1 - self.params.cg_bias) / 2
-
-    @property
-    def lateral_coeffs(self):
-        return self.params.front_tire_coeff_Fy
-
-    @property
-    def roll_stiffness(self):
-        return self.params.front_roll_stiffness * (1 if self.direction_left else -1)
-
-    @property
-    def wheelrate(self):
-        return self.params.front_wheelrate_stiffness
-
-    @property
-    def KPI(self):
-        return self.params.front_KPI
-
-    @property
-    def static_camber(self):
-        return self.params.front_static_camber
-
-    @property
-    def camber_gain(self):
-        return self.params.front_camber_gain
-
-    @property
-    def caster(self):
-        return self.params.front_caster
-
-    @property
-    def trackwidth(self):
-        return self.params.front_track
-
-    @property
-    def position(self):
-        y_pos = self.trackwidth/2 * (1 if self.direction_left else -1)
-        return [self.params.wheelbase * self.params.cg_bias, y_pos, 0]
-
-class RearTire(Tire):
-    def __init__(self, car_params, direction_left):
-        super().__init__(car_params, direction_left)
-
-    # NOT a function of steered angle, don't use for calcs
-    def steering_induced_slip(self, steered_angle):
-        return self.toe
-
-    @property
-    def toe(self):
-        return self.params.rear_toe * (1 if self.direction_left else -1) #TODO : verify this
-
-    # TODO: make linear instead of constant
-    @property
-    def stiffness(self):
-        return self.params.rear_tire_spring_rate
-    
-    @property
-    def static_normal_load(self):
-        return -1 * self.params.gravity * self.params.mass * self.params.cg_bias / 2
-
-    @property
-    def lateral_coeffs(self):
-        return self.params.rear_tire_coeff_Fy
-
-    @property
-    def roll_stiffness(self):
-        return self.params.rear_roll_stiffness * (1 if self.direction_left else -1)
-
-    @property
-    def wheelrate(self):
-        return self.params.rear_wheelrate_stiffness
-
-    @property
-    def KPI(self):
-        return self.params.rear_KPI
-
-    @property
-    def static_camber(self):
-        return self.params.rear_static_camber
-
-    @property
-    def camber_gain(self):
-        return self.params.rear_camber_gain
-
-    @property
-    def caster(self):
-        return self.params.rear_caster
-    
-    @property
-    def trackwidth(self):
-        return self.params.rear_track
-
-    @property
-    def position(self):
-        y_pos = self.trackwidth/2 * (1 if self.direction_left else -1)
-        return [-self.params.wheelbase * (1 - self.params.cg_bias), y_pos, 0]

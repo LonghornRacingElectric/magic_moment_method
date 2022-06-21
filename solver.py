@@ -1,15 +1,15 @@
 import numpy as np
 from better_namespace import BetterNamespace
-from vehicle import Vehicle
+from engine.vehicle import Vehicle
 from scipy.optimize import fsolve as josie_solver
 import pandas as pd
 from copy import copy
 import math
-from vehicle_params.concept_2022 import Concept2022
+from vehicle_params.easy_driver import EasyDriver
 
 def main():
     state = BetterNamespace()
-    vehicle = Vehicle(Concept2022(), state)
+    vehicle = Vehicle(EasyDriver(), state)
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle)
 
     # initial_guess (outputs) = ride_height, x_double_dot, y_double_dot, yaw_accel, roll, pitch
@@ -20,7 +20,7 @@ def main():
     peak_slip_angle = 18 * math.pi / 180 # rad
 
     # sweep parameters for MMM
-    for s_dot in [1]: #np.linspace(7.22,7.22,1):
+    for s_dot in [15]: #np.linspace(7.22,7.22,1):
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set vehicle states for each individual sweep
@@ -39,6 +39,7 @@ def main():
                 # TODO: Better saturation method implementation in tires
                 if not output_dict["dynamics_tires_saturated"] and not output_dict["dynamics_two_tires_lifting"]:
                     df = pd.DataFrame([output_dict]) if df is None else df.append(output_dict, ignore_index=True)
+                    #print(vehicle.aero.outputs.forces)
     
     # export data to CSV
     df.to_csv("analysis/MMM.csv")
