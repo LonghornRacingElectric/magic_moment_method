@@ -155,7 +155,7 @@ class Tire:
         normal_vects = self.tube_geometry[0]
         lever_arms = self.tube_geometry[1]
 
-        # Set Up Force and Moment Balance
+        # Set Up Force and Moment Balance; Create unit vectors that forces and moments will be applied to
         arr_cross = np.cross(normal_vects.T, lever_arms.T).T
         arr_coeff = np.concatenate((normal_vects, arr_cross))
 
@@ -294,36 +294,7 @@ class FrontTire(Tire):
 
     @property
     def tube_geometry(self):
-        # Inputs (in inches, from CAD)
-        pt1_i = np.array([0.063, 2.138, 11.539]).reshape((3, 1))
-        pt1_f = np.array([5.875, 14.641, 7.759]).reshape((3, 1))
-
-        pt2_i = np.array([0.063, 2.138, 11.539]).reshape((3, 1))
-        pt2_f = np.array([-7.375, 14.641, 6.066]).reshape((3, 1))
-
-        pt3_i = np.array([0.066, 1.6, 4.208]).reshape((3, 1))
-        pt3_f = np.array([5.875, 15.791, 2.129]).reshape((3, 1))
-
-        pt4_i = np.array([0.066, 1.6, 4.208]).reshape((3, 1))
-        pt4_f = np.array([-7.373, 15.791, 2.402]).reshape((3, 1))
-
-        pt5_i = np.array([0.08, 3.718, 4.925]).reshape((3, 1))
-        pt5_f = np.array([-5.519, 11.975, 21.429]).reshape((3, 1))
-
-        pt6_i = np.array([2.935, 2.393, 11.049]).reshape((3, 1))
-        pt6_f = np.array([4.262, 13.291, 7.523]).reshape((3, 1))
-
-        # Calculate
-        pt_i_arr = np.concatenate((pt1_i, pt2_i, pt3_i, pt4_i, pt5_i, pt6_i), axis=1)
-        pt_f_arr = np.concatenate((pt1_f, pt2_f, pt3_f, pt4_f, pt5_f, pt6_f), axis=1)
-
-        v_arr = pt_f_arr - pt_i_arr
-        lengths = np.apply_along_axis(np.linalg.norm, 0, v_arr)
-        n_arr = v_arr / lengths
-
-        lever_arms = pt_i_arr * 0.0254  # in to m
-
-        return n_arr, lever_arms
+        return self.params.front_tube_normals, self.params.front_lever_arms
 
 
 class RearTire(Tire):
@@ -386,33 +357,4 @@ class RearTire(Tire):
 
     @property
     def tube_geometry(self):
-        # Inputs (in inches, from CAD)
-        pt1_i = np.array([-0.126, 1.549, 12.583]).reshape((3, 1))
-        pt1_f = np.array([7.125, 11.492, 9.55]).reshape((3, 1))
-
-        pt2_i = np.array([-0.126, 1.549, 12.583]).reshape((3, 1))
-        pt2_f = np.array([-7.75, 11.492, 9.55]).reshape((3, 1))
-
-        pt3_i = np.array([0.131, 1.164, 5.243]).reshape((3, 1))
-        pt3_f = np.array([7.124, 13.242, 3.354]).reshape((3, 1))
-
-        pt4_i = np.array([0.131, 1.164, 5.243]).reshape((3, 1))
-        pt4_f = np.array([-5.499, 13.242, 3.613]).reshape((3, 1))
-
-        pt5_i = np.array([-0.043, 2.38, 11.279]).reshape((3, 1))
-        pt5_f = np.array([5.576, 11.847, 4.112]).reshape((3, 1))
-
-        pt6_i = np.array([3.498, 1.026, 9.11]).reshape((3, 1))
-        pt6_f = np.array([7.125, 12.089, 7.433]).reshape((3, 1))
-
-        # Calculate
-        pt_i_arr = np.concatenate((pt1_i, pt2_i, pt3_i, pt4_i, pt5_i, pt6_i), axis=1)
-        pt_f_arr = np.concatenate((pt1_f, pt2_f, pt3_f, pt4_f, pt5_f, pt6_f), axis=1)
-
-        v_arr = pt_f_arr - pt_i_arr
-        lengths = np.apply_along_axis(np.linalg.norm, 0, v_arr)
-        n_arr = v_arr / lengths
-
-        lever_arms = pt_i_arr * 0.0254  # in to m
-
-        return n_arr, lever_arms
+        return self.params.rear_tube_normals, self.params.rear_lever_arms
