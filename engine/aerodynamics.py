@@ -1,14 +1,12 @@
 import math
 import numpy as np
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 
 class Aerodynamics:
     def __init__(self, params):
         self.outputs = BetterNamespace()
-        # TODO: make param files later; currently all initialized here
+        # TODO: PUT THESE ALL IN PARAM FILE PLZ
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
-
-        CdA_tot   = abs(self.vehicle_params.CdA_full - self.vehicle_params.CdA0)
 
         # distribution of downforce across components
         ClA_dist = [0.371, 0.282, 0.347]   # [front, undertray, rear]
@@ -30,7 +28,7 @@ class Aerodynamics:
         self.rad_to_deg = 180 / math.pi
 
         # positions of component CoPs (magnitudes, equation takes signs into account)
-        # TODO: make positions relative to intermediate frame
+        # TODO: make positions relative to intermediate frame; these lines also seem wrong in general ATM
         # Front, Undertray and Rear [x , y , z]
         self.CoP = np.array([[23.65 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 9.30 * self.in_to_m],
                              [-43.5 * self.in_to_m + self.vehicle_params.cg_total_position[0],  0, 7.13 * self.in_to_m],
@@ -39,7 +37,8 @@ class Aerodynamics:
         # gets aero coefficients for each component
         self.ClA = [self.vehicle_params.ClA_tot * ClA_dist[0], self.vehicle_params.ClA_tot * ClA_dist[1],
                     self.vehicle_params.ClA_tot * ClA_dist[2]]
-        self.CdA = [CdA_tot * CdA_dist[0], CdA_tot * CdA_dist[1], CdA_tot * CdA_dist[2]]
+        self.CdA = [self.vehicle_params.CdA_tot * CdA_dist[0], self.vehicle_params.CdA_tot * CdA_dist[1],
+                    self.vehicle_params.CdA_tot * CdA_dist[2]]
         self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[0], self.vehicle_params.CsA_tot * CsA_dist[1],
                     self.vehicle_params.CsA_tot * CsA_dist[2]]
 
@@ -70,16 +69,21 @@ class Aerodynamics:
             CsA_part = self.CsA[i] * Cs_sens
 
             # calculate force in each direction
-            Fl_part = 0.5 * 1.225 * ClA_part * x_dot ** 2
-            Fd_part = 0.5 * 1.225 * CdA_part * x_dot ** 2
-            Fs_part = 0.5 * 1.225 * CsA_part * (x_dot * math.tan(body_slip)) ** 2 * s_dir
+            Fl_part = 0.5 * self.air_density * ClA_part * x_dot ** 2
+            Fd_part = 0.5 * self.air_density * CdA_part * x_dot ** 2
+            Fs_part = 0.5 * self.air_density * CsA_part * (x_dot * math.tan(body_slip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)
             moments = np.add(moments, np.cross(self.CoP[i], part_force))
 
         # account for drag from rest of car
-        drag_no_aero = 0.5 * 1.225 * self.vehicle_params.CdA0 * x_dot ** 2
+        drag_no_aero = 0.5 * self.air_density * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
+        self.outputs.forces = forces
         return forces, moments
 
+    # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
+    @property
+    def air_density(self): # kg/m^3
+        return  1.225 - 0.003975 * (self.vehicle_params.air_temperature - 15)

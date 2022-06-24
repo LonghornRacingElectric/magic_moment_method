@@ -1,0 +1,5 @@
+matplotlib-label-lines
+matplotlib
+pandas
+numpy
+scipy
