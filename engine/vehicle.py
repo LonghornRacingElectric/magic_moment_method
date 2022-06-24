@@ -1,6 +1,6 @@
-from aerodynamics import Aerodynamics
-from dynamics import Dynamics
-from better_namespace import BetterNamespace
+from engine.aerodynamics import Aerodynamics
+from engine.suspension import Suspension
+from helpers.better_namespace import BetterNamespace
 import numpy as np
 from math import cos, sin
 
@@ -10,7 +10,7 @@ class Vehicle:
         self.params = params
 
         # Initiate component classes and vehicle parameters
-        self.dynamics = Dynamics(self.params)
+        self.suspension = Suspension(self.params)
         self.aero = Aerodynamics(self.params)
 
         # set defaults, these are the prescribed MMM states
@@ -21,12 +21,12 @@ class Vehicle:
         
         # Intermediate states calculated along the way, saved for analysis :)
         self.outputs = BetterNamespace()
-        self.outputs.dynamics = self.dynamics.outputs
+        self.outputs.dynamics = self.suspension.outputs
         self.outputs.aero = self.aero.outputs
-        self.outputs.front_left_tire = self.dynamics.tires.front_left.outputs
-        self.outputs.front_right_tire = self.dynamics.tires.front_right.outputs
-        self.outputs.rear_left_tire = self.dynamics.tires.rear_left.outputs
-        self.outputs.rear_right_tire = self.dynamics.tires.rear_right.outputs
+        self.outputs.front_left_tire = self.suspension.tires.front_left.outputs
+        self.outputs.front_right_tire = self.suspension.tires.front_right.outputs
+        self.outputs.rear_left_tire = self.suspension.tires.rear_left.outputs
+        self.outputs.rear_right_tire = self.suspension.tires.rear_right.outputs
         
         # NOTE: these outputs are for LOGGING PURPOSES ONLY. Dont use in the code
         self.outputs.vehicle = BetterNamespace()
@@ -94,6 +94,7 @@ class Vehicle:
 
     def get_loads(self, roll, pitch, ride_height, lateral_accel):
         # NOTE: only use normal acceleration for yaw velocity & turn radius calc!
+        # TODO: add more clarification on this importance
         yaw_rate = self.get_yaw_rate(lateral_accel)
         
         # Define aero loads
@@ -101,7 +102,7 @@ class Vehicle:
                                ride_height)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
-        tire_forces, tire_moments = self.dynamics.get_loads(self.translational_velocities_IMF, yaw_rate,
+        tire_forces, tire_moments = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
                                                             self.state.steered_angle, roll, pitch, ride_height)
 
         return aero_forces + tire_forces, aero_moments + tire_moments
