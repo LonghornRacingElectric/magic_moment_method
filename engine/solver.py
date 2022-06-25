@@ -1,7 +1,23 @@
 import numpy as np
+from scipy.optimize import fsolve as josie_solver
+from copy import copy
+import warnings
+import engine
 
-class Residuals:
-    
+class Solver:
+    def __init__(self, vehicle_parameters, initial_guess):
+        self.parameter_order = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+        self.initial_guess = [initial_guess[x] for x in self.parameter_order]
+        self.vehicle = engine.Vehicle(vehicle_parameters)
+
+    # solve for unique output variable set to match the prescribed states, with an initial guess of outputs
+    def solve(self, input_state):
+        self.vehicle.state = input_state
+        specific_residual_func = lambda x: Solver.DOF6_motion_residuals(x, self.vehicle, self.parameter_order)
+        warnings.filterwarnings('ignore', 'The iteration is not making good progress')
+        josie_solver(specific_residual_func, self.initial_guess)
+        return copy(self.vehicle.logger.return_log())
+
     def DOF6_motion_residuals(x, vehicle, output_var_labels):
         # solving for these bois
         ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x

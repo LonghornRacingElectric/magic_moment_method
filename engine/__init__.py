@@ -1,4 +1,4 @@
 
 from engine.vehicle import Vehicle
-from engine.residuals import Residuals
+from engine.solver import Solver
 from engine.state import State
