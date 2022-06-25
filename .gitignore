@@ -5,5 +5,5 @@ helpers/__pycache__/*
 .DS_Store
 .idea
 .ipynb_checkpoints/*
-*.csv
+analysis/*.csv
 .vscode/*

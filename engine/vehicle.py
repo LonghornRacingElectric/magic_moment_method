@@ -13,9 +13,9 @@ class Vehicle:
     # params: static car parameters
     # aero: handles aerodynamic induced forces
     # suspension: handles suspension induced forces
-    def __init__(self, params, state = State(), logger = Logger()):
+    def __init__(self, params, state = None):
         self.state = state
-        self.logger = logger
+        self.logger = Logger()
         self.params = params        
         self.suspension = Suspension(self.params, self.logger)
         self.aero = Aerodynamics(self.params, self.logger)
