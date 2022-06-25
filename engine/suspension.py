@@ -49,13 +49,13 @@ class Suspension():
             moments = np.add(m, moments)
             
             ### ~~~ Logging Useful Information ~~~ ###
-            self.logger.log(tire_name + "_inclination_angle", inclination_angle)
-            self.logger.log(tire_name + "_slip_angle", slip_angle)
-            self.logger.log(tire_name + "_vehicle_centric_forces", f)
-            self.logger.log(tire_name + "_vehicle_centric_moments", m)
+            self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
+            self.logger.log(tire_name + "_tire_slip_angle", slip_angle)
+            self.logger.log(tire_name + "_tire_vehicle_centric_forces", f)
+            self.logger.log(tire_name + "_tire_vehicle_centric_moments", m)
             grip_force_loss, grip_percent_loss = tire.lateral_loss(normal_force, slip_angle, inclination_angle)
-            self.logger.log(tire_name + "_lateral_force_loss", grip_force_loss)
-            self.logger.log(tire_name + "_lateral_percent_loss", grip_percent_loss)
+            self.logger.log(tire_name + "_tire_inclination_angle_force_loss", grip_force_loss)
+            self.logger.log(tire_name + "_tire_inclination_angle_percent_loss", grip_percent_loss)
             
             ### ~~~ Saturation & Lifting Checks ~~~ ###
             normal_forces.append(normal_force)
@@ -87,10 +87,10 @@ class Suspension():
         heave_induced = 0 # TODO
         pitch_induced = 0 # TODO   
         
-        self.logger.log(tire_name + "_steering_inclination", steering_induced)
-        self.logger.log(tire_name + "_roll_inclination", roll_induced)
-        self.logger.log(tire_name + "_heave_inclination", heave_induced)
-        self.logger.log(tire_name + "_pitch_inclination", pitch_induced)
+        self.logger.log(tire_name + "_tire_steering_inclination", steering_induced)
+        self.logger.log(tire_name + "_tire_roll_inclination", roll_induced)
+        self.logger.log(tire_name + "_tire_heave_inclination", heave_induced)
+        self.logger.log(tire_name + "_tire_pitch_inclination", pitch_induced)
         
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
             
@@ -101,7 +101,7 @@ class Suspension():
         # slip angles (steered angle, body slip, yaw rate)
         slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
         
-        self.logger.log(tire_name + "_velocity", tire_velocity)
+        self.logger.log(tire_name + "_tire_velocity", tire_velocity)
     
         return slip_angle
           
@@ -124,7 +124,7 @@ class Suspension():
             vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
             vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
         
-        self.logger.log(tire_name + "_tire_centric_forces", tire_centric_forces)
+        self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
         
         return vehicle_centric_forces, vehicle_centric_moments
           
@@ -142,8 +142,9 @@ class Suspension():
         f_heave = tire.riderate * z_c
         normal_force = tire.tire_springrate * tire_compression 
         
-        self.logger.log(tire_name + "_f_roll", f_roll)
-        self.logger.log(tire_name + "_f_heave", f_heave)
+        self.logger.log(tire_name + "_tire_f_roll", f_roll)
+        self.logger.log(tire_name + "_tire_f_heave", f_heave)
+        self.logger.log(tire_name + "_tire_z_c", z_c)
         
         return normal_force
                    

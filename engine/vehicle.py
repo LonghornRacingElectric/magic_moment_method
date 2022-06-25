@@ -16,10 +16,7 @@ class Vehicle:
     def __init__(self, params, state = State(), logger = Logger()):
         self.state = state
         self.logger = logger
-        self.params = params
-        
-        [self.logger.log(name, val) for name, val in state.items()]
-        
+        self.params = params        
         self.suspension = Suspension(self.params, self.logger)
         self.aero = Aerodynamics(self.params, self.logger)
     

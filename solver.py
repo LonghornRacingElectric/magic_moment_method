@@ -42,7 +42,7 @@ def main():
                 # if not saturated, the point will be saved
                 # TODO: Should 1 tire even be allowed to lift???
                 if not output_dict["dynamics_tires_saturated"] and not output_dict["dynamics_two_tires_lifting"]:
-                    log_df = pd.DataFrame([output_dict]) if log_df is None else pd.concat([log_df, pd.Series(output_dict)], ignore_index=True)
+                    log_df = pd.DataFrame([output_dict]) if log_df is None else log_df.append(output_dict, ignore_index=True)
     
     # add solved outputs to CSV file along with intermediate logged values
     log_df.to_csv("analysis/MMM.csv")
@@ -76,7 +76,7 @@ def DOF6_motion_residuals(x, vehicle, output_var_labels):
     yaw_moment = vehicle.get_yaw_moment(yaw_acceleration)
     summation_moments = np.array([0, 0, yaw_moment]) - kinetic_moments - vehicle_moments_ntb
 
-
+    # LOG SOME SHITS
     [vehicle.logger.log(output_var_labels[i], x[i]) for i in range(len(x))]
     vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
     vehicle.logger.log("vehicle_yaw_moment", yaw_moment)
@@ -85,6 +85,7 @@ def DOF6_motion_residuals(x, vehicle, output_var_labels):
     vehicle.logger.log("vehicle_yaw_rate", yaw_rate)
     vehicle.logger.log("vehicle_x_dot", vehicle.x_dot)
     vehicle.logger.log("vehicle_y_dot", vehicle.y_dot)
+    [vehicle.logger.log(name, val) for name, val in vehicle.state.items()]
 
     return np.array([*summation_forces, *summation_moments])
 
