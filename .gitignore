@@ -2,6 +2,7 @@ __pycache__/*
 engine/__pycache__/*
 vehicle_params/__pycache__/*
 helpers/__pycache__/*
+unit_tests/__pycache__/*
 .DS_Store
 .idea
 .ipynb_checkpoints/*
