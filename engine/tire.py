@@ -1,16 +1,6 @@
 from abc import abstractmethod, abstractproperty
-from math import sin, cos
 import math
-import numpy as np
 
-"""
-Coordinate Systems:
-    SAE z-up wheel/tire centered coordinates: https://www.mathworks.com/help/vdynblks/ug/coordinate-systems-in-vehicle-dynamics-blockset.html
-
-Units: 
-    Length: meters
-    Mass: kg
-"""
 class Tire:
     def __init__(self, car_params, direction_left):
         self.params = car_params
@@ -18,10 +8,6 @@ class Tire:
 
     def roll_inclination_angle_gain(self, roll):
         return roll - (roll * self.camber_gain)
-
-    @property
-    def static_unsprung_displacement(self):
-        return self.static_normal_load / self.tire_springrate
     
     @abstractmethod
     def steered_inclination_angle_gain(self):
@@ -64,8 +50,29 @@ class Tire:
         test_condition_multiplier = 2/3
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
 
-    def force_loss(self, normal_force, slip_angle, inclination_angle):
-        return 0, 0 #TODO: implement
+    # def long_pacejka(self, inclination_angle, normal_force, slip_ratio):
+    #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
+    #     # C = b0;
+    #     # D = Fz*(b1*Fz+b2)
+    #     # BCD = (b3**Fz+b4*Fz)*math.exp(-b5*Fz)
+    #     # B = BCD/(C*D)
+    #     # H = b9*Fz+b10
+    #     # E = (b6**Fz+b7*Fz+b8)*(1-b13*math.sign(slip_ratio+H))
+    #     # V = b11*Fz+b12
+    #     # Bx1 = B*(slip_ratio+H)
+
+    #     # return D*math.sin(C*math.atan(Bx1-E*(Bx1-math.atan(Bx1)))) + V
+    #     return 0
+
+    # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
+    def lateral_loss(self, normal_force, slip_angle, inclination_angle):
+        if normal_force <= 0:
+            return 0, 0
+        actual = self.lateral_pacejka(inclination_angle, normal_force, slip_angle)
+        optimal = self.lateral_pacejka(0, normal_force, slip_angle)
+        force_loss = optimal - actual
+        percent_loss = force_loss / optimal
+        return force_loss, percent_loss
 
     @property
     def roll_stiffness(self): # Nm/rad (assumes small angle approximation)
@@ -75,6 +82,10 @@ class Tire:
 
     @abstractmethod
     def steering_induced_slip(self, steered_angle):
+        pass
+
+    @abstractmethod
+    def steered_inclination_angle_gain(self, steered_angle):
         pass
 
     @abstractproperty
@@ -99,10 +110,6 @@ class Tire:
 
     @abstractproperty
     def lateral_coeffs(self):
-        pass
-
-    @abstractproperty
-    def static_normal_load(self):
         pass
 
     @abstractproperty
@@ -132,17 +139,3 @@ class Tire:
     @abstractproperty
     def position(self):
         pass
-
-    # def get_Fx(self, slip_angle, camber, Fz):
-    #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
-    #     # C = b0;
-    #     # D = Fz*(b1*Fz+b2)
-    #     # BCD = (b3**Fz+b4*Fz)*math.exp(-b5*Fz)
-    #     # B = BCD/(C*D)
-    #     # H = b9*Fz+b10
-    #     # E = (b6**Fz+b7*Fz+b8)*(1-b13*math.sign(slip_ratio+H))
-    #     # V = b11*Fz+b12
-    #     # Bx1 = B*(slip_ratio+H)
-
-    #     # return D*math.sin(C*math.atan(Bx1-E*(Bx1-math.atan(Bx1)))) + V
-    #     return 0

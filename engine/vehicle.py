@@ -71,6 +71,9 @@ class Vehicle:
         return self.state.s_dot * sin(self.state.body_slip)
 
     def get_loads(self, roll, pitch, ride_height, yaw_rate):
+        # gravity load
+        gravity = np.array([0, 0, -self.params.mass * self.params.gravity])
+        
         # Define aero loads
         aero_forces, aero_moments = self.aero.get_loads(self.x_dot, self.state.body_slip, pitch, roll,
                                ride_height)
@@ -79,4 +82,4 @@ class Vehicle:
         tire_forces, tire_moments = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
                                                             self.state.steered_angle, roll, pitch, ride_height)
 
-        return aero_forces + tire_forces, aero_moments + tire_moments
+        return aero_forces + tire_forces + gravity, aero_moments + tire_moments

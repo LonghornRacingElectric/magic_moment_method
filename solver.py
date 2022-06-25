@@ -7,9 +7,10 @@ import pandas as pd
 from copy import copy
 import math
 from vehicle_params.easy_driver import EasyDriver
+import warnings
+warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
 def main():
-   
     # These are the output variables being solved for to match the prescribed states!
     output_var_labels = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
     initial_guess = [0.0762, 0, 0, 0, 0, 0]
@@ -17,9 +18,12 @@ def main():
     specific_residual_func = lambda x: DOF6_motion_residuals(x, vehicle, output_var_labels)
     log_df = None
 
-    # sweep parameters for MMM
-    for s_dot in [15]: #np.linspace(7.22,7.22,1):
-        peak_slip_angle = 18 * math.pi / 180 # rad #NOTE: guesstimation, not a good guess either
+    # sweep parameters for MMM; any parameter in the vehicle_params file can be swept as well.
+    for s_dot in [15]:
+        
+        # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
+        peak_slip_angle = 18 * math.pi / 180 # rad 
+        
         for body_slip in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
             for steered_angle in np.linspace(-peak_slip_angle, peak_slip_angle, 21):
                 # set prescribed vehicle states for each parameter sweep
@@ -36,13 +40,13 @@ def main():
                 # see if point is saturated (i.e. all 4 tires slip angles are saturated)
                 # saturation will yield to useless data point since it will wrap back around with less acceleration
                 # if not saturated, the point will be saved
-                # TODO: Better saturation method implementation in tires
+                # TODO: Should 1 tire even be allowed to lift???
                 if not output_dict["dynamics_tires_saturated"] and not output_dict["dynamics_two_tires_lifting"]:
-                    log_df = pd.DataFrame([output_dict]) if log_df is None else log_df.append(output_dict, ignore_index=True)
-                    #print(vehicle.aero.outputs.forces)
+                    log_df = pd.DataFrame([output_dict]) if log_df is None else pd.concat([log_df, pd.Series(output_dict)], ignore_index=True)
     
     # add solved outputs to CSV file along with intermediate logged values
     log_df.to_csv("analysis/MMM.csv")
+    print("Export successful to CSV, MMM complete!")
 
 def DOF6_motion_residuals(x, vehicle, output_var_labels):
     # solving for these bois

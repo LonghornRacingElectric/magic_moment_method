@@ -18,10 +18,6 @@ class FrontTire(Tire):
         return self.params.front_tire_spring_rate
     
     @property
-    def static_normal_load(self): # N
-        return -1 * self.params.gravity * self.params.mass * (1 - self.params.cg_bias) / 2
-
-    @property
     def lateral_coeffs(self):
         return self.params.front_tire_coeff_Fy
 
@@ -64,10 +60,9 @@ class FrontTire(Tire):
         return [self.params.wheelbase * self.params.cg_bias, y_pos, 0]
     
     # input steered angle is in intermediate frame
-    # TODO: should toe be included in this steered angle or added afterwards?
     def steered_inclination_angle_gain(self, steered_angle):
         # convert steered angle to tire frame
-        steered_angle = steered_angle * (1 if self.direction_left else -1) + self.toe
+        steered_angle = steered_angle * (1 if self.direction_left else -1)
         
         # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
         steer_inc = np.arccos(np.sin(self.KPI) * np.cos(steered_angle)) + self.KPI + \

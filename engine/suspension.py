@@ -27,50 +27,41 @@ class Suspension():
         self.tires.rear_right = RearTire(self.params, False)
 
     def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
-        # get tire forces
-        forces = np.array([0, 0, -self.params.mass * self.params.gravity])
-        moments = np.array([0, 0, 0])
+        forces, moments = np.array([0, 0, 0]), np.array([0, 0, 0])
+        # tire saturation & lifting
+        saturated, normal_forces = [], []
         
-        # tire saturation
-        saturated = []
-        
-        # normal forces
-        normals = []
-        
-        # tire forces (inclination angle, slip angle, normal force dependent)
+        # tire output forces as a function of inclination angle, slip angle, and normal force
         for tire_name, tire in self.tires.items():
             
             ### ~~~ Normal Force Calculation ~~~ ###
             normal_force = self.get_tire_normal_load(tire_name, tire, ride_height, pitch, roll)
             
-            
             ### ~~~ Slip Angle Calculation ~~~ ###
             slip_angle = self.get_tire_slip_angle(tire_name, tire, vehicle_velocity, yaw_rate, steered_angle)
             
-        
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.get_inclination_angle(tire_name, tire, steered_angle, roll, ride_height, pitch)
             
-
             ### ~~~ Tire Output Force Calculation ~~~ ###
             f, m = self.get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle)
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
-            
             
             ### ~~~ Logging Useful Information ~~~ ###
             self.logger.log(tire_name + "_inclination_angle", inclination_angle)
             self.logger.log(tire_name + "_slip_angle", slip_angle)
             self.logger.log(tire_name + "_vehicle_centric_forces", f)
             self.logger.log(tire_name + "_vehicle_centric_moments", m)
-            grip_force_loss, grip_percent_loss = tire.force_loss(normal_force, slip_angle, inclination_angle)
+            grip_force_loss, grip_percent_loss = tire.lateral_loss(normal_force, slip_angle, inclination_angle)
             self.logger.log(tire_name + "_lateral_force_loss", grip_force_loss)
             self.logger.log(tire_name + "_lateral_percent_loss", grip_percent_loss)
             
-            normals.append(normal_force)
+            ### ~~~ Saturation & Lifting Checks ~~~ ###
+            normal_forces.append(normal_force)
             saturated.append(tire.is_saturated(normal_force, slip_angle, inclination_angle))
 
-        self.log_saturation(saturated, normals)
+        self.log_saturation(saturated, normal_forces)
         return forces, moments
 
     def log_saturation(self, saturateds, normals):
