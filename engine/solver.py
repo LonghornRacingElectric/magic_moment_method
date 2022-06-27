@@ -5,9 +5,11 @@ import warnings
 import engine
 
 class Solver:
-    def __init__(self, vehicle_parameters, initial_guess):
+    def __init__(self, vehicle_parameters, initial_guess = None):
+        # These are the output variables being solved for to match the prescribed states!
         self.parameter_order = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
-        self.initial_guess = [initial_guess[x] for x in self.parameter_order]
+        guess_dict = initial_guess if initial_guess else self.default_guess
+        self.initial_guess = [guess_dict[x] for x in self.parameter_order]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
     # solve for unique output variable set to match the prescribed states, with an initial guess of outputs
@@ -58,3 +60,8 @@ class Solver:
         [vehicle.logger.log(name, val) for name, val in vehicle.state.items()]
 
         return np.array([*summation_forces, *summation_moments])
+
+    @property
+    def default_guess(self):
+        return {"ride_height": 0.0762, "x_double_dot": 0, "y_double_dot": 0, "yaw_acceleration":0,
+                    "roll": 0, "pitch": 0}

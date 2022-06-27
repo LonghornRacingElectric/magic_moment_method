@@ -5,11 +5,7 @@ import vehicle_params
 
 
 def main():
-    # These are the output variables being solved for to match the prescribed states!
-    initial_guess = {"ride_height": 0.0762, "x_double_dot": 0, "y_double_dot": 0, "yaw_acceleration":0,
-                        "roll": 0, "pitch": 0}
-    
-    solver = engine.Solver(vehicle_params.EasyDriver(), initial_guess)
+    solver = engine.Solver(vehicle_params.EasyDriver())
     log_df = pd.DataFrame()
 
     # sweep parameters for MMM; any parameter in the vehicle_params file can be swept as well.

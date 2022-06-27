@@ -14,18 +14,17 @@ import vehicle_params
 s_dot_sweep = [15]
 steering_sweep = [-0.18, 0, 0.18]
 body_sweep = [-0.18, 0, 0.18]
+reference_file = "tests/test_MMM.csv"
 
-# This whole file is real fucking sloppy right now lol
+
 @pytest.mark.parametrize("s_dot", s_dot_sweep)
 @pytest.mark.parametrize("steered_angle", steering_sweep)
 @pytest.mark.parametrize("body_slip", body_sweep)
 def test_josie_solver(s_dot, steered_angle, body_slip):
-    initial_guess = {"ride_height": 0.0762, "x_double_dot": 0, "y_double_dot": 0, "yaw_acceleration":0,
-                        "roll": 0, "pitch": 0}
-    solver = engine.Solver(vehicle_params.UnitTestCar(), initial_guess)
+    solver = engine.Solver(vehicle_params.UnitTestCar())
     o_d = solver.solve(engine.State(body_slip, steered_angle, s_dot))
 
-    e_d = pd.read_csv("unit_tests/test_MMM.csv")
+    e_d = pd.read_csv(reference_file)
     e_d_filtered = e_d[((e_d["s_dot"] == s_dot)  & (e_d["steered_angle"] == steered_angle))]
     e_d_filtered = e_d_filtered[e_d_filtered["body_slip"] == body_slip].iloc[0]
     for key, value in e_d_filtered.iteritems():
@@ -40,16 +39,14 @@ def test_josie_solver(s_dot, steered_angle, body_slip):
     assert True
 
 def generate_test_MMM():
-    initial_guess = {"ride_height": 0.0762, "x_double_dot": 0, "y_double_dot": 0, "yaw_acceleration":0,
-                        "roll": 0, "pitch": 0}
-    solver = engine.Solver(vehicle_params.UnitTestCar(), initial_guess)
+    solver = engine.Solver(vehicle_params.UnitTestCar())
     log_df = pd.DataFrame()
     for s_dot in s_dot_sweep:
         for body_slip in np.array(steering_sweep):
             for steered_angle in np.array(body_sweep):
                 output_dict = solver.solve(engine.State(body_slip, steered_angle, s_dot))
                 log_df = pd.concat([log_df, pd.DataFrame([output_dict])], ignore_index=True)
-    log_df.to_csv("unit_tests/test_MMM.csv")
+    log_df.to_csv(reference_file)
 
 if __name__ == "__main__":
     pass

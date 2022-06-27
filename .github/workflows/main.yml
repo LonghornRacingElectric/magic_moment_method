@@ -29,4 +29,4 @@ jobs:
       - name: Install requirements and verify data points
         run: |
           pip3 install -r requirements.txt
-          pytest unit_tests/unit_testing.py
+          pytest tests/unit_testing.py
