@@ -18,10 +18,6 @@ class RearTire(Tire):
         return self.params.rear_tire_spring_rate
     
     @property
-    def static_normal_load(self):
-        return -1 * self.params.gravity * self.params.mass * self.params.cg_bias / 2
-
-    @property
     def lateral_coeffs(self):
         return self.params.rear_tire_coeff_Fy
 
@@ -63,5 +59,6 @@ class RearTire(Tire):
         y_pos = self.trackwidth/2 * (1 if self.direction_left else -1)
         return [-self.params.wheelbase * (1 - self.params.cg_bias), y_pos, 0]
     
+    # TODO: implement, toe gain near 0 right now though
     def steered_inclination_angle_gain(self, steered_angle):
-        return 0 # TODO: implement, toe gain near 0 right now though
+        return 0

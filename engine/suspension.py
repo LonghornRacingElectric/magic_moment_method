@@ -16,17 +16,9 @@ Units:
 """
 
 class Suspension():  
-    def __init__(self, params):
+    def __init__(self, params, logger):
+        self.logger = logger
         self.params = params
-        
-        self.outputs = BetterNamespace()
-        # These two are metrics for throwing out data point as invalid
-        # Since they couldn't exist in the real world
-        self.outputs.tires_saturated = None
-        self.outputs.two_tires_lifting = None
-        
-        self.outputs.total_inclination_angle_percent_loss = None
-        self.outputs.total_inclination_angle_force_loss = None
         
         self.tires = BetterNamespace()
         self.tires.front_left = FrontTire(self.params, True)
@@ -35,78 +27,127 @@ class Suspension():
         self.tires.rear_right = RearTire(self.params, False)
 
     def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
-        # calculate unsprung intermediate (dependent) states
-        self.set_unsprung_displacements(roll, pitch, ride_height)
-        self.set_unsprung_slip_angles(vehicle_velocity, yaw_rate, steered_angle)
-        self.set_unsprung_inclination_angles(roll, steered_angle)
-
-        # get unsprung forces
-        forces = np.array([0, 0, -self.params.mass * self.params.gravity])
-        moments = np.array([0, 0, 0])
-
-        # tire forces (inclination angle, slip angles, normal forces)
-        for tire in self.tires.values():
-            f, m = tire.get_loads()
+        forces, moments = np.array([0, 0, 0]), np.array([0, 0, 0])
+        # tire saturation & lifting
+        saturated, normal_forces = [], []
+        
+        # tire output forces as a function of inclination angle, slip angle, and normal force
+        for tire_name, tire in self.tires.items():
+            
+            ### ~~~ Normal Force Calculation ~~~ ###
+            normal_force = self.get_tire_normal_load(tire_name, tire, ride_height, pitch, roll)
+            
+            ### ~~~ Slip Angle Calculation ~~~ ###
+            slip_angle = self.get_tire_slip_angle(tire_name, tire, vehicle_velocity, yaw_rate, steered_angle)
+            
+            ### ~~~ Inclination Angle Calculation ~~~ ###
+            inclination_angle = self.get_inclination_angle(tire_name, tire, steered_angle, roll, ride_height, pitch)
+            
+            ### ~~~ Tire Output Force Calculation ~~~ ###
+            f, m = self.get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle)
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
+            
+            ### ~~~ Logging Useful Information ~~~ ###
+            self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
+            self.logger.log(tire_name + "_tire_slip_angle", slip_angle)
+            self.logger.log(tire_name + "_tire_vehicle_centric_forces", f)
+            self.logger.log(tire_name + "_tire_vehicle_centric_moments", m)
+            grip_force_loss, grip_percent_loss = tire.lateral_loss(normal_force, slip_angle, inclination_angle)
+            self.logger.log(tire_name + "_tire_inclination_angle_force_loss", grip_force_loss)
+            self.logger.log(tire_name + "_tire_inclination_angle_percent_loss", grip_percent_loss)
+            
+            ### ~~~ Saturation & Lifting Checks ~~~ ###
+            normal_forces.append(normal_force)
+            saturated.append(tire.is_saturated(normal_force, slip_angle, inclination_angle))
 
-        self.log_overall_inclination_angle_loss()
-        self.log_saturation()
+        self.log_saturation(saturated, normal_forces)
         return forces, moments
 
-    def log_saturation(self):
+    def log_saturation(self, saturateds, normals):
         # see if point is saturated (i.e. all 4 tires slip angles are saturated)
-        self.outputs.tires_saturated = not False in [tire.is_saturated for tire in self.tires.values()]
-        self.outputs.two_tires_lifting = sum([1 if tire.lifting else 0 for tire in self.tires.values()]) > 1
-
-    def log_overall_inclination_angle_loss(self):
-        loss = sum([abs(tire.outputs.inclination_angle_force_loss) for tire in self.tires.values()])
-        force = sum([abs(tire.outputs.tire_centric_forces[1]) for tire in self.tires.values()])
-        self.outputs.total_inclination_angle_force_loss = loss
-        self.outputs.total_inclination_angle_percent_loss = loss / (force + loss)
-            
-    def set_unsprung_inclination_angles(self, roll, steered_angle):
-        for tire in self.tires.values():
-            disp = tire.wheel_displacement
-
-            # TODO: what the fuck does the following mean lol
-            # Tire swing length is the distance from the contact patch to (y, z) = (0, ride height).
-            # Approximation: the angular displacement is the angle swept by this line as the tire displaces vertically
-            # tire_swing_length = np.sqrt(self.params.ride_height ** 2 + np.abs(tire.position[1]) ** 2)
-            # angular_displacement = np.sign(disp) * np.abs(np.arcsin(disp * np.abs(tire.position[1]) / (tire_swing_length \
-            #                         * np.sqrt(disp ** 2 + tire_swing_length ** 2 - 2 * disp * self.params.ride_height))))
-            #camber_gain_inclination = - tire.camber_gain * angular_displacement
-
-            # Steering inclination: change in inclination angle due to steering
-            # TODO: include heave/pitch induced camber gain
-            
-            tire.outputs.steering_inclination = tire.steered_inclination_angle_gain(steered_angle)
-            
-            roll_induced = roll - (roll * tire.camber_gain)
-
-            tire.outputs.inclination_angle = roll_induced + tire.outputs.steering_inclination + tire.static_camber
-
-    # slip angles (steered angle, body slip, yaw rate) and calculate forces/moments# STATIC TOE GOES HERE
-    def set_unsprung_slip_angles(self, vehicle_velocity, yaw_rate, steered_angle):
-        for tire in self.tires.values():
-            # calculate tire velocities in IMF
-            tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]),tire.position)
-            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
-            
-            tire.outputs.velocity = tire_velocity
-            tire.outputs.slip_angle = slip_angle
-
-    def set_unsprung_displacements(self, roll, pitch, ride_height):
-        for tire in self.tires.values():
-            # corner displacement of chassis
-            # TODO: note rotation is about CG instead of roll / pitch centers
-            # TODO: verify equation - why is it normalized with roll and pitch on the bottom?
-            z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
-                / (cos(pitch) *cos(roll))
-            
-            # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
-            tire.set_unsprung_displacement(z_c, roll)
+        saturated = not False in [tire_saturated for tire_saturated in saturateds]
+        two_tires_lifting = sum([1 if (tire_normal == 0) else 0 for tire_normal in normals]) > 1
         
+        self.logger.log("dynamics_tires_saturated", saturated)
+        self.logger.log("dynamics_two_tires_lifting", two_tires_lifting)
+          
+    def get_inclination_angle(self, tire_name, tire, steered_angle, roll, ride_height, pitch):
+        # TODO: what the fuck does the following mean lol
+        #disp = self.wheel_displacement
+        # Tire swing length is the distance from the contact patch to (y, z) = (0, ride height).
+        # Approximation: the angular displacement is the angle swept by this line as the tire displaces vertically
+        # tire_swing_length = np.sqrt(self.params.ride_height ** 2 + np.abs(tire.position[1]) ** 2)
+        # angular_displacement = np.sign(disp) * np.abs(np.arcsin(disp * np.abs(tire.position[1]) / (tire_swing_length \
+        #                         * np.sqrt(disp ** 2 + tire_swing_length ** 2 - 2 * disp * self.params.ride_height))))
+        #camber_gain_inclination = - tire.camber_gain * angular_displacement
+        
+        steering_induced = tire.steered_inclination_angle_gain(steered_angle)
+        roll_induced = tire.roll_inclination_angle_gain(roll)
+        heave_induced = 0 # TODO
+        pitch_induced = 0 # TODO   
+        
+        self.logger.log(tire_name + "_tire_steering_inclination", steering_induced)
+        self.logger.log(tire_name + "_tire_roll_inclination", roll_induced)
+        self.logger.log(tire_name + "_tire_heave_inclination", heave_induced)
+        self.logger.log(tire_name + "_tire_pitch_inclination", pitch_induced)
+        
+        return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
+            
+          
+    def get_tire_slip_angle(self, tire_name, tire, vehicle_velocity, yaw_rate, steered_angle):
+        # calculate tire velocities in IMF
+        tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]),tire.position)
+        # slip angles (steered angle, body slip, yaw rate)
+        slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
+        
+        self.logger.log(tire_name + "_tire_velocity", tire_velocity)
+    
+        return slip_angle
+          
+    def get_tire_output(self, tire_name, tire, normal_force, slip_angle, inclination_angle):
+        # note: don't allow normal force of 0 to produce tire forces
+        if normal_force < 0:
+            lateral_force = 0
+            tire_centric_forces = np.array([0, 0, 0])
+            vehicle_centric_forces = np.array([0, 0, 0])
+            vehicle_centric_moments = np.zeros(3)
+        else:
+            lateral_force = tire.lateral_pacejka(inclination_angle, normal_force, slip_angle)
+            tire_centric_forces = np.array([0, lateral_force, normal_force])
+            
+            rotation_matrix = np.array([[cos(slip_angle), -sin(slip_angle), 0],
+                                [sin(slip_angle), cos(slip_angle),0],
+                                [0,0,1]])
+            
+            # Rotate the tire force into intermediate frame
+            vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
+            vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
+        
+        self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
+        
+        return vehicle_centric_forces, vehicle_centric_moments
+          
+    def get_tire_normal_load(self, tire_name, tire, ride_height, pitch, roll):
+        # corner displacement of chassis
+        # TODO: note rotation is about CG instead of roll / pitch centers
+        # TODO: verify equation - why is it normalized with roll and pitch on the bottom?
+        z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
+            / (cos(pitch) *cos(roll))
+        
+        f_roll = tire.roll_force(roll)
+        # TODO: don't use private tire parameters outside of tire class
+        # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
+        tire_compression = (f_roll + tire.wheelrate * z_c) / (tire.tire_springrate + tire.wheelrate)
+        f_heave = tire.riderate * z_c
+        normal_force = tire.tire_springrate * tire_compression 
+        
+        self.logger.log(tire_name + "_tire_f_roll", f_roll)
+        self.logger.log(tire_name + "_tire_f_heave", f_heave)
+        self.logger.log(tire_name + "_tire_z_c", z_c)
+        
+        return normal_force
+                   
     @property
     def avg_front_roll_stiffness(self): # Nm / rad
         return (abs(self.tires.front_right.roll_stiffness) + abs(self.tires.front_left.roll_stiffness)) / 2

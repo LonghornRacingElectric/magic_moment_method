@@ -3,8 +3,8 @@ import numpy as np
 from helpers.better_namespace import BetterNamespace
 
 class Aerodynamics:
-    def __init__(self, params):
-        self.outputs = BetterNamespace()
+    def __init__(self, params, logger):
+        self.logger = logger
         # TODO: PUT THESE ALL IN PARAM FILE PLZ
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
@@ -47,7 +47,7 @@ class Aerodynamics:
         forces  = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
 
-        p_dir = pitch <= 0
+        p_dir = 1 if pitch <= 0 else 0
         s_dir = -1
         if body_slip < 0:
             s_dir = 1
@@ -80,7 +80,10 @@ class Aerodynamics:
         # account for drag from rest of car
         drag_no_aero = 0.5 * self.air_density * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
-        self.outputs.forces = forces
+        
+        self.logger.log("aero_forces", forces)
+        self.logger.log("aero_moments", moments)
+        
         return forces, moments
 
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
