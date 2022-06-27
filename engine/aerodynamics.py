@@ -47,7 +47,7 @@ class Aerodynamics:
         forces  = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
 
-        p_dir = pitch <= 0
+        p_dir = 1 if pitch <= 0 else 0
         s_dir = -1
         if body_slip < 0:
             s_dir = 1
