@@ -4,3 +4,4 @@ pandas
 numpy
 scipy
 pytest
+jupyter
