@@ -6,10 +6,6 @@ import engine
 
 class Solver:
     def __init__(self, vehicle_parameters, initial_guess = None):
-<<<<<<< HEAD
-=======
-        # These are the output variables being solved for to match the prescribed states!
->>>>>>> main
         self.parameter_order = ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
         guess_dict = initial_guess if initial_guess else self.default_guess
         self.initial_guess = [guess_dict[x] for x in self.parameter_order]
@@ -48,22 +44,13 @@ class Solver:
         
         # solving for summation of moments = I * alpha
         # only rotational acceleration being considered is yaw acceleration; which is why it isnt transformed (no roll/pitch accel)
-<<<<<<< HEAD
         inertial_moments = np.array([0, 0, vehicle.get_yaw_moment(yaw_acceleration)])
         summation_moments = inertial_moments - kinetic_moments - vehicle_moments_ntb
-=======
-        yaw_moment = vehicle.get_yaw_moment(yaw_acceleration)
-        summation_moments = np.array([0, 0, yaw_moment]) - kinetic_moments - vehicle_moments_ntb
->>>>>>> main
 
         # LOG SOME SHITS
         [vehicle.logger.log(output_var_labels[i], x[i]) for i in range(len(x))]
         vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
-<<<<<<< HEAD
         vehicle.logger.log("vehicle_yaw_moment", inertial_moments[2])
-=======
-        vehicle.logger.log("vehicle_yaw_moment", yaw_moment)
->>>>>>> main
         vehicle.logger.log("vehicle_kinetic_moment", kinetic_moments)
         vehicle.logger.log("vehicle_inertial_forces", inertial_forces)
         vehicle.logger.log("vehicle_yaw_rate", yaw_rate)
