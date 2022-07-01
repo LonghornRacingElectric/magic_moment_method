@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from better_namespace import BetterNamespace
+from helpers.better_namespace import BetterNamespace
 
 class Concept2022(BetterNamespace):
     def __init__(self):
@@ -16,8 +16,8 @@ class Concept2022(BetterNamespace):
         ### dynamics params
         
         # suspension
-        self.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m # TODO for 2022
-        self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m # TODO for 2022
+        self.front_wheelrate_stiffness = 30000 #(.574**2) * 400 / (.0254 * .224) # N/m # TODO for 2022
+        self.rear_wheelrate_stiffness = 35000 #(.747**2) * 450 / (.0254 * .224) # N/m # TODO for 2022
         self.wheelbase = 65 * 0.0254 # m
         self.front_track = 1.27 # m
         self.rear_track = 1.17 # m
@@ -85,11 +85,11 @@ class Concept2022(BetterNamespace):
         self.rear_lever_arms = pt_i_arr * 0.0254  # in to m
 
         # These are ARB stiffnesses! 50 is using Lorraine heave stiffness for balance
-        self.front_roll_stiffness = 0 * (180/math.pi) / (self.front_track / 2) # N/rad 
+        self.front_roll_stiffness = 4032 / (self.front_track / 2) # N/rad 
         self.rear_roll_stiffness = 0 * (180/math.pi) / (self.rear_track / 2)  # N/rad
         
-        self.front_wheelrate_stiffness = (.574**2) * 400 / (.0254 * .224) # N/m
-        self.rear_wheelrate_stiffness = (.747**2) * 450 / (.0254 * .224) # N/m 
+        self.front_wheelrate_stiffness = 20000 #(.574**2) * 400 / (.0254 * .224) # N/m
+        self.rear_wheelrate_stiffness = 40000 #(.747**2) * 450 / (.0254 * .224) # N/m 
         self.rear_toe = 0 * math.pi/180 # rad
         self.front_toe = 0 # rad
         self.front_static_camber = -1 * (np.pi / 180) 

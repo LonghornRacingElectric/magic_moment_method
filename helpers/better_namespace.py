@@ -14,3 +14,6 @@ class BetterNamespace(types.SimpleNamespace):
     
     def items(self):
         return [[x,y] for x,y in self.__dict__.items()]
+    
+    def update(self, dict):
+        self.__dict__.update(dict)
