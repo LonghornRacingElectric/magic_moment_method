@@ -49,7 +49,7 @@ class Suspension():
             moments = np.add(m, moments)
 
             ### ~~~ Suspension Tube Force Calculation ~~~ ###
-            tube_forces = [float(x) for x in self.get_tube_forces(forces)]
+            tube_forces = [float(x) for x in self.get_tube_forces(tire, forces * np.array([1, -tire.direction_left, 1]))]
 
             ### ~~~ Logging Useful Information ~~~ ###
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
@@ -60,12 +60,12 @@ class Suspension():
             self.logger.log(tire_name + "_tire_inclination_angle_force_loss", grip_force_loss)
             self.logger.log(tire_name + "_tire_inclination_angle_percent_loss", grip_percent_loss)
 
-            self.logger.log(tire_name + "FUCA_force", tube_forces[0])
-            self.logger.log(tire_name + "FLCA_force", tube_forces[1])
-            self.logger.log(tire_name + "RUCA_force", tube_forces[2])
-            self.logger.log(tire_name + "RLCA_force", tube_forces[3])
-            self.logger.log(tire_name + "pullrod_force", tube_forces[4])
-            self.logger.log(tire_name + "toe_link_force", tube_forces[5])
+            self.logger.log(tire_name + "_FUCA_force", tube_forces[0])
+            self.logger.log(tire_name + "_FLCA_force", tube_forces[1])
+            self.logger.log(tire_name + "_RUCA_force", tube_forces[2])
+            self.logger.log(tire_name + "_RLCA_force", tube_forces[3])
+            self.logger.log(tire_name + "_pullrod_force", tube_forces[4])
+            self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
 
             
             ### ~~~ Saturation & Lifting Checks ~~~ ###
@@ -159,7 +159,7 @@ class Suspension():
         
         return normal_force
 
-    def get_tube_forces(self, tire_forces, tire):
+    def get_tube_forces(self, tire, tire_forces):
         normal_vects = tire.tube_geometry[0]
         lever_arms = tire.tube_geometry[1]
 
