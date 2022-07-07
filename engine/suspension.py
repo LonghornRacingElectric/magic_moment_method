@@ -15,7 +15,9 @@ Units:
     Mass: kg
 """
 
-class Suspension():  
+class Suspension():
+    """ Handles suspension vehicle forces """
+
     def __init__(self, params, logger):
         self.logger = logger
         self.params = params
@@ -38,7 +40,8 @@ class Suspension():
             normal_force = self.get_tire_normal_load(tire_name, tire, ride_height, pitch, roll)
             
             ### ~~~ Slip Angle Calculation ~~~ ###
-            slip_angle = self.get_tire_slip_angle(tire_name, tire, vehicle_velocity, yaw_rate, steered_angle)
+            tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]),tire.position) # in IMF
+            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle) # f(steered angle, body slip, yaw rate)
             
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.get_inclination_angle(tire_name, tire, steered_angle, roll, ride_height, pitch)
@@ -50,6 +53,7 @@ class Suspension():
             
             ### ~~~ Logging Useful Information ~~~ ###
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
+            self.logger.log(tire_name + "_tire_velocity", tire_velocity)
             self.logger.log(tire_name + "_tire_slip_angle", slip_angle)
             self.logger.log(tire_name + "_tire_vehicle_centric_forces", f)
             self.logger.log(tire_name + "_tire_vehicle_centric_moments", m)
@@ -93,17 +97,6 @@ class Suspension():
         self.logger.log(tire_name + "_tire_pitch_inclination", pitch_induced)
         
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
-            
-          
-    def get_tire_slip_angle(self, tire_name, tire, vehicle_velocity, yaw_rate, steered_angle):
-        # calculate tire velocities in IMF
-        tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]),tire.position)
-        # slip angles (steered angle, body slip, yaw rate)
-        slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle)
-        
-        self.logger.log(tire_name + "_tire_velocity", tire_velocity)
-    
-        return slip_angle
           
     def get_tire_output(self, tire_name, tire, normal_force, slip_angle, inclination_angle):
         # note: don't allow normal force of 0 to produce tire forces

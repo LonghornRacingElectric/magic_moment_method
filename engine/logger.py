@@ -2,14 +2,38 @@ from helpers.better_namespace import BetterNamespace
 
 
 class Logger(BetterNamespace):
+    """
+    Logs dependent states & values calculated in solver, saved for post-analysis
+    """
     def __init__(self):
         pass
     
-    # can only be numbers/strings/lists
+
     def log(self, name, val):
+        """
+        Logs input value with given name
+
+        Args:
+            name (string): key
+            val (Object): numbers, strings, iterables
+        """
         self.update({name: val})
         
+        
     def return_log(self):
+        """
+        Takes logged values and parses them into dictionary.
+
+        Iterables will be broken up like the following:
+
+        self[vals] -> list([1, 2, 3])
+        self[vals_1] -> 1
+        self[vals_2] -> 2
+        self[vals_3] -> 3
+
+        Returns:
+            dict: returns dependent states & values in dictionary
+        """
         return_dict = {}
         for data_name, data in self.items():
             if hasattr(data, '__len__') and len(data) > 1:

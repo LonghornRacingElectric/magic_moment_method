@@ -1,8 +1,9 @@
-import math
 import numpy as np
-from helpers.better_namespace import BetterNamespace
 
 class Aerodynamics:
+    """
+    Handles aerodynamic vehicle forces
+    """
     def __init__(self, params, logger):
         self.logger = logger
         # TODO: PUT THESE ALL IN PARAM FILE PLZ
@@ -25,7 +26,7 @@ class Aerodynamics:
 
         # conversion factors
         self.in_to_m = 0.0254
-        self.rad_to_deg = 180 / math.pi
+        self.rad_to_deg = 180 / np.pi
 
         # positions of component CoPs (magnitudes, equation takes signs into account)
         # TODO: make positions relative to intermediate frame; these lines also seem wrong in general ATM
@@ -71,7 +72,7 @@ class Aerodynamics:
             # calculate force in each direction
             Fl_part = 0.5 * self.air_density * ClA_part * x_dot ** 2
             Fd_part = 0.5 * self.air_density * CdA_part * x_dot ** 2
-            Fs_part = 0.5 * self.air_density * CsA_part * (x_dot * math.tan(body_slip)) ** 2 * s_dir
+            Fs_part = 0.5 * self.air_density * CsA_part * (x_dot * np.tan(body_slip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)

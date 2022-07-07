@@ -1,12 +1,23 @@
 from helpers.better_namespace import BetterNamespace
 
 
-# these are the prescribed MMM states!
-# other states are solved for to match these conditions essentially :)
 class State(BetterNamespace):
-    
-    def __init__(self, body_slip, steered_angle, s_dot):
-        self.body_slip = body_slip # rad
-        self.steered_angle = steered_angle # rad
-        self.s_dot = s_dot # m/s # NOTE: vehicle momentum forwards in NTB(?) verify
-    
+    """
+    A class to represent independent car states
+    """
+
+    def __init__(self, body_slip, steered_angle, s_dot, torque_request = 0.0):
+        """ 
+        These are the prescribed MMM states
+        All other vehicle tates are dependent, and solved to match conditions
+
+        Args:
+            body_slip (float): rad
+            steered_angle (float): rad
+            s_dot (float): m/s - vehicle total velocity (in path tangential direction)
+            torque_request (float, optional): N*m. Defaults to 0.0.
+        """
+        self.body_slip = body_slip
+        self.steered_angle = steered_angle
+        self.s_dot = s_dot
+        self.torque_request = torque_request

@@ -7,7 +7,8 @@ class Tire:
         self.direction_left = direction_left # boolean
 
     def roll_inclination_angle_gain(self, roll):
-        return roll - (roll * self.camber_gain)
+        mod_roll = - roll if self.direction_left else roll
+        return mod_roll - (mod_roll * self.camber_gain)
     
     @abstractmethod
     def steered_inclination_angle_gain(self):
