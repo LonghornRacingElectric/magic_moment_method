@@ -9,17 +9,17 @@ class Logger(BetterNamespace):
         pass
     
 
-    def log(self, name, val):
+    def log(self, name:str, val:object):
         """
         Logs input value with given name
 
         Args:
-            name (string): key
-            val (Object): numbers, strings, iterables
+            name (str): key
+            val (object): numbers, strings, iterables
         """
         self.update({name: val})
         
-        
+
     def return_log(self):
         """
         Takes logged values and parses them into dictionary.

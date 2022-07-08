@@ -1,10 +1,12 @@
 import numpy as np
+import engine
+
 
 class Aerodynamics:
     """
     Handles aerodynamic vehicle forces
     """
-    def __init__(self, params, logger):
+    def __init__(self, params, logger:engine.Logger):
         self.logger = logger
         # TODO: PUT THESE ALL IN PARAM FILE PLZ
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH

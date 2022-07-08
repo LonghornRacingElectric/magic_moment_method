@@ -1,11 +1,14 @@
-from engine.aerodynamics import Aerodynamics
-from engine.suspension import Suspension
-from engine.logger import Logger
+import engine
 import numpy as np
 
+"""
+Coordinate Systems:
+    IMF = SAE z-down wheel/tire centered coordinates EXCEPT with z up, y left
+    https://www.mathworks.com/help/vdynblks/ug/coordinate-systems-in-vehicle-dynamics-blockset.html
+"""
 
 class Vehicle:
-    def __init__(self, params, state = None):
+    def __init__(self, params:object, state:engine.State = None):
         """_summary_
 
         Args:
@@ -13,28 +16,28 @@ class Vehicle:
             state (engine.State, optional): independent prescribed vehicle states. Defaults to None.
         """
         self.state = state
-        self.logger = Logger()
+        self.logger = engine.Logger()
         self.params = params        
-        self.suspension = Suspension(self.params, self.logger)
-        self.aero = Aerodynamics(self.params, self.logger)
+        self.suspension = engine.Suspension(self.params, self.logger)
+        self.aero = engine.Aerodynamics(self.params, self.logger)
     
 
-    def get_yaw_moment(self, yaw_acceleration):       
+    def get_yaw_moment(self, yaw_acceleration:float):       
         return np.dot(self.params.sprung_inertia, [0, 0, yaw_acceleration])[2]
 
 
     # TODO: CoG movements from pitch & roll, which will affect this term
-    def get_kinetic_moments(self, linear_accelerations):
+    def get_kinetic_moments(self, linear_accelerations:np.array):
         cg_relative_ntb = np.array([0, 0, self.params.cg_total_position[2]])
         return np.cross(self.params.mass * linear_accelerations, cg_relative_ntb)
     
-    def get_inertial_forces(self, linear_accelerations):       
+    def get_inertial_forces(self, linear_accelerations:np.array):       
         return self.params.mass * linear_accelerations
 
 
     # normal to path acceleration (lateral accel) passed in; yaw rate dependent state on this as described by below equations
     # NOTE: turn radius being added to outputs for logging
-    def get_yaw_rate(self, lateral_accel):
+    def get_yaw_rate(self, lateral_accel:float):
         # no slip condition; yaw rate guaranteed by acceleration and velocity
         if lateral_accel == 0:
             turn_radius = 0

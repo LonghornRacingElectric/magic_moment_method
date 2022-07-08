@@ -4,21 +4,17 @@ from helpers.better_namespace import BetterNamespace
 import numpy as np
 from engine.front_tire import FrontTire
 from engine.rear_tire import RearTire
+import engine
 
 """
 Coordinate Systems:
-    SAE z-down wheel/tire centered coordinates: https://www.mathworks.com/help/vdynblks/ug/coordinate-systems-in-vehicle-dynamics-blockset.html
+    IMF = SAE z-down wheel/tire centered coordinates: https://www.mathworks.com/help/vdynblks/ug/coordinate-systems-in-vehicle-dynamics-blockset.html
     but with z up, y left^^^
-    
-Units: 
-    Length: meters
-    Mass: kg
 """
 
 class Suspension():
     """ Handles suspension vehicle forces """
-
-    def __init__(self, params, logger):
+    def __init__(self, params, logger:engine.Logger):
         self.logger = logger
         self.params = params
         
@@ -28,7 +24,7 @@ class Suspension():
         self.tires.rear_left = RearTire(self.params, True)
         self.tires.rear_right = RearTire(self.params, False)
 
-    def get_loads(self, vehicle_velocity, yaw_rate, steered_angle, roll, pitch, ride_height):
+    def get_loads(self, vehicle_velocity:np.array, yaw_rate:float, steered_angle:float, roll:float, pitch:float, ride_height:float):
         forces, moments = np.array([0, 0, 0]), np.array([0, 0, 0])
         # tire saturation & lifting
         saturated, normal_forces = [], []
@@ -76,7 +72,8 @@ class Suspension():
         self.logger.log("dynamics_tires_saturated", saturated)
         self.logger.log("dynamics_two_tires_lifting", two_tires_lifting)
           
-    def get_inclination_angle(self, tire_name, tire, steered_angle, roll, ride_height, pitch):
+    def get_inclination_angle(self, tire_name:str, tire:engine.Tire, steered_angle:float,
+                                roll:float, ride_height:float, pitch:float):
         # TODO: what the fuck does the following mean lol
         #disp = self.wheel_displacement
         # Tire swing length is the distance from the contact patch to (y, z) = (0, ride height).
@@ -98,9 +95,9 @@ class Suspension():
         
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
           
-    def get_tire_output(self, tire_name, tire, normal_force, slip_angle, inclination_angle):
-        # note: don't allow normal force of 0 to produce tire forces
-        if normal_force < 0:
+    def get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float, inclination_angle:float):
+        # pacejka fit will allow negative tire forces with negative tire normal force, so return no force if negative normal
+        if normal_force < 0: 
             lateral_force = 0
             tire_centric_forces = np.array([0, 0, 0])
             vehicle_centric_forces = np.array([0, 0, 0])
@@ -113,7 +110,7 @@ class Suspension():
                                 [sin(slip_angle), cos(slip_angle),0],
                                 [0,0,1]])
             
-            # Rotate the tire force into intermediate frame
+            # Rotate tire output into intermediate frame
             vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
             vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
         
@@ -121,36 +118,41 @@ class Suspension():
         
         return vehicle_centric_forces, vehicle_centric_moments
           
-    def get_tire_normal_load(self, tire_name, tire, ride_height, pitch, roll):
-        # corner displacement of chassis
-        # TODO: note rotation is about CG instead of roll / pitch centers
-        # TODO: verify equation - why is it normalized with roll and pitch on the bottom?
-        z_c = ride_height + (tire.position[0]*sin(pitch) + tire.position[1]*cos(pitch)*sin(roll)) \
-            / (cos(pitch) *cos(roll))
-        
+    def get_tire_normal_load(self, tire_name:str, tire:engine.Tire, ride_height:float, pitch:float, roll:float):
         f_roll = tire.roll_force(roll)
-        # TODO: don't use private tire parameters outside of tire class
-        # calculate unsprung displacements (from suspension displacement, stiffness); unsprung FBD
-        tire_compression = (f_roll + tire.wheelrate * z_c) / (tire.tire_springrate + tire.wheelrate)
-        f_heave = tire.riderate * z_c
-        normal_force = tire.tire_springrate * tire_compression 
+        f_heave = tire.heave_force(ride_height)
+        f_pitch = tire.pitch_force(pitch)
+        
+        normal_force = f_roll + f_heave + f_pitch
         
         self.logger.log(tire_name + "_tire_f_roll", f_roll)
         self.logger.log(tire_name + "_tire_f_heave", f_heave)
-        self.logger.log(tire_name + "_tire_z_c", z_c)
+        self.logger.log(tire_name + "_tire_f_pitch", f_pitch)
         
         return normal_force
                    
     @property
-    def avg_front_roll_stiffness(self): # Nm / rad
+    def avg_front_roll_stiffness(self):
+        """ 
+        Returns:
+            float: average front roll stiffness in Nm / rad
+        """
         return (abs(self.tires.front_right.roll_stiffness) + abs(self.tires.front_left.roll_stiffness)) / 2
         
     @property
-    def avg_rear_roll_stiffness(self): # Nm / rad
+    def avg_rear_roll_stiffness(self):
+        """
+        Returns:
+            float: average rear roll stiffness in Nm / rad
+        """
         return (abs(self.tires.rear_right.roll_stiffness) + abs(self.tires.rear_left.roll_stiffness)) / 2
         
     @property
-    def rear_roll_stiffness_dist(self): # % rear/total 0->1 # TODO: does this need to account for roll height axis?
+    def rear_roll_stiffness_dist(self):
+        """
+        Returns:
+            float: percent between 0 and 1 for the roll stiffness distribution rearwards
+        """
         return self.avg_rear_roll_stiffness / (self.avg_front_roll_stiffness + self.avg_rear_roll_stiffness)
     
     @property

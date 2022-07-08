@@ -5,7 +5,7 @@ import warnings
 import engine
 
 class Solver:
-    def __init__(self, vehicle_parameters, initial_guess = None):
+    def __init__(self, vehicle_parameters:object, initial_guess:dict = None):
         """_summary_
 
         Args:
@@ -17,7 +17,7 @@ class Solver:
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
-    def solve(self, input_state):
+    def solve(self, input_state:engine.State):
         """
         Non-linear solve for unique output variable set to match the prescribed states, with an initial guess of dependent states
         Converges on dependent vehicle states by iterating dependent parameter guesses
@@ -36,7 +36,7 @@ class Solver:
         return copy(self.vehicle.logger.return_log())
 
 
-    def DOF6_motion_residuals(self, x):
+    def DOF6_motion_residuals(self, x:list):
         """
         Calculates six residuals for six degree of freedom vehicle, finds dependent state variables based on input guess.
         Used by non-linear solver to converge on dependent vehicle state variables.

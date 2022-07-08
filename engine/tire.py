@@ -1,5 +1,7 @@
 from abc import abstractmethod, abstractproperty
 import math
+import numpy as np
+from scipy.optimize import fmin
 
 class Tire:
     def __init__(self, car_params, direction_left):
@@ -14,13 +16,24 @@ class Tire:
     def steered_inclination_angle_gain(self):
         pass
 
-    def is_saturated(self, normal_force, slip_angle, inclination_angle):
-        # TODO: implement better method
-        peak_slip_angle = 18 * math.pi / 180 # rad
-        return slip_angle > peak_slip_angle
+    def is_saturated(self, normal_force:float, slip_angle:float, inclination_angle:float):
+        guess_peak_slip_angle = 18 * np.pi / 180 # rad
+        # vvv would work if pacejka fits were any good lol
+        #max_slip_angle = fmin(lambda x: -self.lateral_pacejka(inclination_angle, normal_force, x), guess_peak_slip_angle)
+        return slip_angle > guess_peak_slip_angle
         
-    def roll_force(self, roll):
-        return self.arb_stiffness * roll # TODO: more long term fix
+    def roll_force(self, roll:float):
+        # TODO: do about roll center
+        return self.roll_stiffness * roll
+
+    def heave_force(self, heave:float):
+        return self.riderate * heave
+
+    def pitch_force(self, pitch:float):
+        # TODO: implement antidive & antipitch
+        # TODO: do about pitch center
+        effective_heave = self.position[0] * np.sin(pitch)
+        return self.riderate * effective_heave
           
     # TODO: re-implement loss function
     # calculate inclination_angle losses!
@@ -75,6 +88,7 @@ class Tire:
         percent_loss = force_loss / optimal
         return force_loss, percent_loss
 
+    # TODO: this may not be entirely correct right now
     @property
     def roll_stiffness(self): # Nm/rad (assumes small angle approximation)
         ride_contribution = self.riderate * self.trackwidth ** 2 / 2 * (1 if self.direction_left else -1)

@@ -5,7 +5,6 @@ class State(BetterNamespace):
     """
     A class to represent independent car states
     """
-
     def __init__(self, body_slip, steered_angle, s_dot, torque_request = 0.0):
         """ 
         These are the prescribed MMM states
