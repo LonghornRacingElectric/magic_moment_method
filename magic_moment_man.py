@@ -10,7 +10,7 @@ def main():
 
     # sweep parameters for MMM; any parameter in the vehicle_params file can be swept as well.
     # velocity sweep in path tangential direction (total velocity)
-    for s_dot in [12]:
+    for s_dot in [15]:
         
         # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
         peak_slip_angle = 18 * np.pi / 180 # rad 

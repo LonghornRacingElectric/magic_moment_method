@@ -52,6 +52,14 @@ MMM but expanded O>O
         (explanation on how to do this here: https://towardsdatascience.com/installing-jupyter-notebook-support-in-visual-studio-code-91887d644c5d)
 
 
+    6) Running the MMM Engine
+
+        In your IDE or command line, run the magic_moment_man.py. 
+        This will generate the data output from the sweep in this file: analysis/MMM.csv
+        
+        You can do data analysis on this .csv however you want -
+        But I heavily recommend using the jupyter notebooks already setup already
+        
     ^^^ For any issues with this setup & execution, please ask Kieran Cosgrove ^^^
 
 

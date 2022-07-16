@@ -7,3 +7,4 @@ from engine.front_tire import FrontTire
 from engine.rear_tire import RearTire
 from engine.suspension import Suspension
 from engine.aerodynamics import Aerodynamics
+from engine.tires import Tires

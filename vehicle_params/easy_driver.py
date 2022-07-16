@@ -64,9 +64,8 @@ class EasyDriver(BetterNamespace):
         self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
                 -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
         
-        # TODO: Make tire spring rate not a constant value (nonlinear solver) (its pretty constant tho)
-        self.front_tire_spring_rate = 588 * 175 # N/m
-        self.rear_tire_spring_rate = 617 * 175 # N/m
+        self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
+        self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
         
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
