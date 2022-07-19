@@ -1,15 +1,18 @@
-╭━╮╭━┳━━━┳━━━┳━━┳━━━╮╱╱╭━╮╭━┳━━━┳━╮╭━┳━━━┳━╮╱╭┳━━━━╮╱╭━╮╭━┳━━━┳━━━━┳╮╱╭┳━━━┳━━━╮<br />
-┃┃╰╯┃┃╭━╮┃╭━╮┣┫┣┫╭━╮┃╱╱┃┃╰╯┃┃╭━╮┃┃╰╯┃┃╭━━┫┃╰╮┃┃╭╮╭╮┃╱┃┃╰╯┃┃╭━━┫╭╮╭╮┃┃╱┃┃╭━╮┣╮╭╮┃<br />
-┃╭╮╭╮┃┃╱┃┃┃╱╰╯┃┃┃┃╱╰╯╱╱┃╭╮╭╮┃┃╱┃┃╭╮╭╮┃╰━━┫╭╮╰╯┣╯┃┃╰╯╱┃╭╮╭╮┃╰━━╋╯┃┃╰┫╰━╯┃┃╱┃┃┃┃┃┃<br />
-┃┃┃┃┃┃╰━╯┃┃╭━╮┃┃┃┃╱╭┳━━┫┃┃┃┃┃┃╱┃┃┃┃┃┃┃╭━━┫┃╰╮┃┃╱┃┃╭━━┫┃┃┃┃┃╭━━╯╱┃┃╱┃╭━╮┃┃╱┃┃┃┃┃┃<br />
-┃┃┃┃┃┃╭━╮┃╰┻━┣┫┣┫╰━╯┣━━┫┃┃┃┃┃╰━╯┃┃┃┃┃┃╰━━┫┃╱┃┃┃╱┃┃╰━━┫┃┃┃┃┃╰━━╮╱┃┃╱┃┃╱┃┃╰━╯┣╯╰╯┃<br />
-╰╯╰╯╰┻╯╱╰┻━━━┻━━┻━━━╯╱╱╰╯╰╯╰┻━━━┻╯╰╯╰┻━━━┻╯╱╰━╯╱╰╯╱╱╱╰╯╰╯╰┻━━━╯╱╰╯╱╰╯╱╰┻━━━┻━━━╯<br />
+
+╭━╮╭━╮╱╱╱╱╱╱╱╱╱╭━╮╭━╮╱╱╱╱╱╱╱╱╱╱╱╭╮╭━╮╭━╮╱╱╭╮╭╮╱╱╱╱╱╱╭╮<br />
+┃┃╰╯┃┃╱╱╱╱╱╱╱╱╱┃┃╰╯┃┃╱╱╱╱╱╱╱╱╱╱╭╯╰┫┃╰╯┃┃╱╭╯╰┫┃╱╱╱╱╱╱┃┃<br />
+┃╭╮╭╮┣━━┳━━┳┳━━┫╭╮╭╮┣━━┳╮╭┳━━┳━╋╮╭┫╭╮╭╮┣━┻╮╭┫╰━┳━━┳━╯┃<br />
+┃┃┃┃┃┃╭╮┃╭╮┣┫╭━┫┃┃┃┃┃╭╮┃╰╯┃┃━┫╭╮┫┃┃┃┃┃┃┃┃━┫┃┃╭╮┃╭╮┃╭╮┃<br />
+┃┃┃┃┃┃╭╮┃╰╯┃┃╰━┫┃┃┃┃┃╰╯┃┃┃┃┃━┫┃┃┃╰┫┃┃┃┃┃┃━┫╰┫┃┃┃╰╯┃╰╯┃<br />
+╰╯╰╯╰┻╯╰┻━╮┣┻━━┻╯╰╯╰┻━━┻┻┻┻━━┻╯╰┻━┻╯╰╯╰┻━━┻━┻╯╰┻━━┻━━╯<br />
+╱╱╱╱╱╱╱╱╭━╯┃<br />
+╱╱╱╱╱╱╱╱╰━━╯<br />
 <br />MMM but expanded O>O.<br /><br />
 Allows investigations into stability and performance of vehicles by sweeping possible steady state cornering vehicle states.<br />
 Creates a performance envelope for vehicle cornering capabilities.
 
 
-## ~Installation and Setup~
+## -Installation and Setup-
 
     1) Git bash setup
 
@@ -83,7 +86,7 @@ Creates a performance envelope for vehicle cornering capabilities.
 ░░░░█░░▄█▀█▀▀█▀▀▀▀▀▀█▀▀█▀█▀▀█░░░<br />
 ░░░░▀▀▀▀░░▀▀▀░░░░░░░░▀▀▀░░▀▀░░░░<br />
 
-## ~Folder Structure~
+## -Folder Structure-
 
     documentation/
         explains what the Milliken Moment Method and Diagram is; and potential use cases
