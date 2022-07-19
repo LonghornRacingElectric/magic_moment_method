@@ -1,7 +1,15 @@
-# magic_moment_method
-MMM but expanded O>O
+╭━╮╭━┳━━━┳━━━┳━━┳━━━╮╱╱╭━╮╭━┳━━━┳━╮╭━┳━━━┳━╮╱╭┳━━━━╮╱╭━╮╭━┳━━━┳━━━━┳╮╱╭┳━━━┳━━━╮<br />
+┃┃╰╯┃┃╭━╮┃╭━╮┣┫┣┫╭━╮┃╱╱┃┃╰╯┃┃╭━╮┃┃╰╯┃┃╭━━┫┃╰╮┃┃╭╮╭╮┃╱┃┃╰╯┃┃╭━━┫╭╮╭╮┃┃╱┃┃╭━╮┣╮╭╮┃<br />
+┃╭╮╭╮┃┃╱┃┃┃╱╰╯┃┃┃┃╱╰╯╱╱┃╭╮╭╮┃┃╱┃┃╭╮╭╮┃╰━━┫╭╮╰╯┣╯┃┃╰╯╱┃╭╮╭╮┃╰━━╋╯┃┃╰┫╰━╯┃┃╱┃┃┃┃┃┃<br />
+┃┃┃┃┃┃╰━╯┃┃╭━╮┃┃┃┃╱╭┳━━┫┃┃┃┃┃┃╱┃┃┃┃┃┃┃╭━━┫┃╰╮┃┃╱┃┃╭━━┫┃┃┃┃┃╭━━╯╱┃┃╱┃╭━╮┃┃╱┃┃┃┃┃┃<br />
+┃┃┃┃┃┃╭━╮┃╰┻━┣┫┣┫╰━╯┣━━┫┃┃┃┃┃╰━╯┃┃┃┃┃┃╰━━┫┃╱┃┃┃╱┃┃╰━━┫┃┃┃┃┃╰━━╮╱┃┃╱┃┃╱┃┃╰━╯┣╯╰╯┃<br />
+╰╯╰╯╰┻╯╱╰┻━━━┻━━┻━━━╯╱╱╰╯╰╯╰┻━━━┻╯╰╯╰┻━━━┻╯╱╰━╯╱╰╯╱╱╱╰╯╰╯╰┻━━━╯╱╰╯╱╰╯╱╰┻━━━┻━━━╯<br />
+<br />MMM but expanded O>O.<br /><br />
+Allows investigations into stability and performance of vehicles by sweeping possible steady state cornering vehicle states.<br />
+Creates a performance envelope for vehicle cornering capabilities.
 
-~~~ Setup:
+
+## ~Installation and Setup~
 
     1) Git bash setup
 
@@ -59,11 +67,23 @@ MMM but expanded O>O
         
         You can do data analysis on this .csv however you want -
         But I heavily recommend using the jupyter notebooks already setup already
-        
+        One such notebook is analysis/MMM_plotter.ipynb, which will open analysis/MMM.csv by default
+
     ^^^ For any issues with this setup & execution, please ask Kieran Cosgrove ^^^
 
+░░░░░░░▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄░░░░░░<br />
+░░░░░░█░░▄▀▀▀▀▀▀▀▀▀▀▀▀▀▄░░█░░░░░<br />
+░░░░░░█░█░▀░░░░░▀░░▀░░░░█░█░░░░░<br />
+░░░░░░█░█░░░░░░░░▄▀▀▄░▀░█░█▄▀▀▄░<br />
+█▀▀█▄░█░█░░▀░░░░░█░░░▀▄▄█▄▀░░░█░<br />
+▀▄▄░▀██░█▄░▀░░░▄▄▀░░░░░░░░░░░░▀▄<br />
+░░▀█▄▄█░█░░░░▄░░█░░░▄█░░░▄░▄█░░█<br />
+░░░░░▀█░▀▄▀░░░░░█░██░▄░░▄░░▄░███<br />
+░░░░░▄█▄░░▀▀▀▀▀▀▀▀▄░░▀▀▀▀▀▀▀░▄▀░<br />
+░░░░█░░▄█▀█▀▀█▀▀▀▀▀▀█▀▀█▀█▀▀█░░░<br />
+░░░░▀▀▀▀░░▀▀▀░░░░░░░░▀▀▀░░▀▀░░░░<br />
 
-~~~ Folder Structure:
+## ~Folder Structure~
 
     documentation/
         explains what the Milliken Moment Method and Diagram is; and potential use cases
@@ -71,20 +91,20 @@ MMM but expanded O>O
 
     engine/ 
         used to solve for a specific state and set of car parameters
-        further documentation on this process is up and coming # TODO: robert, kieran, and nathaniel
+        further documentation on this process is up and coming
 
     vehicle_params/
-        different default sets of car parameters, individual parameters can be modified during sweeps
+        different sets of car parameters, these static parameters can be modified during sweeps
 
     magic_moment_man.py
-        used to sweep different parameter & state sets, exports into csv file
-        running this file will update analysis/MMM.csv
+        used to sweep different parameter & state sets, exports data to csv file
+        running this script will update analysis/MMM.csv
 
     analysis/
         used to analyze data exported to csv file in jupyter notebooks for easy data analysis
 
     tests/
-        used to verify engine functionality doesn't change on pullrequests unless allowed
+        used to verify engine functionality doesn't change on pull requests unless approved
 
     helpers/
-        various helper methods and classes used by other modulus
+        various helper methods and classes used by other modules
