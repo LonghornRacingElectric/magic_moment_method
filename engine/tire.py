@@ -31,8 +31,8 @@ class Tire:
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
-    def lateral_pacejka(self, inclination_angle, normal_force, slip_angle):
-        if normal_force < 0.01:
+    def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
+        if normal_force <= 0:
             return 0
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
         multiplier =  -1 if self.direction_left else 1
@@ -69,7 +69,7 @@ class Tire:
     #     return 0
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
-    def lateral_loss(self, normal_force, slip_angle, inclination_angle):
+    def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
         actual = self.lateral_pacejka(inclination_angle, normal_force, slip_angle)
         optimal = self.lateral_pacejka(0, normal_force, slip_angle)
         force_loss = optimal - actual
@@ -85,11 +85,11 @@ class Tire:
         return self.wheelrate
 
     @abstractmethod
-    def steering_induced_slip(self, steered_angle):
+    def steering_induced_slip(self, steered_angle:float):
         pass
 
     @abstractmethod
-    def steered_inclination_angle_gain(self, steered_angle):
+    def steered_inclination_angle_gain(self, steered_angle:float):
         pass
 
     @abstractproperty

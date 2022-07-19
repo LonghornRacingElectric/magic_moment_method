@@ -1,9 +1,9 @@
 import math
 import numpy as np
-from helpers.better_namespace import BetterNamespace
+from vehicle_params import BaseVehicle
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class EasyDriver(BetterNamespace):
+class EasyDriver(BaseVehicle):
     def __init__(self):
         super().__init__()
 
@@ -84,16 +84,4 @@ class EasyDriver(BetterNamespace):
         self.CdA_tot = 1.024
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
-        self.ride_height = 0.0762 # m # TODO: investigate if this is correct
-
-    @property
-    def cg_weighted_track(self): # m
-        return (self.front_track * (1 - self.cg_bias) + self.rear_track * self.cg_bias) / 2
-
-    @property
-    def cg_total_position(self): # m
-        return np.array([self.cg_bias * self.wheelbase, (self.cg_left - 0.5) * self.cg_weighted_track, self.cg_height])
-    
-    @property
-    def mass(self): # kg
-        return self.mass_sprung + 2 * self.mass_unsprung_front + 2 * self.mass_unsprung_rear
+        self.static_ride_height = 0.0762 # m

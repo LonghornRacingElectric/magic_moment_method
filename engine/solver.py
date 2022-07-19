@@ -3,15 +3,17 @@ from scipy.optimize import fsolve as josie_solver
 from copy import copy
 import warnings
 import engine
+import vehicle_params
 
 class Solver:
-    def __init__(self, vehicle_parameters:object, initial_guess:dict = None):
+    def __init__(self, vehicle_parameters:vehicle_params.BaseVehicle, initial_guess:dict = None):
         """_summary_
 
         Args:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
             initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
+        self.default_guess["ride_height"] = vehicle_parameters.static_ride_height
         guess_dict = initial_guess if initial_guess else self.default_guess
         self.initial_guess = [guess_dict[x] for x in Solver.output_variable_names()]
         self.vehicle = engine.Vehicle(vehicle_parameters)
@@ -30,11 +32,27 @@ class Solver:
         """
         self.vehicle.state = input_state
         specific_residual_func = lambda x: self.DOF6_motion_residuals(x)
-        # fsolve creates a bunch of annoying warnings, so these are being filtered out
-        warnings.filterwarnings('ignore', 'The iteration is not making good progress')
-        josie_solver(specific_residual_func, self.initial_guess)
-        return copy(self.vehicle.logger.return_log())
 
+        # fsolve creates a bunch of annoying warnings, here is a way to filter them if needed
+        warnings.filterwarnings('ignore', 'The iteration is not making good progress')
+
+        # allow up to 5 chances for convergence
+        guesses_allowed = 20
+        for i in range(guesses_allowed):
+            results  = josie_solver(specific_residual_func, self.initial_guess, full_output = True)
+            if results[2] == 1:
+                if i != 0:
+                    print("Solution converged after changing initial guess")
+                else:
+                    pass
+                    #print("Solution converged on first guess")
+                return copy(self.vehicle.logger.return_log())
+            elif results[2] != 1:
+                if i == (guesses_allowed -1 ):
+                    print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
+                    #print(results[1]["fvec"],"\n")
+                    return {}
+                self.initial_guess[Solver.output_variable_names().index("ride_height")] -= 0.0025
 
     def DOF6_motion_residuals(self, x:list):
         """
@@ -48,7 +66,7 @@ class Solver:
             list: 6 output residuals - summation of forces in x/y/z and moments about x/y/z
         """
         ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x
-        
+
         # accelerations
         translation_accelerations_imf = np.array([x_double_dot, y_double_dot, 0])
         translation_accelerations_ntb = self.vehicle.intermediate_frame_to_ntb_transform(translation_accelerations_imf)
@@ -80,6 +98,7 @@ class Solver:
         self.vehicle.logger.log("vehicle_yaw_moment", inertial_moments[2])
         self.vehicle.logger.log("vehicle_kinetic_moment", kinetic_moments)
         self.vehicle.logger.log("vehicle_inertial_forces", inertial_forces)
+        self.vehicle.logger.log("vehicle_vehicle_forces_ntb", vehicle_forces_ntb) 
         self.vehicle.logger.log("vehicle_yaw_rate", yaw_rate)
         self.vehicle.logger.log("vehicle_x_dot", self.vehicle.x_dot)
         self.vehicle.logger.log("vehicle_y_dot", self.vehicle.y_dot)

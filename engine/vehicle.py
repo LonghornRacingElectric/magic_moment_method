@@ -1,5 +1,6 @@
 import engine
 import numpy as np
+import vehicle_params
 
 """
 Coordinate Systems:
@@ -8,7 +9,7 @@ Coordinate Systems:
 """
 
 class Vehicle:
-    def __init__(self, params:object, state:engine.State = None):
+    def __init__(self, params:vehicle_params.BaseVehicle, state:engine.State = None):
         """_summary_
 
         Args:
@@ -61,7 +62,7 @@ class Vehicle:
         return np.array([self.x_dot, self.y_dot, 0])
     
 
-    def intermediate_frame_to_ntb_transform(self, intermediate_frame_vector):
+    def intermediate_frame_to_ntb_transform(self, intermediate_frame_vector:np.array):
         """ Transforms input vector using body slip
 
         Args:
@@ -86,7 +87,7 @@ class Vehicle:
         return self.state.s_dot * np.sin(self.state.body_slip)
 
 
-    def get_loads(self, roll, pitch, ride_height, yaw_rate):
+    def get_loads(self, roll:float, pitch:float, ride_height:float, yaw_rate:float):
         # gravity load
         gravity = np.array([0, 0, -self.params.mass * self.params.gravity])
         

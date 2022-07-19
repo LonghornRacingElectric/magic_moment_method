@@ -1,9 +1,9 @@
-import math
 from math import sin, cos
 
 import numpy as np
 import engine
 from scipy.optimize import fsolve as josie_solver
+import vehicle_params
 
 """
 Coordinate Systems:
@@ -13,9 +13,9 @@ Coordinate Systems:
 
 class Suspension():
     """ Handles suspension vehicle forces """
-    def __init__(self, params, logger:engine.Logger):
+    def __init__(self, params:vehicle_params.BaseVehicle, logger:engine.Logger):
         self.logger = logger
-        self.params = params
+        self.params:vehicle_params.BaseVehicle = params
         self.tires = engine.Tires(params)
 
 
@@ -31,14 +31,15 @@ class Suspension():
             normal_force = self.get_tire_normal_load(tire_name, tire, ride_height, pitch, roll)
             
             ### ~~~ Slip Angle Calculation ~~~ ###
-            tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]),tire.position) # in IMF
-            slip_angle = math.atan2(tire_velocity[1], tire_velocity[0]) + tire.steering_induced_slip(steered_angle) # f(steered angle, body slip, yaw rate)
+            tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]), tire.position) # in IMF
+            steering_toe_slip = tire.steering_induced_slip(steered_angle)
+            slip_angle = np.arctan2(tire_velocity[1], tire_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
             
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.get_inclination_angle(tire_name, tire, steered_angle, roll, ride_height, pitch)
             
             ### ~~~ Tire Output Force Calculation ~~~ ###
-            f, m = self.get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle)
+            f, m = self.get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle, steering_toe_slip)
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
             
@@ -90,12 +91,14 @@ class Suspension():
         
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
           
-    def get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float, inclination_angle:float):
+    def get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float,
+                        inclination_angle:float, steering_slip:float):
+
         lateral_force = tire.lateral_pacejka(inclination_angle, normal_force, slip_angle)
         tire_centric_forces = np.array([0, lateral_force, normal_force])
         
-        rotation_matrix = np.array([[cos(slip_angle), -sin(slip_angle), 0],
-                            [sin(slip_angle), cos(slip_angle),0],
+        rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
+                            [sin(steering_slip), cos(steering_slip),0],
                             [0,0,1]])
         
         # Rotate tire output into intermediate frame
@@ -107,12 +110,14 @@ class Suspension():
         return vehicle_centric_forces, vehicle_centric_moments
           
     def get_tire_normal_load(self, tire_name:str, tire:engine.Tire, ride_height:float, pitch:float, roll:float):
-        heave = self.params.ride_height - ride_height
+
+        heave = self.params.static_ride_height - ride_height
         
         specific_residual_func = lambda x: self.find_spring_displacements(x, tire_name, tire, heave, pitch, roll)
         tire_compression, wheel_displacement = josie_solver(specific_residual_func, [0.006, 0.001])
 
         normal_force = tire.tire_stiffness_func(tire_compression) * tire_compression
+        normal_force = 0 if normal_force < 0 else normal_force
         
         self.logger.log(tire_name + "_tire_disp", tire_compression)
         self.logger.log(tire_name + "_tire_spring_disp", wheel_displacement)
