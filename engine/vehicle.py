@@ -23,15 +23,26 @@ class Vehicle:
         self.aero = engine.Aerodynamics(self.params, self.logger)
     
 
-    def get_yaw_moment(self, yaw_acceleration:float):       
-        return np.dot(self.params.sprung_inertia, [0, 0, yaw_acceleration])[2]
+    # TODO: CoG movements due to roll / pitch / heave
+    def get_kinetic_moments(self, linear_accelerations:np.array, angular_accelerations:np.array):
+        """eq. 17-9 pg. 425 in Hibbler Engineering Mechanics Dynamics textbook
 
+        Args:
+            linear_accelerations (np.array): 3-D acceleration array in NTB directions
+            angular_accelerations (np.array): 3-D angular acceleration array about NTB axes
 
-    # TODO: CoG movements from pitch & roll, which will affect this term
-    def get_kinetic_moments(self, linear_accelerations:np.array):
+        Returns:
+            np.array: 3-D moment array about NTB axes
+        """
         cg_relative_ntb = np.array([0, 0, self.params.cg_total_position[2]])
-        return np.cross(self.params.mass * linear_accelerations, cg_relative_ntb)
+        m_a_term = np.cross(self.params.mass * linear_accelerations, cg_relative_ntb)
+        I_alpha_term = np.dot(self.params.sprung_inertia, angular_accelerations)
+
+        self.logger.log("vehicle_yaw_moment", I_alpha_term[2])
+
+        return m_a_term + I_alpha_term
     
+
     def get_inertial_forces(self, linear_accelerations:np.array):       
         return self.params.mass * linear_accelerations
 
@@ -87,16 +98,16 @@ class Vehicle:
         return self.state.s_dot * np.sin(self.state.body_slip)
 
 
-    def get_loads(self, roll:float, pitch:float, ride_height:float, yaw_rate:float):
+    def get_loads(self, roll:float, pitch:float, heave:float, yaw_rate:float):
         # gravity load
         gravity = np.array([0, 0, -self.params.mass * self.params.gravity])
         
         # Define aero loads
         aero_forces, aero_moments = self.aero.get_loads(self.x_dot, self.state.body_slip, pitch, roll,
-                               ride_height)
+                               heave)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
-                                                            self.state.steered_angle, roll, pitch, ride_height)
+                                                            self.state.steered_angle, roll, pitch, heave)
 
         return aero_forces + tire_forces + gravity, aero_moments + tire_moments

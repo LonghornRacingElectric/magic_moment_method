@@ -46,7 +46,7 @@ class Aerodynamics:
         self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[0], self.vehicle_params.CsA_tot * CsA_dist[1],
                     self.vehicle_params.CsA_tot * CsA_dist[2]]
 
-    def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
+    def get_loads(self, x_dot, body_slip, pitch, roll, heave):
 
         forces  = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
@@ -73,16 +73,16 @@ class Aerodynamics:
             CsA_part = self.CsA[i] * Cs_sens
 
             # calculate force in each direction
-            Fl_part = 0.5 * self.air_density * ClA_part * x_dot ** 2
-            Fd_part = 0.5 * self.air_density * CdA_part * x_dot ** 2
-            Fs_part = 0.5 * self.air_density * CsA_part * (x_dot * np.tan(body_slip)) ** 2 * s_dir
+            Fl_part = 0.5 * self.__air_density * ClA_part * x_dot ** 2
+            Fd_part = 0.5 * self.__air_density * CdA_part * x_dot ** 2
+            Fs_part = 0.5 * self.__air_density * CsA_part * (x_dot * np.tan(body_slip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)
             moments = np.add(moments, np.cross(self.CoP[i], part_force))
 
         # account for drag from rest of car
-        drag_no_aero = 0.5 * self.air_density * self.vehicle_params.CdA0 * x_dot ** 2
+        drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
         
         self.logger.log("aero_forces", forces)
@@ -92,5 +92,5 @@ class Aerodynamics:
 
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
     @property
-    def air_density(self): # kg/m^3
+    def __air_density(self): # kg/m^3
         return  1.225 - 0.003975 * (self.vehicle_params.air_temperature - 15)

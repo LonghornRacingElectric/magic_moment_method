@@ -12,7 +12,7 @@ def main():
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 20
+    refinement = 21
 
     s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
@@ -26,7 +26,7 @@ def main():
 
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
-    # NOTE: On Kieran's computer with 4 cores, 8 processors, this improved speed by 25%
+    # NOTE: On Kieran's computer with 4 cores, this improved speed by 25%
     multiprocessing_flag = False
     
     if multiprocessing_flag:

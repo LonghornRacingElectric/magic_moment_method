@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import fsolve as josie_solver
+from scipy.optimize import fsolve
 from copy import copy
 import warnings
 import engine
@@ -13,9 +13,7 @@ class Solver:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
             initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
-        self.default_guess["ride_height"] = vehicle_parameters.static_ride_height
-        guess_dict = initial_guess if initial_guess else self.default_guess
-        self.initial_guess = [guess_dict[x] for x in Solver.output_variable_names()]
+        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0, 0, 0, 0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
@@ -31,41 +29,46 @@ class Solver:
             dict: data on dependent state variables
         """
         self.vehicle.state = input_state
-        specific_residual_func = lambda x: self.DOF6_motion_residuals(x)
 
         # fsolve creates a bunch of annoying warnings, here is a way to filter them if needed
         warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
-        # allow up to 5 chances for convergence
-        guesses_allowed = 20
+        # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
+        guesses_allowed = 5
         for i in range(guesses_allowed):
-            results  = josie_solver(specific_residual_func, self.initial_guess, full_output = True)
+            results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
             if results[2] == 1:
                 if i != 0:
                     print("Solution converged after changing initial guess")
+                    print(self.__initial_guess[self.__output_variable_names.index("heave")])
                 else:
                     pass
-                    #print("Solution converged on first guess")
+                    # NOTE: Solution converged on first guess!
                 return copy(self.vehicle.logger.return_log())
             elif results[2] != 1:
                 if i == (guesses_allowed -1 ):
                     print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
-                    #print(results[1]["fvec"],"\n")
+                    #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
                     return {}
-                self.initial_guess[Solver.output_variable_names().index("ride_height")] -= 0.0025
+                self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
 
-    def DOF6_motion_residuals(self, x:list):
+    @property
+    def __output_variable_names(self):
+        return ["heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
+
+
+    def __DOF6_motion_residuals(self, x:list):
         """
         Calculates six residuals for six degree of freedom vehicle, finds dependent state variables based on input guess.
         Used by non-linear solver to converge on dependent vehicle state variables.
 
         Args:
-            x (list[0:5]): the 6 input guesses being iterated - "ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"
+            x (list[0:5]): the 6 input guesses being iterated - "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"
 
         Returns:
             list: 6 output residuals - summation of forces in x/y/z and moments about x/y/z
         """
-        ride_height, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x
+        heave, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x
 
         # accelerations
         translation_accelerations_imf = np.array([x_double_dot, y_double_dot, 0])
@@ -73,29 +76,34 @@ class Solver:
 
         # vehicle loads
         yaw_rate = self.vehicle.get_yaw_rate(translation_accelerations_ntb[1])
-        forces, moments = self.vehicle.get_loads(roll, pitch, ride_height, yaw_rate)
+        forces, moments = self.vehicle.get_loads(roll, pitch, heave, yaw_rate)
         vehicle_forces_ntb = self.vehicle.intermediate_frame_to_ntb_transform(forces)
         vehicle_moments_ntb = self.vehicle.intermediate_frame_to_ntb_transform(moments)
 
-        # Kinetic moment summation of moments not being done about CG
-        # TODO: Make sure sprung inertia is about the intermediate axis
-        # TODO: CoG movements
-        kinetic_moments = self.vehicle.get_kinetic_moments(translation_accelerations_ntb) 
+
+        # TODO: CoG movements due to roll / pitch / heave
+        """ 
+        NOTE: 1) ~~Kinetic Moments~~
+         -  used when summation of moment is about a point that isn't the center of gravity (CoG)
+         -  eq. 17-9 pg. 425 in Hibbler Engineering Mechanics Dynamics textbook
+         -  Moment = (mass * accel) x radius + inertia * alpha
+         
+        NOTE: 2) ~~ Yaw Moment ~~
+         -  only rotational acceleration being considered is yaw acceleration
+         -  which is why the moment isnt transformed to NTB (no roll/pitch accel)
+        """
+        angular_accelerations = np.array([0, 0, yaw_acceleration])
+        kinetic_moments = self.vehicle.get_kinetic_moments(translation_accelerations_ntb, angular_accelerations)
+        summation_moments = kinetic_moments - vehicle_moments_ntb
         
-        # solving for summation of forces = m * accel
+        # F = m * a
         inertial_forces = self.vehicle.get_inertial_forces(translation_accelerations_ntb)
         summation_forces = inertial_forces - vehicle_forces_ntb
         
-        # solving for summation of moments = I * alpha
-        # NOTE: only rotational acceleration being considered is yaw acceleration
-        #       which is why the moment isnt transformed to NTB (no roll/pitch accel)
-        inertial_moments = np.array([0, 0, self.vehicle.get_yaw_moment(yaw_acceleration)])
-        summation_moments = inertial_moments - kinetic_moments - vehicle_moments_ntb
 
         # log dependent states
-        [self.vehicle.logger.log(Solver.output_variable_names()[i], x[i]) for i in range(len(x))]
+        [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]
         self.vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
-        self.vehicle.logger.log("vehicle_yaw_moment", inertial_moments[2])
         self.vehicle.logger.log("vehicle_kinetic_moment", kinetic_moments)
         self.vehicle.logger.log("vehicle_inertial_forces", inertial_forces)
         self.vehicle.logger.log("vehicle_vehicle_forces_ntb", vehicle_forces_ntb) 
@@ -105,13 +113,3 @@ class Solver:
         [self.vehicle.logger.log(name, val) for name, val in self.vehicle.state.items()]
 
         return np.array([*summation_forces, *summation_moments])
-
-
-    @property
-    def default_guess(self):
-        return {"ride_height": 0.0762, "x_double_dot": 0, "y_double_dot": 0, "yaw_acceleration":0,
-                    "roll": 0, "pitch": 0}
-    
-    
-    def output_variable_names():
-        return ["ride_height", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]

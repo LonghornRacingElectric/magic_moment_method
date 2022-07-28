@@ -2,7 +2,7 @@ import math
 import numpy as np
 from vehicle_params import BaseVehicle
 
-class Concept2022(BaseVehicle):
+class ConceptEasyDriver(BaseVehicle):
     def __init__(self):
         super().__init__()
 
