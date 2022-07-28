@@ -3,9 +3,9 @@ import numpy as np
 from vehicle_params import BaseVehicle
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class UnitTestCar(BaseVehicle):
+class UnitTestCar():
     def __init__(self):
-        super().__init__()
+        #super().__init__()
 
         ### vehicle params ###
         
@@ -85,3 +85,15 @@ class UnitTestCar(BaseVehicle):
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+
+    @property
+    def cg_weighted_track(self): # m
+        return (self.front_track * (1 - self.cg_bias) + self.rear_track * self.cg_bias) / 2
+
+    @property
+    def cg_total_position(self): # m
+        return np.array([self.cg_bias * self.wheelbase, (self.cg_left - 0.5) * self.cg_weighted_track, self.cg_height])
+    
+    @property
+    def mass(self): # kg
+        return self.mass_sprung + 2 * self.mass_unsprung_front + 2 * self.mass_unsprung_rear

@@ -40,7 +40,6 @@ class Solver:
             if results[2] == 1:
                 if i != 0:
                     print("Solution converged after changing initial guess")
-                    print(self.__initial_guess[self.__output_variable_names.index("heave")])
                 else:
                     pass
                     # NOTE: Solution converged on first guess!
