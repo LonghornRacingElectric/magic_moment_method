@@ -46,6 +46,6 @@ def generate_test_MMM():
     log_df.to_csv(reference_file)
 
 if __name__ == "__main__":
-    pass
-    #generate_test_MMM() # NOTE: run this if engine changes are approved to update expected results
+    #pass
+    generate_test_MMM() # NOTE: run this if engine changes are approved to update expected results
     #test_josie_solver(15, 0.18, 0.18) # NOTE: use this to investigate why there may be output misalignment
