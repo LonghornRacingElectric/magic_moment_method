@@ -139,3 +139,7 @@ class Tire:
     @abstractproperty
     def position(self):
         pass
+
+    @abstractproperty
+    def tube_geometry(self):
+        pass

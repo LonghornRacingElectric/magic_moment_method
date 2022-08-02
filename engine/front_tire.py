@@ -69,3 +69,7 @@ class FrontTire(Tire):
                     np.arccos(np.sin(self.caster) * np.sin(steered_angle)) - np.pi
                     
         return steer_inc
+
+    @property
+    def tube_geometry(self):
+        return self.params.front_tube_normals, self.params.front_lever_arms
