@@ -40,7 +40,10 @@ class Suspension():
             f, m = self.__get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle, steering_toe_slip)
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
-            
+
+            ### ~~~ Suspension Tube Force Calculation ~~~ ###
+            tube_forces = [float(x) for x in self.get_tube_forces(tire, forces * np.array([1, -tire.direction_left, 1]))]
+
             ### ~~~ Logging Useful Information ~~~ ###
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
             self.logger.log(tire_name + "_tire_velocity", tire_velocity)
@@ -51,6 +54,12 @@ class Suspension():
             self.logger.log(tire_name + "_tire_inclination_angle_force_loss", grip_force_loss)
             self.logger.log(tire_name + "_tire_inclination_angle_percent_loss", grip_percent_loss)
             self.logger.log(tire_name + "_tire_is_saturated", tire.is_saturated(normal_force, slip_angle, inclination_angle))
+            self.logger.log(tire_name + "_FUCA_force", tube_forces[0])
+            self.logger.log(tire_name + "_FLCA_force", tube_forces[1])
+            self.logger.log(tire_name + "_RUCA_force", tube_forces[2])
+            self.logger.log(tire_name + "_RLCA_force", tube_forces[3])
+            self.logger.log(tire_name + "_pullrod_force", tube_forces[4])
+            self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
             
         return forces, moments
 
@@ -93,7 +102,7 @@ class Suspension():
         vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
         
         self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
-        
+
         return vehicle_centric_forces, vehicle_centric_moments
 
 
@@ -177,8 +186,23 @@ class Suspension():
         self.logger.log(tire_name + "_tire_f_roll", f_roll)
         self.logger.log(tire_name + "_tire_f_heave", f_heave)
         self.logger.log(tire_name + "_tire_f_pitch", f_pitch)
-
         return guess_tire_compression - tire_compression, guess_wheel_displacement - wheel_displacement
+
+
+    def get_tube_forces(self, tire, tire_forces):
+        normal_vects = tire.tube_geometry[0]
+        lever_arms = tire.tube_geometry[1]
+
+        # Set Up Force and Moment Balance; Create unit vectors that forces and moments will be applied to
+        arr_cross = np.cross(normal_vects.T, lever_arms.T).T
+        arr_coeff = np.concatenate((normal_vects, arr_cross))
+
+        # Solve
+        b = np.concatenate((tire_forces, np.zeros(3)))
+        tube_forces = np.linalg.solve(arr_coeff, b)
+
+        return tube_forces
+
 
     @property
     def avg_front_roll_stiffness(self):
