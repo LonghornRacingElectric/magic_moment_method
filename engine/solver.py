@@ -6,24 +6,25 @@ import engine
 import vehicle_params
 
 class Solver:
-    def __init__(self, vehicle_parameters:vehicle_params.BaseVehicle, initial_guess:dict = None):
-        """_summary_
+    def __init__(self, vehicle_parameters:vehicle_params.BaseVehicle):
+        """
+        Creates solver object
 
         Args:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
-            initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
-        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0, 0, 0, 0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
-    def solve(self, input_state:engine.State):
+    def solve(self, input_state:engine.State, initial_guess:list = [0, 0, 0, 0, 0, 0]):
         """
         Non-linear solve for unique output variable set to match the prescribed states, with an initial guess of dependent states
         Converges on dependent vehicle states by iterating dependent parameter guesses
 
         Args:
             input_state (engine.State): the independent vehicle states
+            initial_guess (list, optional): list of 6 solver initial dependent parameter guesses - 
+                "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch". Defaults to 0s.
 
         Returns:
             dict: data on dependent state variables
@@ -36,7 +37,7 @@ class Solver:
         # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
         guesses_allowed = 5
         for i in range(guesses_allowed):
-            results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
+            results  = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
             if results[2] == 1:
                 if i != 0:
                     print("Solution converged after changing initial guess")
@@ -49,7 +50,8 @@ class Solver:
                     print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
                     #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
                     return {}
-                self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
+                initial_guess[self.__output_variable_names.index("heave")] += 0.00125
+
 
     @property
     def __output_variable_names(self):
@@ -65,7 +67,7 @@ class Solver:
             x (list[0:5]): the 6 input guesses being iterated - "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"
 
         Returns:
-            list: 6 output residuals - summation of forces in x/y/z and moments about x/y/z
+            list: 6 output residuals - summation of forces in x/y/z and moments about x/y/z in NTB coordinates
         """
         heave, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x
 
