@@ -1,11 +1,11 @@
 import math
 import numpy as np
-from helpers.better_namespace import BetterNamespace
+from vehicle_params import BaseVehicle
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class EasyDriver(BetterNamespace):
+class EasyDriver():
     def __init__(self):
-        super().__init__()
+        #super().__init__()
 
         ### vehicle params ###
         
@@ -39,8 +39,8 @@ class EasyDriver(BetterNamespace):
         # NOTE: not being used ATM, need to figure out how it applies to slip angle drag
         
         # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
-        self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad 
-        self.rear_arb_stiffness = 0
+        self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
+        self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
         
         # ~~~ Linkages & HDPTs ~~~ #
         self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
@@ -121,12 +121,11 @@ class EasyDriver(BetterNamespace):
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
         self.front_tire_coeff_Fy = [1.69, 0.0004384, 2.769, 614.3, 1496, 0.01784, 0.000432, 0.7237, 0.0001746, 0.1366,
                         -0.1482, -0.06455, 10.45, 3.036e-05, 0.04111, 0.002054, 0.01834, -0.06673]
-        self.rear_tire_coeff_Fy = self.front_tire_coeff_Fy #[1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
-               # -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
+                -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
         
-        # TODO: Make tire spring rate not a constant value (nonlinear solver) (its pretty constant tho)
-        self.front_tire_spring_rate = 588 * 175 # N/m
-        self.rear_tire_spring_rate = 617 * 175 # N/m
+        self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
+        self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
         
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -145,7 +144,7 @@ class EasyDriver(BetterNamespace):
         self.CdA_tot = 1.024
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
-        self.ride_height = 0.0762 # m # TODO: investigate if this is correct
+        self.static_ride_height = 0.0762 # m
 
     @property
     def cg_weighted_track(self): # m

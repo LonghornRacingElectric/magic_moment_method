@@ -1,37 +1,55 @@
-from engine.aerodynamics import Aerodynamics
-from engine.suspension import Suspension
-from engine.logger import Logger
+import engine
 import numpy as np
-from math import cos, sin
+import vehicle_params
 
+"""
+Coordinate Systems:
+    IMF = SAE z-down wheel/tire centered coordinates EXCEPT with z up, y left
+    https://www.mathworks.com/help/vdynblks/ug/coordinate-systems-in-vehicle-dynamics-blockset.html
+"""
 
 class Vehicle:
-    # state: These are the prescibed MMM States
-    # logger: dependent states & values calculated in solution, saved for post-analysis
-    # params: static car parameters
-    # aero: handles aerodynamic induced forces
-    # suspension: handles suspension induced forces
-    def __init__(self, params, state = None):
-        self.state = state
-        self.logger = Logger()
-        self.params = params        
-        self.suspension = Suspension(self.params, self.logger)
-        self.aero = Aerodynamics(self.params, self.logger)
-    
-    def get_yaw_moment(self, yaw_acceleration):       
-        return np.dot(self.params.sprung_inertia, [0, 0, yaw_acceleration])[2]
+    def __init__(self, params:vehicle_params.BaseVehicle, state:engine.State = None):
+        """_summary_
 
-    # TODO: CoG movements from pitch & roll, which will affect this term
-    def get_kinetic_moments(self, linear_accelerations):
-        cg_relative_ntb = np.array([0, 0, self.params.cg_total_position[2]])
-        return np.cross(self.params.mass * linear_accelerations, cg_relative_ntb)
+        Args:
+            params (vehicle_params._vehicle_setup_): static & initial vehicle parameters
+            state (engine.State, optional): independent prescribed vehicle states. Defaults to None.
+        """
+        self.state = state
+        self.logger = engine.Logger()
+        self.params = params        
+        self.suspension = engine.Suspension(self.params, self.logger)
+        self.aero = engine.Aerodynamics(self.params, self.logger)
     
-    def get_inertial_forces(self, linear_accelerations):       
+
+    # TODO: CoG movements due to roll / pitch / heave
+    def get_kinetic_moments(self, linear_accelerations:np.array, angular_accelerations:np.array):
+        """eq. 17-9 pg. 425 in Hibbler Engineering Mechanics Dynamics textbook
+
+        Args:
+            linear_accelerations (np.array): 3-D acceleration array in NTB directions
+            angular_accelerations (np.array): 3-D angular acceleration array about NTB axes
+
+        Returns:
+            np.array: 3-D moment array about NTB axes
+        """
+        cg_relative_ntb = np.array([0, 0, self.params.cg_total_position[2]])
+        m_a_term = np.cross(self.params.mass * linear_accelerations, cg_relative_ntb)
+        I_alpha_term = np.dot(self.params.sprung_inertia, angular_accelerations)
+
+        self.logger.log("vehicle_yaw_moment", I_alpha_term[2])
+
+        return m_a_term + I_alpha_term
+    
+
+    def get_inertial_forces(self, linear_accelerations:np.array):       
         return self.params.mass * linear_accelerations
+
 
     # normal to path acceleration (lateral accel) passed in; yaw rate dependent state on this as described by below equations
     # NOTE: turn radius being added to outputs for logging
-    def get_yaw_rate(self, lateral_accel):
+    def get_yaw_rate(self, lateral_accel:float):
         # no slip condition; yaw rate guaranteed by acceleration and velocity
         if lateral_accel == 0:
             turn_radius = 0
@@ -45,36 +63,51 @@ class Vehicle:
 
         return yaw_rate
 
-    # Intermediate Frame translational velocities
+
     @property
     def translational_velocities_IMF(self):
+        """
+        Returns:
+            np.array([0:2]): velocity vector in vehicle coordinate frame (IMF)
+        """
         return np.array([self.x_dot, self.y_dot, 0])
     
-    # Transform input array to NTB from Intermediate Frame using body slip
-    def intermediate_frame_to_ntb_transform(self, intermediate_frame_vector):
-        transformation_matrix = np.linalg.inv(np.array([[cos(self.state.body_slip), -sin(self.state.body_slip), 0],
-                                          [sin(self.state.body_slip), cos(self.state.body_slip), 0],
+
+    def intermediate_frame_to_ntb_transform(self, intermediate_frame_vector:np.array):
+        """ Transforms input vector using body slip
+
+        Args:
+            intermediate_frame_vector (np.array([0:2])): input vector in vehicle coordinate frame (IMF)
+
+        Returns:
+            np.array([0:2]): output vector in normal tangential coordinate frame (NTB)
+        """
+        transformation_matrix = np.linalg.inv(np.array([[np.cos(self.state.body_slip), -np.sin(self.state.body_slip), 0],
+                                          [np.sin(self.state.body_slip), np.cos(self.state.body_slip), 0],
                                           [0, 0, 1]]))
         return np.dot(transformation_matrix, intermediate_frame_vector)       
     
+
     @property
     def x_dot(self):
-        return self.state.s_dot * cos(self.state.body_slip)
+        return self.state.s_dot * np.cos(self.state.body_slip)
     
+
     @property
     def y_dot(self):
-        return self.state.s_dot * sin(self.state.body_slip)
+        return self.state.s_dot * np.sin(self.state.body_slip)
 
-    def get_loads(self, roll, pitch, ride_height, yaw_rate):
+
+    def get_loads(self, roll:float, pitch:float, heave:float, yaw_rate:float):
         # gravity load
         gravity = np.array([0, 0, -self.params.mass * self.params.gravity])
         
         # Define aero loads
         aero_forces, aero_moments = self.aero.get_loads(self.x_dot, self.state.body_slip, pitch, roll,
-                               ride_height)
+                               heave)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
-                                                            self.state.steered_angle, roll, pitch, ride_height)
+                                                            self.state.steered_angle, roll, pitch, heave)
 
         return aero_forces + tire_forces + gravity, aero_moments + tire_moments

@@ -1,8 +1,8 @@
 import math
 import numpy as np
-from helpers.better_namespace import BetterNamespace
+from vehicle_params import BaseVehicle
 
-class Concept2022(BetterNamespace):
+class ConceptEasyDriver(BaseVehicle):
     def __init__(self):
         super().__init__()
 

@@ -1,9 +1,13 @@
-import math
 import numpy as np
-from helpers.better_namespace import BetterNamespace
+import engine
+import vehicle_params
+
 
 class Aerodynamics:
-    def __init__(self, params, logger):
+    """
+    Handles aerodynamic vehicle forces
+    """
+    def __init__(self, params:vehicle_params.BaseVehicle, logger:engine.Logger):
         self.logger = logger
         # TODO: PUT THESE ALL IN PARAM FILE PLZ
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
@@ -25,7 +29,7 @@ class Aerodynamics:
 
         # conversion factors
         self.in_to_m = 0.0254
-        self.rad_to_deg = 180 / math.pi
+        self.rad_to_deg = 180 / np.pi
 
         # positions of component CoPs (magnitudes, equation takes signs into account)
         # TODO: make positions relative to intermediate frame; these lines also seem wrong in general ATM
@@ -42,7 +46,7 @@ class Aerodynamics:
         self.CsA = [self.vehicle_params.CsA_tot * CsA_dist[0], self.vehicle_params.CsA_tot * CsA_dist[1],
                     self.vehicle_params.CsA_tot * CsA_dist[2]]
 
-    def get_loads(self, x_dot, body_slip, pitch, roll, rideheight):
+    def get_loads(self, x_dot, body_slip, pitch, roll, heave):
 
         forces  = np.array([0, 0, 0])
         moments = np.array([0, 0, 0])
@@ -69,16 +73,16 @@ class Aerodynamics:
             CsA_part = self.CsA[i] * Cs_sens
 
             # calculate force in each direction
-            Fl_part = 0.5 * self.air_density * ClA_part * x_dot ** 2
-            Fd_part = 0.5 * self.air_density * CdA_part * x_dot ** 2
-            Fs_part = 0.5 * self.air_density * CsA_part * (x_dot * math.tan(body_slip)) ** 2 * s_dir
+            Fl_part = 0.5 * self.__air_density * ClA_part * x_dot ** 2
+            Fd_part = 0.5 * self.__air_density * CdA_part * x_dot ** 2
+            Fs_part = 0.5 * self.__air_density * CsA_part * (x_dot * np.tan(body_slip)) ** 2 * s_dir
 
             part_force = np.array([-Fd_part, Fs_part, -Fl_part])
             forces = np.add(forces, part_force)
             moments = np.add(moments, np.cross(self.CoP[i], part_force))
 
         # account for drag from rest of car
-        drag_no_aero = 0.5 * self.air_density * self.vehicle_params.CdA0 * x_dot ** 2
+        drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
         
         self.logger.log("aero_forces", forces)
@@ -88,5 +92,5 @@ class Aerodynamics:
 
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
     @property
-    def air_density(self): # kg/m^3
+    def __air_density(self): # kg/m^3
         return  1.225 - 0.003975 * (self.vehicle_params.air_temperature - 15)
