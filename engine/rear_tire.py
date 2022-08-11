@@ -57,3 +57,7 @@ class RearTire(Tire):
     # TODO: implement, toe gain near 0 right now though
     def steered_inclination_angle_gain(self, steered_angle):
         return 0
+
+    @property
+    def tube_geometry(self):
+        return self.params.rear_tube_normals, self.params.rear_lever_arms
