@@ -145,6 +145,7 @@ class UnitTestCar():
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+        self.aero_enabled = True
 
     @property
     def cg_weighted_track(self): # m

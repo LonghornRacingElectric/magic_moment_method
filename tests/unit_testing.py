@@ -37,6 +37,34 @@ def test_josie_solver(s_dot, steered_angle, body_slip):
             assert f"Failed Getting value {value} but expecting {o_d[key]}"
     assert True
 
+def test_load_transfer():
+    df = pd.read_csv(reference_file)
+    params = vehicle_params.UnitTestCar()
+    
+    for _, row in df.iterrows():
+        lateral_load_transfer = (row["front_right_tire_f_roll"] - row["front_left_tire_f_roll"] +
+                            row["rear_right_tire_f_roll"] - row["rear_left_tire_f_roll"])
+        avg_track = (params.front_track + params.rear_track) / 2
+        expected_lateral_load_transfer = params.mass * row["vehicle_accelerations_IMF_1"] * params.cg_height / avg_track * 2
+        if abs(expected_lateral_load_transfer - lateral_load_transfer) > 100:
+            assert f"lateral load transfer mismatch - Getting value {lateral_load_transfer} but expecting {expected_lateral_load_transfer}"
+        
+        long_load_transfer = (row["front_right_tire_f_pitch"] - row["front_left_tire_f_pitch"] +
+                            row["rear_right_tire_f_pitch"] - row["rear_left_tire_f_pitch"])
+        expected_long_load_transfer = params.mass * row["vehicle_accelerations_IMF_0"] * params.cg_height / params.wheelbase * 2
+        if abs(expected_long_load_transfer - long_load_transfer) > 100:
+            assert f"long load transfer mismatch - Getting value {long_load_transfer} but expecting {expected_long_load_transfer}"
+
+# work in progress 
+def test_slip_angle_drag():
+    df = pd.read_csv(reference_file)
+    params = vehicle_params.UnitTestCar()
+    
+    for _, row in df.iterrows():
+        print(row["rear_right_tire_vehicle_centric_forces_0"])
+        print(row["front_right_tire_vehicle_centric_forces_0"])
+        
+    
 def generate_test_MMM():
     """
         Generate new testing CSV by running following command:
@@ -57,4 +85,5 @@ if __name__ == "__main__":
     if args.generate:
         generate_test_MMM()
 
+    test_slip_angle_drag()
     #test_josie_solver(15, 0.18, 0.18) # NOTE: use this to investigate why there may be output misalignment

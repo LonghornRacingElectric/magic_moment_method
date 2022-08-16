@@ -103,8 +103,9 @@ class Vehicle:
         gravity = np.array([0, 0, -self.params.mass * self.params.gravity])
         
         # Define aero loads
-        aero_forces, aero_moments = self.aero.get_loads(self.x_dot, self.state.body_slip, pitch, roll,
-                               heave)
+        velocity = self.x_dot if self.params.aero_enabled else 0
+        aero_forces, aero_moments = self.aero.get_loads(velocity, self.state.body_slip, pitch, roll,
+                            heave)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
