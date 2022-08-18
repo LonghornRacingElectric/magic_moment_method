@@ -3,6 +3,12 @@ import pandas as pd
 import engine
 import vehicle_params
 import multiprocessing
+import helpers
+from tqdm import trange, tqdm
+
+import contextlib
+import sys
+
 
 
 def main():
@@ -14,7 +20,7 @@ def main():
     peak_slip_angle = 18 * np.pi / 180 # rad
     refinement = 21
 
-    s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
+    s_dot_sweep = [5,10,15,20,25,30] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     
@@ -27,7 +33,7 @@ def main():
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
     # NOTE: On Kieran's computer with 4 cores, this improved speed by 25%
-    multiprocessing_flag = False
+    multiprocessing_flag = True
     
     if multiprocessing_flag:
         def solver_mod(solver:engine.Solver, state, return_list):
@@ -45,10 +51,44 @@ def main():
             proc.join()
             print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
     else:
-        return_list = []
-        for state in state_sweep:
+
+        class DummyFile(object):
+            file = None
+
+            def __init__(self, file):
+                self.file = file
+
+            def write(self, x):
+                # Avoid print() second call (useless \n)
+                if len(x.rstrip()) > 0:
+                    tqdm.write(x, file=self.file)
+
+        @contextlib.contextmanager
+        def nostdout():
+            save_stdout = sys.stdout
+            sys.stdout = DummyFile(sys.stdout)
+            yield
+            sys.stdout = save_stdout
+
+        def blabla():
             return_list.append(solver.solve(state))
-            print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
+
+        return_list = []
+        prev = 0
+        pbar = tqdm(total=100,file=sys.stdout)
+        for state in state_sweep:
+            with nostdout():
+                blabla()
+                if (int(len(return_list) / len(state_sweep) * 100)) > prev:
+                    pbar.update(1)
+                    prev += 1
+        pbar.close()
+            # pbar = tqdm(total=100)
+            # for i in range(10):
+            #     sleep(0.1)
+            #     pbar.update(10)
+            # pbar.close()
+            # print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
 
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
