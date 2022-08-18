@@ -3,11 +3,11 @@ import pandas as pd
 import engine
 import vehicle_params
 import multiprocessing
+import time
 
+solver = engine.Solver(vehicle_params.EasyDriver())
 
 def main():
-    solver = engine.Solver(vehicle_params.EasyDriver())
-
     ### ~~~ SWEEP PARAMETERS FOR MMM ~~~ ###
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
@@ -27,29 +27,30 @@ def main():
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
     # NOTE: On Kieran's computer with 4 cores, this improved speed by 25%
-    multiprocessing_flag = False
+    multiprocessing_flag = True
     
     if multiprocessing_flag:
-        def solver_mod(solver:engine.Solver, state, return_list):
-            return_list.append(solver.solve(state))
-
         manager = multiprocessing.Manager()
         return_list = manager.list()
         jobs = []
         for state in state_sweep:
-            p = multiprocessing.Process(target=solver_mod, args=(solver, state, return_list))
+            p = multiprocessing.Process(target=solver_mod, args=(state.values(), return_list))
             jobs.append(p)
             p.start()
+            while len(jobs) - len(return_list) > 2:
+                # print(len(return_list))
+                # print(len(jobs))
+                time.sleep(0.01)
+            print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
 
         for proc in jobs:
             proc.join()
-            print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
+
     else:
         return_list = []
         for state in state_sweep:
             return_list.append(solver.solve(state))
             print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
-
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
     log_df = pd.DataFrame()
@@ -58,6 +59,10 @@ def main():
 
     log_df.to_csv("analysis/MMM.csv")
     print("\nExport successful to CSV, MMM complete!")
+
+def solver_mod(state_list, return_list):
+    x = solver.solve(engine.State(*state_list))
+    return_list.append(x)
 
 if __name__ == "__main__":
     main()
