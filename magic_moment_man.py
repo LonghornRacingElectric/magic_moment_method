@@ -26,8 +26,8 @@ def main():
 
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
-    # NOTE: On Kieran's computer with 4 cores, this improved speed by 25%
-    multiprocessing_flag = True
+    # NOTE: Right now this actually makes it slower on most computers, cloud computing time??
+    multiprocessing_flag = False
     
     if multiprocessing_flag:
         manager = multiprocessing.Manager()
@@ -38,9 +38,7 @@ def main():
             jobs.append(p)
             p.start()
             while len(jobs) - len(return_list) > 2:
-                # print(len(return_list))
-                # print(len(jobs))
-                time.sleep(0.01)
+                time.sleep(0.001)
             print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
 
         for proc in jobs:
