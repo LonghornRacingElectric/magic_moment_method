@@ -1,7 +1,5 @@
 import contextlib
 import sys
-from time import sleep
-
 from tqdm import tqdm
 
 

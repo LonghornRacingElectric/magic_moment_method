@@ -4,12 +4,6 @@ import engine
 import vehicle_params
 import multiprocessing
 import helpers
-from tqdm import trange, tqdm
-
-import contextlib
-import sys
-
-
 
 def main():
     solver = engine.Solver(vehicle_params.EasyDriver())
