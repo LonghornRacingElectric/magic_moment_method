@@ -33,7 +33,7 @@ def main():
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
     # NOTE: On Kieran's computer with 4 cores, this improved speed by 25%
-    multiprocessing_flag = True
+    multiprocessing_flag = False
     
     if multiprocessing_flag:
         def solver_mod(solver:engine.Solver, state, return_list):
@@ -51,44 +51,14 @@ def main():
             proc.join()
             print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
     else:
-
-        class DummyFile(object):
-            file = None
-
-            def __init__(self, file):
-                self.file = file
-
-            def write(self, x):
-                # Avoid print() second call (useless \n)
-                if len(x.rstrip()) > 0:
-                    tqdm.write(x, file=self.file)
-
-        @contextlib.contextmanager
-        def nostdout():
-            save_stdout = sys.stdout
-            sys.stdout = DummyFile(sys.stdout)
-            yield
-            sys.stdout = save_stdout
-
-        def blabla():
-            return_list.append(solver.solve(state))
-
         return_list = []
-        prev = 0
-        pbar = tqdm(total=100,file=sys.stdout)
+
+        bar = helpers.progress_bar.ProgressBar()
         for state in state_sweep:
-            with nostdout():
-                blabla()
-                if (int(len(return_list) / len(state_sweep) * 100)) > prev:
-                    pbar.update(1)
-                    prev += 1
-        pbar.close()
-            # pbar = tqdm(total=100)
-            # for i in range(10):
-            #     sleep(0.1)
-            #     pbar.update(10)
-            # pbar.close()
-            # print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
+            # return_list.append(solver.solve(state))
+            bar.update(return_list, state_sweep, solver, state)
+        bar.close()
+
 
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
