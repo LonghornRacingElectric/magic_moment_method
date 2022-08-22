@@ -3,7 +3,7 @@ import pandas as pd
 import engine
 import vehicle_params
 import multiprocessing
-import helpers
+from tqdm import tqdm
 
 def main():
     solver = engine.Solver(vehicle_params.EasyDriver())
@@ -14,7 +14,7 @@ def main():
     peak_slip_angle = 18 * np.pi / 180 # rad
     refinement = 21
 
-    s_dot_sweep = [5,10,15,20,25,30] # velocity sweep in path tangential direction (total velocity)
+    s_dot_sweep = [5] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     
@@ -47,11 +47,14 @@ def main():
     else:
         return_list = []
 
-        bar = helpers.progress_bar.ProgressBar()
-        for state in state_sweep:
-            # return_list.append(solver.solve(state))
-            bar.update(return_list, state_sweep, solver, state)
-        bar.close()
+        # bar = helpers.progress_bar.ProgressBar()
+        for state in tqdm(state_sweep):
+            return_list.append(solver.solve(state))
+
+            # print(f"{int(len(return_list) / len(state_sweep) * 100)}% complete")
+
+        #     bar.update(return_list, state_sweep, solver, state)
+        # bar.close()
 
 
 

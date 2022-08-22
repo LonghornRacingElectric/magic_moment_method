@@ -4,6 +4,7 @@ from copy import copy
 import warnings
 import engine
 import vehicle_params
+import logging
 
 class Solver:
     def __init__(self, vehicle_parameters:vehicle_params.BaseVehicle, initial_guess:dict = None):
@@ -15,6 +16,9 @@ class Solver:
         """
         self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0, 0, 0, 0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
+        logging.basicConfig(filename='test.log', level=logging.DEBUG,
+                            format='%(asctime)s:%(levelname)s:%(message)s')
+        logging.debug('NEW SOLVE: ')
 
 
     def solve(self, input_state:engine.State):
@@ -35,18 +39,24 @@ class Solver:
 
         # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
         guesses_allowed = 5
+
+
+
         for i in range(guesses_allowed):
             results = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
             if results[2] == 1:
                 if i != 0:
-                    print("Solution converged after changing initial guess")
+                    logging.debug("Solution converged after changing initial guess")
                 else:
                     pass
                     # NOTE: Solution converged on first guess!
                 return copy(self.vehicle.logger.return_log())
             elif results[2] != 1:
                 if i == (guesses_allowed - 1):
-                    print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
+                    # print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
+                    logging.debug("Solution convergence not found after {} guesses for state: "
+                                  "{} {} {}"
+                                  .format(guesses_allowed,input_state.body_slip,input_state.s_dot,input_state.steered_angle))
                     #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
                     return {}
                 self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
@@ -94,18 +104,18 @@ class Solver:
         angular_accelerations = np.array([0, 0, yaw_acceleration])
         kinetic_moments = self.vehicle.get_kinetic_moments(translation_accelerations_ntb, angular_accelerations)
         summation_moments = kinetic_moments - vehicle_moments_ntb
-        
+
         # F = m * a
         inertial_forces = self.vehicle.get_inertial_forces(translation_accelerations_ntb)
         summation_forces = inertial_forces - vehicle_forces_ntb
-        
+
 
         # log dependent states
         [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]
         self.vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
         self.vehicle.logger.log("vehicle_kinetic_moment", kinetic_moments)
         self.vehicle.logger.log("vehicle_inertial_forces", inertial_forces)
-        self.vehicle.logger.log("vehicle_vehicle_forces_ntb", vehicle_forces_ntb) 
+        self.vehicle.logger.log("vehicle_vehicle_forces_ntb", vehicle_forces_ntb)
         self.vehicle.logger.log("vehicle_yaw_rate", yaw_rate)
         self.vehicle.logger.log("vehicle_x_dot", self.vehicle.x_dot)
         self.vehicle.logger.log("vehicle_y_dot", self.vehicle.y_dot)
