@@ -13,7 +13,7 @@ class Solver:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
             initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
-        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0, 0, 0, 0, 0, 0]
+        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0.00125, 0, 0, 0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
