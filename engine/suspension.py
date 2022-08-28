@@ -1,6 +1,8 @@
 from math import sin, cos
 
 import numpy as np
+
+
 import engine
 from scipy.optimize import fsolve
 import vehicle_params
@@ -93,15 +95,17 @@ class Suspension():
         lateral_force = tire.lateral_pacejka(inclination_angle, normal_force, slip_angle)
         tire_centric_forces = np.array([0, lateral_force, normal_force])
         
-        rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
-                            [sin(steering_slip), cos(steering_slip),0],
-                            [0,0,1]])
+        # rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
+        #                     [sin(steering_slip), cos(steering_slip),0],
+        #                     [0,0,1]])
+
+        rotation_matrix = np.array([ [1,0,0], [0,1,0], [0,0,1]])
         
         # Rotate tire output into intermediate frame
         vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
         vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
         
-        self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
+        self.logger.log(tire_name + "_tire_tire_centric_forces", -1*abs(tire_centric_forces))
 
         return vehicle_centric_forces, vehicle_centric_moments
 

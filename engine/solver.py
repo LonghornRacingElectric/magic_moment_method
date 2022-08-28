@@ -101,7 +101,7 @@ class Solver:
         vehicle_moments_ntb = self.vehicle.intermediate_frame_to_ntb_transform(moments)
 
         # TODO: CoG movements due to roll / pitch / heave
-        """ 
+        """ a
         NOTE: 1) ~~Kinetic Moments~~
          -  used when summation of moment is about a point that isn't the center of gravity (CoG)
          -  eq. 17-9 pg. 425 in Hibbler Engineering Mechanics Dynamics textbook
