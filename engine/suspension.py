@@ -96,6 +96,8 @@ class Suspension():
         rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
                             [sin(steering_slip), cos(steering_slip),0],
                             [0,0,1]])
+
+        # rotation_matrix = np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
         
         # Rotate tire output into intermediate frame
         vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
