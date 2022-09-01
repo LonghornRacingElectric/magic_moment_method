@@ -104,7 +104,7 @@ class Suspension():
         vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
         
         self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
-
+        # print(vehicle_centric_forces)
         return vehicle_centric_forces, vehicle_centric_moments
 
 

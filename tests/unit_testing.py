@@ -22,30 +22,21 @@ solver = engine.Solver(vehicle_params.UnitTestCar())
 @pytest.mark.parametrize("steered_angle", steering_sweep)
 @pytest.mark.parametrize("body_slip", body_sweep)
 
-# def setup_function(function):
-
-# def test_darren():
-#     value = "asdf"
-#     print("Asdf")
-#     assert f"Failed Getting value {value} but expecting "
-#
 def test_josie_solver(s_dot, steered_angle, body_slip):
     o_d = solver.solve(engine.State(body_slip, steered_angle, s_dot))
     e_d = pd.read_csv(reference_file)
     e_d_filtered = e_d[((e_d["s_dot"] == s_dot)  & (e_d["steered_angle"] == steered_angle))]
     e_d_filtered = e_d_filtered[e_d_filtered["body_slip"] == body_slip].iloc[0]
-
+    print(s_dot, steered_angle, body_slip)
     for key, value in e_d_filtered.iteritems():
-
         if "Unnamed" in str(key):
             continue
         else:
-            print(value, o_d[key])
             if type(value) is np.bool_:
                 if value != o_d[key]:
                     assert False, f"Failed Getting value {value} but expecting {o_d[key]}"
                 continue
-            elif abs((o_d[key] - value)/value) > 0.001:
+            elif abs(o_d[key]) > 0.001 and abs((o_d[key] - value)/value) > 0.001 :
                 assert False, f"Failed Getting value {value} but expecting {o_d[key]}"
     assert True
 

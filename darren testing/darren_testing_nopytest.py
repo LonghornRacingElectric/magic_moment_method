@@ -3,11 +3,10 @@ import pandas as pd
 from pathlib import Path
 import sys
 
-path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
-sys.path.insert(0, path)
+
 import engine
 import vehicle_params
-reference_file = "tests/darren_test_MMM.csv"
+reference_file = "darren_test_MMM.csv"
 
 s_dot_sweep = [15]
 steering_sweep = [-0.18, 0, 0.18]
@@ -22,3 +21,5 @@ def test_darren():
                 output_dict = solver.solve(engine.State(body_slip, steered_angle, s_dot))
                 log_df = pd.concat([log_df, pd.DataFrame([output_dict])], ignore_index=True)
     log_df.to_csv(reference_file)
+    print(log_df)
+test_darren()

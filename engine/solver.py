@@ -12,7 +12,8 @@ import os
 
 class Solver:
 
-    def __init__(self, vehicle_parameters: vehicle_params.BaseVehicle, initial_guess: dict = None):
+    def __init__(self, vehicle_parameters: vehicle_params.BaseVehicle, initial_guess: dict = None,
+                 generate_logs: bool = False):
         """_summary_
 
         Args:
@@ -22,9 +23,11 @@ class Solver:
         self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0, 0, 0,
                                                                                                                0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
-        self.createLogFile()
+        self.generate_logs = generate_logs
+        if generate_logs:
+            self.create_log_file()
 
-    def createLogFile(self):
+    def create_log_file(self):
         PATH = datetime.now().strftime('logs\log_%d_%m_%Y')
         i = 0
         while os.path.exists(PATH + "_%s.log" % i):
@@ -32,6 +35,7 @@ class Solver:
 
         logging.basicConfig(filename=PATH + "_%s.log" % i, level=logging.DEBUG,
                             format='%(asctime)s:%(levelname)s:%(message)s')
+
         logging.debug('NEW SOLVE: ')
 
     def solve(self, input_state: engine.State):
@@ -57,7 +61,8 @@ class Solver:
             results = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output=True)
             if results[2] == 1:
                 if i != 0:
-                    logging.debug("Solution converged after changing initial guess")
+                    if self.generate_logs:
+                        logging.debug("Solution converged after changing initial guess")
                 else:
                     pass
                     # NOTE: Solution converged on first guess!
@@ -65,7 +70,8 @@ class Solver:
             elif results[2] != 1:
                 if i == (guesses_allowed - 1):
                     # print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
-                    logging.debug("Solution convergence not found after {} guesses for state: "
+                    if self.generate_logs:
+                        logging.debug("Solution convergence not found after {} guesses for state: "
                                   "{} {} {}"
                                   .format(guesses_allowed, input_state.body_slip, input_state.s_dot,
                                           input_state.steered_angle))
