@@ -6,7 +6,7 @@ import multiprocessing
 from tqdm import tqdm
 
 def main():
-    solver = engine.Solver(vehicle_params.EasyDriver())
+    solver = engine.Solver(vehicle_params.EasyDriver(), create_logs=True)
 
     ### ~~~ SWEEP PARAMETERS FOR MMM ~~~ ###
     # NOTE: any parameter in the vehicle_params file can be swept as well

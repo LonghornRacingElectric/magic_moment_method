@@ -12,7 +12,7 @@ import os
 
 class Solver:
 
-    def __init__(self, vehicle_parameters: vehicle_params.BaseVehicle, initial_guess: dict = None):
+    def __init__(self, vehicle_parameters: vehicle_params.BaseVehicle, initial_guess: dict = None, create_logs: bool = False):
         """_summary_
 
         Args:
@@ -22,7 +22,8 @@ class Solver:
         self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0, 0, 0,
                                                                                                                0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
-        self.createLogFile()
+        self.create_logs = create_logs
+        if create_logs: self.createLogFile()
 
     def createLogFile(self):
         PATH = datetime.now().strftime('logs\log_%d_%m_%Y')
@@ -57,7 +58,7 @@ class Solver:
             results = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output=True)
             if results[2] == 1:
                 if i != 0:
-                    logging.debug("Solution converged after changing initial guess")
+                    if self.create_logs: logging.debug("Solution converged after changing initial guess")
                 else:
                     pass
                     # NOTE: Solution converged on first guess!
@@ -65,7 +66,7 @@ class Solver:
             elif results[2] != 1:
                 if i == (guesses_allowed - 1):
                     # print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
-                    logging.debug("Solution convergence not found after {} guesses for state: "
+                    if self.create_logs: logging.debug("Solution convergence not found after {} guesses for state: "
                                   "{} {} {}"
                                   .format(guesses_allowed, input_state.body_slip, input_state.s_dot,
                                           input_state.steered_angle))
