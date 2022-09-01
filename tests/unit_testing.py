@@ -12,6 +12,7 @@ sys.path.insert(0, path)
 import engine
 import vehicle_params
 
+
 s_dot_sweep = [15]
 steering_sweep = [-0.18, 0, 0.18]
 body_sweep = [-0.18, 0, 0.18]
@@ -37,6 +38,8 @@ def test_josie_solver(s_dot, steered_angle, body_slip):
             assert f"Failed Getting value {value} but expecting {o_d[key]}"
     assert True
 
+# This test is very rudimentary and done with incorrect assumptions
+# Please update in the future :)
 def test_load_transfer():
     df = pd.read_csv(reference_file)
     params = vehicle_params.UnitTestCar()
@@ -54,16 +57,6 @@ def test_load_transfer():
         expected_long_load_transfer = params.mass * row["vehicle_accelerations_IMF_0"] * params.cg_height / params.wheelbase * 2
         if abs(expected_long_load_transfer - long_load_transfer) > 100:
             assert f"long load transfer mismatch - Getting value {long_load_transfer} but expecting {expected_long_load_transfer}"
-
-# work in progress 
-def test_slip_angle_drag():
-    df = pd.read_csv(reference_file)
-    params = vehicle_params.UnitTestCar()
-    
-    for _, row in df.iterrows():
-        print(row["rear_right_tire_vehicle_centric_forces_0"])
-        print(row["front_right_tire_vehicle_centric_forces_0"])
-        
     
 def generate_test_MMM():
     """
@@ -85,5 +78,4 @@ if __name__ == "__main__":
     if args.generate:
         generate_test_MMM()
 
-    test_slip_angle_drag()
     #test_josie_solver(15, 0.18, 0.18) # NOTE: use this to investigate why there may be output misalignment

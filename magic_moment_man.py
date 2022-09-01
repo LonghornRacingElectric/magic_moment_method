@@ -3,11 +3,13 @@ import numpy as np
 import pandas as pd
 import engine
 import vehicle_params
+import multiprocessing
+import time
 
+
+solver = engine.Solver(vehicle_params.EasyDriver())
 
 def main():
-    solver = engine.Solver(vehicle_params.EasyDriver())
-
     ### ~~~ SWEEP PARAMETERS FOR MMM ~~~ ###
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
@@ -41,33 +43,40 @@ def sweep_solver(multiprocessing_flag: bool, state_list: list, solver: engine.So
     """
     
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
-    # NOTE: On Kieran's computer with 4 cores, this improved speed by 25%
+    # NOTE: Right now this actually makes it slower on most computers, cloud computing time??
+    multiprocessing_flag = False
+    
     if multiprocessing_flag:
-        def solver_mod(solver: engine.Solver, state, return_list: list):
-            return_list.append(solver.solve(state))
-
         manager = multiprocessing.Manager()
         return_list = manager.list()
         jobs = []
-        for state in state_list:
-            proc = multiprocessing.Process(target=solver_mod, args=(solver, state, return_list))
-            jobs.append(proc)
-            proc.start()
+        for state in state_sweep:
+            p = multiprocessing.Process(target=solver_mod, args=(state.values(), return_list))
+            jobs.append(p)
+            p.start()
+            while len(jobs) - len(return_list) > 2:
+                time.sleep(0.001)
+            print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
 
         for proc in jobs:
             proc.join()
-            print(f"{int(len(return_list)/len(state_list)*100)}% complete")
+
     else:
         return_list = []
         for state in state_list:
             return_list.append(solver.solve(state))
             print(f"{int(len(return_list)/len(state_list)*100)}% complete")
 
+    ### ~~~ EXPORT MMM RESULTS ~~~ ###
     log_df = pd.DataFrame()
     for output in return_list:
         log_df = pd.concat([log_df, pd.DataFrame([output])], ignore_index=True)            
 
     return log_df
+
+def solver_mod(state_list, return_list):
+    x = solver.solve(engine.State(*state_list))
+    return_list.append(x)
 
 if __name__ == "__main__":
     main()
