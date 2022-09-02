@@ -1,8 +1,8 @@
 from engine.tire import Tire
 
 class RearTire(Tire):
-    def __init__(self, car_params, direction_left):
-        super().__init__(car_params, direction_left)
+    def __init__(self, car_params, is_left_tire):
+        super().__init__(car_params, is_left_tire)
 
     # NOT a function of steered angle, don't use for calcs
     def steering_induced_slip(self, steered_angle):
@@ -12,10 +12,9 @@ class RearTire(Tire):
     def toe(self):
         return self.params.rear_toe * (1 if self.direction_left else -1) #TODO : verify this
 
-    # TODO: make linear instead of constant
     @property
-    def tire_springrate(self):
-        return self.params.rear_tire_spring_rate
+    def tire_coeffs(self):
+        return self.params.rear_tire_spring_coeffs
     
     @property
     def lateral_coeffs(self):
@@ -29,10 +28,6 @@ class RearTire(Tire):
     @property
     def wheelrate(self): # N/m
         return self.params.rear_spring_springrate/self.params.rear_motion_ratio**2
-
-    @property
-    def riderate(self): # N/m
-        return (self.wheelrate * self.tire_springrate) / (self.wheelrate + self.tire_springrate)
 
     @property
     def KPI(self): # rad
@@ -62,3 +57,7 @@ class RearTire(Tire):
     # TODO: implement, toe gain near 0 right now though
     def steered_inclination_angle_gain(self, steered_angle):
         return 0
+
+    @property
+    def tube_geometry(self):
+        return self.params.rear_tube_normals, self.params.rear_lever_arms

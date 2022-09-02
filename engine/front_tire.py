@@ -3,8 +3,8 @@ from engine.tire import Tire
 import numpy as np
 
 class FrontTire(Tire):
-    def __init__(self, car_params, direction_left):
-        super().__init__(car_params, direction_left)
+    def __init__(self, car_params, is_left_tire):
+        super().__init__(car_params, is_left_tire)
 
     def steering_induced_slip(self, steered_angle): # rad
         return steered_angle + self.toe
@@ -14,8 +14,8 @@ class FrontTire(Tire):
         return self.params.front_toe * (1 if self.direction_left else -1) # TODO: verify this
 
     @property
-    def tire_springrate(self): # N / m
-        return self.params.front_tire_spring_rate
+    def tire_coeffs(self):
+        return self.params.front_tire_spring_coeffs
     
     @property
     def lateral_coeffs(self):
@@ -29,10 +29,6 @@ class FrontTire(Tire):
     @property
     def wheelrate(self): # N/m
         return self.params.front_spring_springrate/self.params.front_motion_ratio**2
-
-    @property
-    def riderate(self): # N/m
-        return (self.wheelrate * self.tire_springrate) / (self.wheelrate + self.tire_springrate)
 
     @property
     def KPI(self): # rad
@@ -69,3 +65,7 @@ class FrontTire(Tire):
                     np.arccos(np.sin(self.caster) * np.sin(steered_angle)) - np.pi
                     
         return steer_inc
+
+    @property
+    def tube_geometry(self):
+        return self.params.front_tube_normals, self.params.front_lever_arms

@@ -1,25 +1,26 @@
 from abc import abstractmethod, abstractproperty
 import math
+import numpy as np
+from scipy.optimize import fmin
 
 class Tire:
-    def __init__(self, car_params, direction_left):
+    def __init__(self, car_params, is_left_tire):
         self.params = car_params
-        self.direction_left = direction_left # boolean
+        self.direction_left = is_left_tire # boolean
 
     def roll_inclination_angle_gain(self, roll):
-        return roll - (roll * self.camber_gain)
+        mod_roll = - roll if self.direction_left else roll
+        return mod_roll - (mod_roll * self.camber_gain)
     
     @abstractmethod
     def steered_inclination_angle_gain(self):
         pass
 
-    def is_saturated(self, normal_force, slip_angle, inclination_angle):
-        # TODO: implement better method
-        peak_slip_angle = 18 * math.pi / 180 # rad
-        return slip_angle > peak_slip_angle
-        
-    def roll_force(self, roll):
-        return self.arb_stiffness * roll # TODO: more long term fix
+    def is_saturated(self, normal_force:float, slip_angle:float, inclination_angle:float):
+        guess_peak_slip_angle = 18 * np.pi / 180 # rad
+        # vvv would work if pacejka fits were any good lol
+        #max_slip_angle = fmin(lambda x: -self.lateral_pacejka(inclination_angle, normal_force, x), guess_peak_slip_angle)
+        return slip_angle > guess_peak_slip_angle
           
     # TODO: re-implement loss function
     # calculate inclination_angle losses!
@@ -30,7 +31,9 @@ class Tire:
     # Determines the lateral force on the tire given the pacejka fit coefficients, slip angle, camber, and normal load
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
-    def lateral_pacejka(self, inclination_angle, normal_force, slip_angle):
+    def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
+        if normal_force <= 0:
+            return 0
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
         multiplier =  -1 if self.direction_left else 1
         slip_degrees = slip_angle * 180 / math.pi * multiplier # degrees
@@ -41,6 +44,7 @@ class Tire:
         D = normal_force * (a1 * normal_force + a2) * (1 - a15 * inclination_degrees ** 2)
         BCD = a3 * math.sin(math.atan(normal_force / a4) * 2) * (1 - a5 * abs(inclination_degrees))
         B = BCD / (C * D)
+
         H = a8 * normal_force + a9 + a10 * inclination_degrees
         E = (a6 * normal_force + a7) * (1 - (a16 * inclination_degrees + a17) * math.copysign(1, slip_degrees + H))
         V = a11 * normal_force + a12 + (a13 * normal_force + a14) * inclination_degrees * normal_force
@@ -65,35 +69,31 @@ class Tire:
     #     return 0
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
-    def lateral_loss(self, normal_force, slip_angle, inclination_angle):
-        if normal_force <= 0:
-            return 0, 0
+    def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
         actual = self.lateral_pacejka(inclination_angle, normal_force, slip_angle)
         optimal = self.lateral_pacejka(0, normal_force, slip_angle)
         force_loss = optimal - actual
-        percent_loss = force_loss / optimal
+        percent_loss = force_loss / optimal if optimal > 0 else 0
         return force_loss, percent_loss
 
-    @property
-    def roll_stiffness(self): # Nm/rad (assumes small angle approximation)
-        ride_contribution = self.riderate * self.trackwidth ** 2 / 2 * (1 if self.direction_left else -1)
-        arb_contribution = self.arb_stiffness
-        return (ride_contribution + arb_contribution)
+    def tire_stiffness_func(self, tire_displacement:float):
+        # K = C0 + C1 * Nf
+        # Nf = K * x
+        return self.tire_coeffs[0] / (1 - self.tire_coeffs[1] * tire_displacement)
+
+    def wheelrate_f(self, spring_displacement:float):
+        return self.wheelrate
 
     @abstractmethod
-    def steering_induced_slip(self, steered_angle):
+    def steering_induced_slip(self, steered_angle:float):
         pass
 
     @abstractmethod
-    def steered_inclination_angle_gain(self, steered_angle):
+    def steered_inclination_angle_gain(self, steered_angle:float):
         pass
 
     @abstractproperty
-    def riderate(self):
-        pass
-    
-    @abstractproperty
-    def arb_stiffness(self):
+    def wheelrate(self):
         pass
 
     @abstractproperty
@@ -105,15 +105,11 @@ class Tire:
         pass
     
     @abstractproperty
-    def tire_springrate(self):
+    def tire_coeffs(self):
         pass
 
     @abstractproperty
     def lateral_coeffs(self):
-        pass
-
-    @abstractproperty
-    def wheelrate(self):
         pass
 
     @abstractproperty
@@ -138,4 +134,8 @@ class Tire:
 
     @abstractproperty
     def position(self):
+        pass
+
+    @abstractproperty
+    def tube_geometry(self):
         pass
