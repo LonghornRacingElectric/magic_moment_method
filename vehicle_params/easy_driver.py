@@ -81,8 +81,8 @@ class EasyDriver(BetterNamespace):
         ### aerodynamics params ###
         
         self.air_temperature = 27 # Celsius
-        self.ClA_tot = 2.93
-        self.CdA_tot = 1.024
+        self.ClA_tot = 4.384
+        self.CdA_tot = 1.028
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.ride_height = 0.0762 # m # TODO: investigate if this is correct

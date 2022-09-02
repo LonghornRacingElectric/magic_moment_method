@@ -9,8 +9,8 @@ class Aerodynamics:
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
 
         # distribution of downforce across components
-        ClA_dist = [0.371, 0.282, 0.347]   # [front, undertray, rear]
-        CdA_dist = [0.324, 0.186, 0.490]
+        ClA_dist = [0.474, 0.289, 0.236]   # [front, undertray, rear]
+        CdA_dist = [0.425, 0.178, 0.396]
         CsA_dist = [0.250, 0.000, 0.750]
 
         # pitch, body_slip, and roll sensitivities,
