@@ -30,6 +30,8 @@ class Suspension():
             
             ### ~~~ Slip Angle Calculation ~~~ ###
             tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]), tire.position) # in IMF
+
+
             steering_toe_slip = tire.steering_induced_slip(steered_angle)
             slip_angle = np.arctan2(tire_velocity[1], tire_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
             
@@ -60,7 +62,8 @@ class Suspension():
             self.logger.log(tire_name + "_RLCA_force", tube_forces[3])
             self.logger.log(tire_name + "_pullrod_force", tube_forces[4])
             self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
-            
+
+        # print(tire.position, yaw_rate, tire_velocity, vehicle_velocity)
         return forces, moments
 
           
@@ -104,7 +107,8 @@ class Suspension():
         vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
         
         self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
-        # print(vehicle_centric_forces)
+
+        print(tire_centric_forces,steering_slip)
         return vehicle_centric_forces, vehicle_centric_moments
 
 

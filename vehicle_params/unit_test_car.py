@@ -43,17 +43,17 @@ class UnitTestCar():
         self.rear_arb_stiffness = 0
         
         # ~~~ Linkages & HDPTs ~~~ #
-        self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
+        self.rear_toe = 0 * (math.pi / 180) # rad  # TODO: not correct to car
         self.front_toe = 0 * (math.pi / 180) # rad # TODO: not correct to car
-        self.front_static_camber = -1 * (np.pi / 180) # rad # TODO: not correct to car
-        self.rear_static_camber = -1 * (np.pi / 180) # rad # TODO: not correct to car
-        self.front_camber_gain = 0.7 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
-        self.rear_camber_gain = 0.7 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
-        self.front_KPI = 4.2 * (np.pi / 180) # rad
-        self.rear_KPI = 3 * (np.pi / 180) # rad
-        self.front_caster = 2 * (np.pi / 180) # rad
-        self.rear_caster = 2 * (np.pi / 180)  # rad
-        self.rear_toe_gain = 0.18 * (np.pi / 180) # rad/rad # TODO: not correct to car; also TODO implement
+        self.front_static_camber = 0 * (np.pi / 180) # rad # TODO: not correct to car
+        self.rear_static_camber = 0 * (np.pi / 180) # rad # TODO: not correct to car
+        self.front_camber_gain = 0.0 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
+        self.rear_camber_gain = 0.0 # 0.5 deg/deg -> deg/m # TODO: IMPLEMENT
+        self.front_KPI = 0 * (np.pi / 180) # rad
+        self.rear_KPI = 0 * (np.pi / 180) # rad
+        self.front_caster = 0 * (np.pi / 180) # rad
+        self.rear_caster = 0 * (np.pi / 180)  # rad
+        self.rear_toe_gain = 0 * (np.pi / 180) # rad/rad # TODO: not correct to car; also TODO implement
         self.front_roll_center_height = -.75 * .0254 # m  # TODO: not correct to car; also heavily NONLINEAR
         self.rear_roll_center_height = -.5 * .0254 # m  # TODO: not correct to car; also heavily NONLINEAR
 
