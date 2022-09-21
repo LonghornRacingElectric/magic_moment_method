@@ -6,7 +6,7 @@ class RearTire(Tire):
 
     # NOT a function of steered angle, don't use for calcs
     def steering_induced_slip(self, steered_angle):
-        return self.toe
+        return self.toe * -1
 
     @property
     def toe(self):
