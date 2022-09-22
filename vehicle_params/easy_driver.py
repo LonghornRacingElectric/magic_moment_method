@@ -148,7 +148,7 @@ class EasyDriver():
 
 
 
-        ### differential params ###
+        ### differential & braking params ###
 
         self.motor_radius = 1
         self.diff_radius = 4
@@ -161,6 +161,16 @@ class EasyDriver():
         self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1])
         self.driveline_damping = np.array([0.1, 0.1, 0.1, 0.1])
         self.diff_efficiency = 1
+        self.max_pedal_force = 100
+        self.pedal_ratio = 3
+        self.master_cylinder_area = 0.2
+        self.brake_bias_ratio = 0.6 # Percent of front
+        self.rotor_radius = [0.3, 0.2]
+        self.calipers_area = [0.2, 0.2]
+        self.brake_pad_mu = [0.55, 0.55]
+        self.diff_fl = 0.607
+        self.diff_preload = 5.2
+
 
 
     @property

@@ -43,9 +43,9 @@ class Suspension():
             moments = np.add(m, moments)
 
             ### ~~~ Wheel Speeds from Slip Ratios and Tire Velocities ~~~ ###
-            tire_direction = np.array([np.cos(steering_toe_slip), np.sin(steering_toe_slip), 0])
-            tire_cord_velocity = tire_direction.dot(tire_IMF_velocity)
-            wheel_speed = (slip_ratio/100 + 1) * tire_cord_velocity / tire.radius
+            tire_pointing_unit_vector = np.array([np.cos(steering_toe_slip), np.sin(steering_toe_slip), 0])
+            tire_pointing_velocity = tire_pointing_unit_vector.dot(tire_IMF_velocity)
+            wheel_speed = (slip_ratio/100 + 1) * tire_pointing_velocity / tire.radius
             wheel_speeds = np.append(wheel_speeds, [wheel_speed])
 
             ### ~~~ Suspension Tube Force Calculation ~~~ ###

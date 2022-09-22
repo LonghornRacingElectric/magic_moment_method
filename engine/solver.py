@@ -120,16 +120,10 @@ class Solver:
         total_diff_torque = (force_chain * params.diff_radius * params.diff_efficiency - diff_case_angular_accel * params.diff_inertia
                          - diff_angular_velocity * params.motor_damping)
 
+        bias = self.vehicle.torque_bias_ratio(total_diff_torque)
+        diff_bias_matrix = [bias, 1 - bias] if diff_output_torques.argmax() == 0 else [1 - bias, bias]
 
-        diff_torque_traction_side = max(diff_output_torques)
-        diff_torque_slipping_side = min(diff_output_torques)
-
-        diff_bias_ratio = 0.7 # TODO: actually map it
-
-        rear_axle_residuals = np.zeros(2)
-        rear_axle_residuals[0] = diff_bias_ratio * total_diff_torque - diff_torque_traction_side
-        rear_axle_residuals[1] = (1 - diff_bias_ratio) * total_diff_torque - diff_torque_slipping_side
-
+        rear_axle_residuals = diff_bias_matrix * total_diff_torque - diff_output_torques
         front_axle_residuals = (tire_torques[:2] - wheel_angular_accels[:2] * params.driveline_inertias[:2]
                             - wheel_angular_velocity[:2] * params.driveline_damping[:2] - np.array([brake_torques[0], brake_torques[0]]))
 
