@@ -1,11 +1,12 @@
 from helpers.better_namespace import BetterNamespace
-
+import numpy as np
 
 class State(BetterNamespace):
     """
     A class to represent independent car states
     """
-    def __init__(self, body_slip, steered_angle, s_dot, torque_request = 0.0):
+    def __init__(self, body_slip, steered_angle, s_dot, slip_ratios = np.array([0, 0, 0, 0]), 
+                    brake_request = 0.0, motor_torque = 0):
         """ 
         These are the prescribed MMM states
         All other vehicle tates are dependent, and solved to match conditions
@@ -19,4 +20,6 @@ class State(BetterNamespace):
         self.body_slip = body_slip
         self.steered_angle = steered_angle
         self.s_dot = s_dot
-        self.torque_request = torque_request
+        self.brake_request = brake_request
+        self.slip_ratios = slip_ratios
+        self.motor_torque = motor_torque

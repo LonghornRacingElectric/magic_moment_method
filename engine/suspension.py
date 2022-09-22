@@ -19,8 +19,8 @@ class Suspension():
         self.__tires = engine.Tires(params)
 
 
-    def get_loads(self, vehicle_velocity:np.array, yaw_rate:float, steered_angle:float, roll:float, pitch:float, heave:float):
-        forces, moments = np.array([0, 0, 0]), np.array([0, 0, 0])
+    def get_loads(self, vehicle_velocity:np.array, yaw_rate:float, steered_angle:float, roll:float, pitch:float, heave:float, slip_ratios:list):
+        forces, moments, wheel_speeds = np.array([0, 0, 0]), np.array([0, 0, 0]), np.array([])
         
         # tire output forces as a function of inclination angle, slip angle, and normal force
         for tire_name, tire in self.__tires.items():
@@ -29,24 +29,31 @@ class Suspension():
             normal_force = self.__get_tire_normal_load(tire_name, tire, heave, pitch, roll)
             
             ### ~~~ Slip Angle Calculation ~~~ ###
-            tire_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]), tire.position) # in IMF
+            tire_IMF_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]), tire.position) # in IMF
             steering_toe_slip = tire.steering_induced_slip(steered_angle)
-            slip_angle = np.arctan2(tire_velocity[1], tire_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
+            slip_angle = np.arctan2(tire_IMF_velocity[1], tire_IMF_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
             
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.__get_inclination_angle(tire_name, tire, steered_angle, roll, heave, pitch)
             
             ### ~~~ Tire Output Force Calculation ~~~ ###
-            f, m = self.__get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle, steering_toe_slip)
+            slip_ratio = tire.get_slip_ratio(slip_ratios)
+            f, m = self.__get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle, steering_toe_slip, slip_ratio)
             forces = np.add(f, forces)  
             moments = np.add(m, moments)
+
+            ### ~~~ Wheel Speeds from Slip Ratios and Tire Velocities ~~~ ###
+            tire_direction = np.array([np.cos(steering_toe_slip), np.sin(steering_toe_slip), 0])
+            tire_cord_velocity = tire_direction.dot(tire_IMF_velocity)
+            wheel_speed = (slip_ratio/100 + 1) * tire_cord_velocity / tire.radius
+            wheel_speeds = np.append(wheel_speeds, [wheel_speed])
 
             ### ~~~ Suspension Tube Force Calculation ~~~ ###
             tube_forces = [float(x) for x in self.get_tube_forces(tire, forces * np.array([1, -tire.direction_left, 1]))]
 
             ### ~~~ Logging Useful Information ~~~ ###
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
-            self.logger.log(tire_name + "_tire_velocity", tire_velocity)
+            self.logger.log(tire_name + "_tire_velocity", tire_IMF_velocity)
             self.logger.log(tire_name + "_tire_slip_angle", slip_angle)
             self.logger.log(tire_name + "_tire_vehicle_centric_forces", f)
             self.logger.log(tire_name + "_tire_vehicle_centric_moments", m)
@@ -61,7 +68,7 @@ class Suspension():
             self.logger.log(tire_name + "_pullrod_force", tube_forces[4])
             self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
             
-        return forces, moments
+        return forces, moments, wheel_speeds, np.array([100, 100, 100, 100])
 
           
     def __get_inclination_angle(self, tire_name:str, tire:engine.Tire, steered_angle:float,
@@ -88,7 +95,7 @@ class Suspension():
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
           
     def __get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float,
-                        inclination_angle:float, steering_slip:float):
+                        inclination_angle:float, steering_slip:float, slip_ratio:list):
 
         lateral_force = tire.lateral_pacejka(inclination_angle, normal_force, slip_angle)
         tire_centric_forces = np.array([0, lateral_force, normal_force])

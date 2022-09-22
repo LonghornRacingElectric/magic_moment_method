@@ -146,6 +146,23 @@ class EasyDriver():
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
 
+
+
+        ### differential params ###
+
+        self.motor_radius = 1
+        self.diff_radius = 4
+        self.front_tire_radius = 8
+        self.rear_tire_radius = 9
+        self.motor_inertia = 0.1
+        self.diff_inertia = 0.1
+        self.motor_damping = 0.1
+        self.diff_damping = 0.1
+        self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1])
+        self.driveline_damping = np.array([0.1, 0.1, 0.1, 0.1])
+        self.diff_efficiency = 1
+
+
     @property
     def cg_weighted_track(self): # m
         return (self.front_track * (1 - self.cg_bias) + self.rear_track * self.cg_bias) / 2

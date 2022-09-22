@@ -139,3 +139,11 @@ class Tire:
     @abstractproperty
     def tube_geometry(self):
         pass
+
+    @abstractproperty
+    def radius(self):
+        pass
+
+    @abstractmethod
+    def get_slip_ratio(self, slip_ratios):
+        pass

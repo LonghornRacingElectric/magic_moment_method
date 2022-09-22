@@ -13,7 +13,7 @@ class Solver:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
             initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
-        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0.00125, 0, 0, 0, 0, 0]
+        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0.00125, 0, 0, 0, 0, 0, 1,1,1,1]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
@@ -53,21 +53,21 @@ class Solver:
 
     @property
     def __output_variable_names(self):
-        return ["heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"]
-
+        return ["heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch", 
+                "wheel_speed_1", "wheel_speed_2", "wheel_speed_3", "wheel_speed_4"]
 
     def __DOF6_motion_residuals(self, x:list):
         """
-        Calculates six residuals for six degree of freedom vehicle, finds dependent state variables based on input guess.
+        Calculates residuals for six degree of freedom vehicle, finds dependent state variables based on input guess.
         Used by non-linear solver to converge on dependent vehicle state variables.
 
         Args:
-            x (list[0:5]): the 6 input guesses being iterated - "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch"
+            x (list[0:5]): the 10 input guesses being iterated - "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch", "wheel_speeds"
 
         Returns:
-            list: 6 output residuals - summation of forces in x/y/z and moments about x/y/z
+            list: 10 output residuals - summation of forces in x/y/z, moments about x/y/z, and torques about axles 1/2/3/4
         """
-        heave, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch = x
+        [heave, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch], wheel_angular_accels = x[:6], np.array(x[6:])
 
         # accelerations
         translation_accelerations_imf = np.array([x_double_dot, y_double_dot, 0])
@@ -75,7 +75,7 @@ class Solver:
 
         # vehicle loads
         yaw_rate = self.vehicle.get_yaw_rate(translation_accelerations_ntb[1])
-        forces, moments = self.vehicle.get_loads(roll, pitch, heave, yaw_rate)
+        forces, moments, wheel_angular_velocity, tire_torques = self.vehicle.get_loads(roll, pitch, heave, yaw_rate)
         vehicle_forces_ntb = self.vehicle.intermediate_frame_to_ntb_transform(forces)
         vehicle_moments_ntb = self.vehicle.intermediate_frame_to_ntb_transform(moments)
 
@@ -100,6 +100,39 @@ class Solver:
         summation_forces = inertial_forces - vehicle_forces_ntb
         
 
+        ####################################
+        #### ~~~ DIFFERENTIAL MODEL ~~~ ####
+        # TODO: MOVE ALL THIS STUFF TO A DIFF MODEL
+        params = self.vehicle.params
+        brake_torques = self.vehicle.brake_request_to_torque(self.vehicle.state.brake_request)
+
+        # diff & motor speeds & accelerations
+        diff_case_angular_accel = sum(wheel_angular_accels[2:])/len(wheel_angular_accels[2:])
+        motor_angular_accel = diff_case_angular_accel * params.diff_radius / params.motor_radius
+        diff_angular_velocity = sum(wheel_angular_velocity[2:])/len(wheel_angular_velocity[2:])
+        motor_angular_velocity = diff_angular_velocity * params.diff_radius / params.motor_radius
+
+        # torque flow through diff & motor
+        diff_output_torques = (tire_torques[2:] - wheel_angular_accels[2:] * params.driveline_inertias[2:] - wheel_angular_velocity[2:]
+                                 * params.driveline_damping[2:] - np.array([brake_torques[1], brake_torques[1]]))
+        force_chain = (self.vehicle.state.motor_torque - motor_angular_accel * params.motor_inertia
+                         - motor_angular_velocity * params.motor_damping) / params.motor_radius
+        total_diff_torque = (force_chain * params.diff_radius * params.diff_efficiency - diff_case_angular_accel * params.diff_inertia
+                         - diff_angular_velocity * params.motor_damping)
+
+
+        diff_torque_traction_side = max(diff_output_torques)
+        diff_torque_slipping_side = min(diff_output_torques)
+
+        diff_bias_ratio = 0.7 # TODO: actually map it
+
+        rear_axle_residuals = np.zeros(2)
+        rear_axle_residuals[0] = diff_bias_ratio * total_diff_torque - diff_torque_traction_side
+        rear_axle_residuals[1] = (1 - diff_bias_ratio) * total_diff_torque - diff_torque_slipping_side
+
+        front_axle_residuals = (tire_torques[:2] - wheel_angular_accels[:2] * params.driveline_inertias[:2]
+                            - wheel_angular_velocity[:2] * params.driveline_damping[:2] - np.array([brake_torques[0], brake_torques[0]]))
+
         # log dependent states
         [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]
         self.vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
@@ -111,4 +144,4 @@ class Solver:
         self.vehicle.logger.log("vehicle_y_dot", self.vehicle.y_dot)
         [self.vehicle.logger.log(name, val) for name, val in self.vehicle.state.items()]
 
-        return np.array([*summation_forces, *summation_moments])
+        return np.array([*summation_forces, *summation_moments, *front_axle_residuals, *rear_axle_residuals])

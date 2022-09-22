@@ -78,7 +78,7 @@ def ptn_residuals(derived_state_guess:list):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    initial_guess = [0, 0] # wheel_rot_accel[2]
+    initial_guess = [-20000, -20000] # wheel_rot_accel[2]
 
     results = fsolve(ptn_residuals, initial_guess, full_output=True)
     print(results[2])

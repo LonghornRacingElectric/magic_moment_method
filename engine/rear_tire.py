@@ -61,3 +61,10 @@ class RearTire(Tire):
     @property
     def tube_geometry(self):
         return self.params.rear_tube_normals, self.params.rear_lever_arms
+
+    @property
+    def radius(self):
+        return self.params.rear_tire_radius
+
+    def get_slip_ratio(self, slip_ratios):
+        return slip_ratios[2] if self.direction_left else slip_ratios[3]

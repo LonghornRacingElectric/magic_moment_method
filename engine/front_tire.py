@@ -69,3 +69,10 @@ class FrontTire(Tire):
     @property
     def tube_geometry(self):
         return self.params.front_tube_normals, self.params.front_lever_arms
+
+    @property
+    def radius(self):
+        return self.params.front_tire_radius
+
+    def get_slip_ratio(self, slip_ratios):
+        return slip_ratios[0] if self.direction_left else slip_ratios[1]
