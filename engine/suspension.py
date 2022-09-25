@@ -87,7 +87,7 @@ class Suspension():
         self.logger.log(tire_name + "_tire_roll_inclination", roll_induced)
         self.logger.log(tire_name + "_tire_heave_inclination", heave_induced)
         self.logger.log(tire_name + "_tire_pitch_inclination", pitch_induced)
-        
+
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
           
     def __get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float,
@@ -96,11 +96,13 @@ class Suspension():
         lateral_force = tire.lateral_pacejka(inclination_angle, normal_force, slip_angle)
         tire_centric_forces = np.array([0, lateral_force, normal_force])
         
-        rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
-                            [sin(steering_slip), cos(steering_slip),0],
-                            [0,0,1]])
+        # rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
+        #                     [sin(steering_slip), cos(steering_slip),0],
+        #                     [0,0,1]])
 
-        # rotation_matrix = np.array([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+        rotation_matrix = np.array([[cos(slip_angle), -sin(slip_angle), 0],
+                                    [sin(slip_angle), cos(slip_angle), 0],
+                                    [0, 0, 1]])
         
         # Rotate tire output into intermediate frame
         vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
@@ -108,7 +110,7 @@ class Suspension():
         
         self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
 
-        print(tire_centric_forces,steering_slip)
+        # print(tire_centric_forces,steering_slip)
         return vehicle_centric_forces, vehicle_centric_moments
 
 

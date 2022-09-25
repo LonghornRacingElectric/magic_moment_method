@@ -23,15 +23,15 @@ def darren():
                 print("params: ", s_dot, body_slip, steered_angle)
                 output_dict = solver.solve(engine.State(body_slip, steered_angle, s_dot))
                 log_df = pd.concat([log_df, pd.DataFrame([output_dict])], ignore_index=True)
-    log_df.to_csv(reference_file)
-    updated_df = (log_df[['front_left_tire_tire_centric_forces_1', 'front_right_tire_tire_centric_forces_1',
-                          'rear_left_tire_tire_centric_forces_1'
-        , 'rear_right_tire_tire_centric_forces_1', 'body_slip', 'steered_angle',
-                          'front_left_tire_vehicle_centric_forces_0', 'front_right_tire_vehicle_centric_forces_0',
+
+    updated_df = (log_df[['front_left_tire_slip_angle','front_right_tire_slip_angle','steered_angle'
+                          ,'body_slip','front_left_tire_vehicle_centric_forces_0', 'front_right_tire_vehicle_centric_forces_0',
                           'rear_left_tire_vehicle_centric_forces_0',
-                          'rear_right_tire_vehicle_centric_forces_0',
-                          ]])
+                          'rear_right_tire_vehicle_centric_forces_0','front_left_tire_tire_centric_forces_1', 'front_right_tire_tire_centric_forces_1',
+                          'rear_left_tire_tire_centric_forces_1'
+        , 'rear_right_tire_tire_centric_forces_1',]])
     updated_df.to_csv(reference_file2)
+    log_df.to_csv(reference_file)
     # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
     #     print(updated_df)
 
