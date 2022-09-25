@@ -33,7 +33,7 @@ class Suspension():
 
 
             steering_toe_slip = tire.steering_induced_slip(steered_angle)
-            slip_angle = np.arctan2(tire_velocity[1], tire_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
+            slip_angle = np.arctan2(tire_velocity[1], tire_velocity[0]) + steering_toe_slip# f(steered angle, body slip, yaw rate)
             
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.__get_inclination_angle(tire_name, tire, steered_angle, roll, heave, pitch)

@@ -27,9 +27,9 @@ def darren():
     updated_df = (log_df[['front_left_tire_tire_centric_forces_1', 'front_right_tire_tire_centric_forces_1',
                           'rear_left_tire_tire_centric_forces_1'
         , 'rear_right_tire_tire_centric_forces_1', 'body_slip', 'steered_angle',
-                          'front_left_tire_vehicle_centric_forces_1', 'front_right_tire_vehicle_centric_forces_1',
-                          'rear_left_tire_vehicle_centric_forces_1',
-                          'rear_right_tire_vehicle_centric_forces_1',
+                          'front_left_tire_vehicle_centric_forces_0', 'front_right_tire_vehicle_centric_forces_0',
+                          'rear_left_tire_vehicle_centric_forces_0',
+                          'rear_right_tire_vehicle_centric_forces_0',
                           ]])
     updated_df.to_csv(reference_file2)
     # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
