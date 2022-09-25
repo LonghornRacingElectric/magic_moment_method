@@ -146,6 +146,42 @@ class EasyDriver():
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
 
+        # distribution of downforce across components
+        ClA_dist = [0.474, 0.289, 0.236]   # [front, undertray, rear]
+        CdA_dist = [0.425, 0.178, 0.396]
+        CsA_dist = [0.250, 0.000, 0.750]
+
+        # pitch, body_slip, and roll sensitivities,
+        #            Cl              Cd               Cs
+        self.p_sens	= [[[.01,   -.06],   [.07,   -.055],  [0,0]], # front [pos, neg] -> [%/deg]
+                      [[.0076, -.0457], [.0546, -.0434],  [0,0]], # undertray
+                      [[.0178, -.0245], [.0294, -.0478], [0,0]]]  # rear
+
+         #                 front               undertray           rear
+        self.bs_sens	= [[.008,  .0114, 0], [.0061,  .0089, 0], [-.0018, -.0058, 0]] # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	=     [[-.018,  0,    0], [-.0137,  0,    0], [-.005,  -.0145, 0]]
+
+         # conversion factors
+        self.in_to_m = 0.0254
+        self.rad_to_deg = 180 / np.pi
+
+        # positions of component CoPs (magnitudes, equation takes signs into account)
+        # TODO: make positions relative to intermediate frame; these lines also seem wrong in general ATM
+        # Front, Undertray and Rear [x , y , z]
+        self.CoP = np.array([[23.65 * self.in_to_m + self.cg_total_position[0],  0, 9.30 * self.in_to_m],
+                             [-43.5 * self.in_to_m + self.cg_total_position[0],  0, 7.13 * self.in_to_m],
+                             [-67.6 * self.in_to_m + self.cg_total_position[0],  0, 42.91 * self.in_to_m]])
+        
+        # gets aero coefficients for each component
+        self.ClA = [self.ClA_tot * ClA_dist[0], self.ClA_tot * ClA_dist[1],
+                    self.ClA_tot * ClA_dist[2]]
+        self.CdA = [self.CdA_tot * CdA_dist[0], self.CdA_tot * CdA_dist[1],
+                    self.CdA_tot * CdA_dist[2]]
+        self.CsA = [self.CsA_tot * CsA_dist[0], self.CsA_tot * CsA_dist[1],
+                    self.CsA_tot * CsA_dist[2]]
+
+
+
     @property
     def cg_weighted_track(self): # m
         return (self.front_track * (1 - self.cg_bias) + self.rear_track * self.cg_bias) / 2
