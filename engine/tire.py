@@ -93,6 +93,9 @@ class Tire:
         return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX**2) / Ca)
     
     # Full comstock calculations
+    def comstock(self, SR, SA, FZ, IA):
+        return np.array([self.comstock_long(SR, SA, FZ, IA), self.comstock_lat(SR, SA, FZ, IA), FZ])
+
     def comstock_lat(self, SR, SA, FZ, IA):
         SR *= 100
         FX = self.longitudinal_pacejka(FZ, SR)
