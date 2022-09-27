@@ -19,6 +19,10 @@ class RearTire(Tire):
     @property
     def lateral_coeffs(self):
         return self.params.rear_tire_coeff_Fy
+    
+    @property
+    def longitudinal_coeffs(self):
+        return self.params.rear_tire_coeff_Fx
 
     @property
     def arb_stiffness(self): # Nm / rad

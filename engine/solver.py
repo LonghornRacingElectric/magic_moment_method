@@ -48,7 +48,7 @@ class Solver:
                 if i == (guesses_allowed -1 ):
                     print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
                     #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
-                    return {}
+                    return None
                 self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
 
     @property

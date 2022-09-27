@@ -12,9 +12,9 @@ def main():
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 3
+    refinement = 21
 
-    s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
+    s_dot_sweep = [13] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     
@@ -47,7 +47,9 @@ def main():
     else:
         return_list = []
         for state in state_sweep:
-            return_list.append(solver.solve(state))
+            x = solver.solve(state)
+            if x is not None:
+                return_list.append(x)
             print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
@@ -60,7 +62,8 @@ def main():
 
 def solver_mod(state_list, return_list):
     x = solver.solve(engine.State(*state_list, [5, 5, 5, 5]))
-    return_list.append(x)
+    if x is not None:
+        return_list.append(x)
 
 if __name__ == "__main__":
     main()

@@ -2,6 +2,7 @@ from abc import abstractmethod, abstractproperty
 import math
 import numpy as np
 from scipy.optimize import fmin
+import warnings
 
 class Tire:
     def __init__(self, car_params, is_left_tire):
@@ -53,20 +54,77 @@ class Tire:
         # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
         test_condition_multiplier = 2/3
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
+    
+    warnings.filterwarnings("error")
+    def longitudinal_pacejka(self, normal_force:float, slip_ratio:float):
+        FZ = normal_force / 1000
+        SR = slip_ratio
+        
+        try:
+            [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
+            C = b0
+            D = FZ * (b1 * FZ + b2)
 
-    # def long_pacejka(self, inclination_angle, normal_force, slip_ratio):
-    #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
-    #     # C = b0;
-    #     # D = Fz*(b1*Fz+b2)
-    #     # BCD = (b3**Fz+b4*Fz)*math.exp(-b5*Fz)
-    #     # B = BCD/(C*D)
-    #     # H = b9*Fz+b10
-    #     # E = (b6**Fz+b7*Fz+b8)*(1-b13*math.sign(slip_ratio+H))
-    #     # V = b11*Fz+b12
-    #     # Bx1 = B*(slip_ratio+H)
+            BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
 
-    #     # return D*math.sin(C*math.atan(Bx1-E*(Bx1-math.atan(Bx1)))) + V
-    #     return 0
+            B = BCD / (C * D)
+
+            H = b9 * FZ + b10
+
+            E = (b6 * FZ**2 + b7 * FZ + b8) * (1 - b13 * np.sign(SR + H))
+
+            V = b11 * FZ + b12
+            Bx1 = B * (SR + H)
+
+            return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V)
+        
+        except RuntimeWarning:
+            return 1
+        
+    # Long and lat formulas from Comstock
+    def com_lat(self, SA, SR, FX, FY, Cs):
+        SR_adj = SR / 100
+        SA_adj = SA * np.pi / 180
+        return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
+
+    def com_long(self, SA, SR, FX, FY, Ca):
+        SR_adj = SR / 100
+        SA_adj = SA * np.pi / 180
+        return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX**2) / Ca)
+    
+    # Full comstock calculations
+    def comstock_lat(self, SR, SA, FZ, IA):
+        SR *= 100
+        FX = self.longitudinal_pacejka(FZ, SR)
+        FY = self.lateral_pacejka(FZ, SA, IA)
+
+        Ca = (self.longitudinal_pacejka(FZ, 1) - self.longitudinal_pacejka(FZ, 0)) * (180 / np.pi)
+        Cs = (self.lateral_pacejka(FZ, 1, 0) - self.lateral_pacejka(FZ, 0, 0)) * 100
+        
+        if abs(SR) < 5 and abs(SA) < 5:
+            return FY
+        elif abs(SA) < 5:
+            return FY
+        elif abs(SR) < 5:
+            return self.com_lat(SA, SR, FX, FY, Cs)
+        else:
+            return self.com_lat(SA, SR, FX, FY, Cs)
+    
+    def comstock_long(self, SR, SA, FZ, IA):
+        FX = self.longitudinal_pacejka(FZ, SR)
+        FY = self.lateral_pacejka(FZ, SA, IA)
+
+        Ca = (self.longitudinal_pacejka(FZ, 1) - self.longitudinal_pacejka(FZ, 0)) * (180 / np.pi)
+        Cs = (self.lateral_pacejka(FZ, 1, 0) - self.lateral_pacejka(FZ, 0, 0)) * 100
+        
+        if abs(SR) < 1 and abs(SA) < 1:
+            return FX
+        elif abs(SA) < 1:
+            return self.com_long(SA, SR, FX, FY, Ca)
+        elif abs(SR) < 1:
+            return FX
+        else:
+            return self.com_long(SA, SR, FX, FY, Ca)
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
     def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
@@ -110,6 +168,10 @@ class Tire:
 
     @abstractproperty
     def lateral_coeffs(self):
+        pass
+    
+    @abstractproperty
+    def longitudinal_coeffs(self):
         pass
 
     @abstractproperty
