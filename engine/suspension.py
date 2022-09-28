@@ -97,7 +97,9 @@ class Suspension():
     def __get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float,
                         inclination_angle:float, steering_slip:float, slip_ratio:list):
 
-        tire_centric_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
+        tire_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
+
+        tire_centric_forces = np.array([tire_forces[1], tire_forces[0], normal_force])
         
         rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
                             [sin(steering_slip), cos(steering_slip),0],
