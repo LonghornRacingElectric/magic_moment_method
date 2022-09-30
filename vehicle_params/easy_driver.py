@@ -119,10 +119,10 @@ class EasyDriver():
         
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
-        self.front_tire_coeff_Fy = [1.69, 0.0004384, 2.769, 614.3, 1496, 0.01784, 0.000432, 0.7237, 0.0001746, 0.1366,
-                        -0.1482, -0.06455, 10.45, 3.036e-05, 0.04111, 0.002054, 0.01834, -0.06673]
-        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382,
-                -0.1171, 0.04597, 3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        self.front_tire_coeff_Fy = [3.493e-01, -1.146e-03, 8.760, 7.303e+02, 1.745e+03, 1.387e-02, -2.768e-04, 1.020, 1.582e-04, 1.494e-01, 
+                        -1.595e-01, 3.286e-02, 9.153, 1.406e-05, 3.275e-02, 3.621e-03, -1.425e-02, -1.164e-02]
+        self.rear_tire_coeff_Fy = [2.667e-02, 6.558e-04, 1.269e+02, 8.243e+02, 1.682e+03, 5.359e-02, -1.441e-04,
+                        1.014, 2.195e-04, 4.031e-02, -1.645e-01, 7.128e-02, 1.925e+01, 4.833e-05, 7.174e-02, 5.665e-03, -1.739e-03, -1.065e-02]
         
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
@@ -140,8 +140,8 @@ class EasyDriver():
         ### aerodynamics params ###
         
         self.air_temperature = 27 # Celsius
-        self.ClA_tot = 2.93
-        self.CdA_tot = 1.024
+        self.ClA_tot = 4.384
+        self.CdA_tot = 1.028
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
