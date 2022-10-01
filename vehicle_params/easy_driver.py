@@ -178,7 +178,6 @@ class EasyDriver():
         self.diff_preload = 5.2
 
 
-
     @property
     def cg_weighted_track(self): # m
         return (self.front_track * (1 - self.cg_bias) + self.rear_track * self.cg_bias) / 2

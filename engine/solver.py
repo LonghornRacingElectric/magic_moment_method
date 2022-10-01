@@ -13,7 +13,7 @@ class Solver:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
             initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
-        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0.00125, 0, 0, 0, 0, 0, 1,1,1,1]
+        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0.00125, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
@@ -34,22 +34,25 @@ class Solver:
         warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
         # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
-        guesses_allowed = 5
-        for i in range(guesses_allowed):
-            results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
-            if results[2] == 1:
-                if i != 0:
-                    print("Solution converged after changing initial guess")
-                else:
-                    pass
-                    # NOTE: Solution converged on first guess!
-                return copy(self.vehicle.logger.return_log())
-            elif results[2] != 1:
-                if i == (guesses_allowed -1 ):
-                    print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
-                    #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
-                    return None
-                self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
+        try:
+            guesses_allowed = 5
+            for i in range(guesses_allowed):
+                results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
+                if results[2] == 1:
+                    if i != 0:
+                        print("Solution converged after changing initial guess")
+                    else:
+                        pass
+                        # NOTE: Solution converged on first guess!
+                    return copy(self.vehicle.logger.return_log())
+                elif results[2] != 1:
+                    if i == (guesses_allowed -1 ):
+                        print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
+                        #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
+                        return None
+                    self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
+        except:
+            print("Exception in solver")
 
     @property
     def __output_variable_names(self):

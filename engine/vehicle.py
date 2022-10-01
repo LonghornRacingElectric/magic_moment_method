@@ -110,7 +110,7 @@ class Vehicle:
         tire_forces, tire_moments, wheel_speeds, wheel_torques = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
                                                             self.state.steered_angle, roll, pitch, heave, self.state.slip_ratios)
 
-        return aero_forces + tire_forces + gravity, aero_moments + tire_moments, wheel_speeds, wheel_torques,
+        return aero_forces + tire_forces + gravity, aero_moments + tire_moments, wheel_speeds, wheel_torques
 
     def brake_request_to_torque(self, brake_request): # Brake request value from 0 to 1
         pedal_force = (self.params.max_pedal_force*brake_request)*self.params.pedal_ratio

@@ -110,14 +110,10 @@ class Tire:
         Ca = (self.longitudinal_pacejka(FZ, 1) - self.longitudinal_pacejka(FZ, 0)) * (180 / np.pi)
         Cs = (self.lateral_pacejka(FZ, 1, 0) - self.lateral_pacejka(FZ, 0, 0)) * 100
         
-        if abs(SR) < 1 and abs(SA) < 1:
-            return (FY, FX)
-        elif abs(SA) < 1:
-            return (FY, self.com_long(SA, SR, FX, FY, FZ, Ca))
-        elif abs(SR) < 1:
-            return (self.com_lat(SA, SR, FX, FY, FZ, IA, Cs), FX)
-        else:
-            return (self.com_lat(SA, SR, FX, FY, FZ, IA, Cs), self.com_long(SA, SR, FX, FY, FZ, Ca))
+        FY = FY if abs(SA) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
+        FX = FX if abs(SR) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
+
+        return np.array([FX, FY, FZ])
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
     def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
