@@ -33,6 +33,7 @@ class Tire:
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
     def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
+
         if normal_force <= 0:
             return 0
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
@@ -86,36 +87,37 @@ class Tire:
     def com_lat(self, SA, SR, FX, FY, FZ, IA, Cs):
         SR_adj = SR / 100
         SA_adj = SA * np.pi / 180
-        try:
-            return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
-        except:
-            return self.lateral_pacejka(IA, FZ, SA)
 
+        return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
+        
     def com_long(self, SA, SR, FX, FY, FZ, Ca):
         SR_adj = SR / 100
         SA_adj = SA * np.pi / 180
+        
         try:
+            if FZ == 0:
+                return 0
+            
             return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX**2) / Ca)
         except:
             return self.longitudinal_pacejka(FZ, SR)
 
     # Full comstock calculations
     def comstock(self, SR, SA, FZ, IA):
-        SR *= 100
         FX = self.longitudinal_pacejka(FZ, SR)
-        FY = self.lateral_pacejka(FZ, SA, IA)
+        FY = self.lateral_pacejka(IA, FZ, SA)
 
         Ca = (self.longitudinal_pacejka(FZ, 1) - self.longitudinal_pacejka(FZ, 0)) * (180 / np.pi)
         Cs = (self.lateral_pacejka(FZ, 1, 0) - self.lateral_pacejka(FZ, 0, 0)) * 100
         
-        if abs(SR) < 5 and abs(SA) < 5:
+        if abs(SR) < 1 and abs(SA) < 1:
             return (FY, FX)
-        elif abs(SA) < 5:
+        elif abs(SA) < 1:
             return (FY, self.com_long(SA, SR, FX, FY, FZ, Ca))
-        elif abs(SR) < 5:
-            return (self.com_lat(SA, SR, FX, FY, IA, Cs), FX)
+        elif abs(SR) < 1:
+            return (self.com_lat(SA, SR, FX, FY, FZ, IA, Cs), FX)
         else:
-            return (self.com_lat(SA, SR, FX, FY, IA, Cs), self.com_long(SA, SR, FX, FY, FZ, Ca))
+            return (self.com_lat(SA, SR, FX, FY, FZ, IA, Cs), self.com_long(SA, SR, FX, FY, FZ, Ca))
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
     def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
