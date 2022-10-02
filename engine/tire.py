@@ -87,8 +87,8 @@ class Tire:
     def com_lat(self, SA, SR, FX, FY, FZ, IA, Cs):
         SR_adj = SR / 100
         SA_adj = SA * np.pi / 180
-
-        return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
+        calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
+        return abs(calc) * -1 if SA < 0 else abs(calc)
         
     def com_long(self, SA, SR, FX, FY, FZ, Ca):
         SR_adj = SR / 100
@@ -97,8 +97,8 @@ class Tire:
         try:
             if FZ == 0:
                 return 0
-            
-            return ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX**2) / Ca)
+            calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX**2) / Ca)
+            return abs(calc) * -1 if SR < 0 else abs(calc)
         except:
             return self.longitudinal_pacejka(FZ, SR)
 
@@ -111,7 +111,7 @@ class Tire:
         Cs = (self.lateral_pacejka(FZ, 1, 0) - self.lateral_pacejka(FZ, 0, 0)) * 100
         
         FY = FY if abs(SA) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
-        FX = FX if abs(SR) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
+        FX = FX if abs(SR) < 1 else self.com_long(SA, SR, FX, FY, FZ, Ca)
 
         return np.array([FX, FY, FZ])
 

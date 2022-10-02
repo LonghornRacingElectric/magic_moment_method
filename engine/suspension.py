@@ -56,6 +56,7 @@ class Suspension():
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
             self.logger.log(tire_name + "_tire_velocity", tire_IMF_velocity)
             self.logger.log(tire_name + "_tire_slip_angle", slip_angle)
+            self.logger.log(tire_name + "_tire_torque", tire_torque)
             self.logger.log(tire_name + "_tire_vehicle_centric_forces", tire_forces)
             self.logger.log(tire_name + "_tire_vehicle_centric_moments", tire_moments)
             grip_force_loss, grip_percent_loss = tire.lateral_loss(normal_force, slip_angle, inclination_angle)
@@ -68,7 +69,7 @@ class Suspension():
             self.logger.log(tire_name + "_RLCA_force", tube_forces[3])
             self.logger.log(tire_name + "_pullrod_force", tube_forces[4])
             self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
-            
+
         return veh_forces, veh_moments, wheel_speeds, wheel_torques
 
           
@@ -99,7 +100,6 @@ class Suspension():
                         inclination_angle:float, steering_slip:float, slip_ratio:list):
 
         tire_centric_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
-        
         tire_torque = tire_centric_forces[1] * tire.radius
         
         rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
@@ -112,7 +112,7 @@ class Suspension():
         
         self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
 
-        return vehicle_centric_forces, vehicle_centric_moments, np.array([100, 100, 100, 100])
+        return vehicle_centric_forces, vehicle_centric_moments, tire_torque
 
 
     def __get_tire_normal_load(self, tire_name:str, tire:engine.Tire, heave:float, pitch:float, roll:float):

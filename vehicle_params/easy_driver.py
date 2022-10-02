@@ -158,8 +158,8 @@ class EasyDriver():
 
         self.motor_radius = 1
         self.diff_radius = 4
-        self.front_tire_radius = 8
-        self.rear_tire_radius = 9
+        self.front_tire_radius = 8 * .0254
+        self.rear_tire_radius = 9 * .0254
         self.motor_inertia = 0.1
         self.diff_inertia = 0.1
         self.motor_damping = 0.1
