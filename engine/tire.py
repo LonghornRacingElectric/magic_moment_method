@@ -53,7 +53,7 @@ class Tire:
         Bx1 = B * (slip_degrees + H)
         
         # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
-        test_condition_multiplier = 0.6
+        test_condition_multiplier = 0.47
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
     
     warnings.filterwarnings("error")
@@ -104,6 +104,8 @@ class Tire:
 
     # Full comstock calculations
     def comstock(self, SR, SA, FZ, IA):
+        if FZ < 0:
+            return np.array([0, 0, 0])
         FX = self.longitudinal_pacejka(FZ, SR)
         FY = self.lateral_pacejka(IA, FZ, SA)
 

@@ -39,7 +39,7 @@ class Solver:
             results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
             if results[2] == 1:
                 if i != 0:
-                    print("Solution converged after changing initial guess")
+                    pass #print("Solution converged after changing initial guess")
                 else:
                     pass
                     # NOTE: Solution converged on first guess!
