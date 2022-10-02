@@ -171,11 +171,12 @@ class EasyDriver():
         self.pedal_ratio = 3
         self.master_cylinder_area = 0.2
         self.brake_bias_ratio = 0.6 # Percent of front
-        self.rotor_radius = [0.3, 0.2]
+        self.rotor_radius = [0.3 * 7, 0.2 * 9]
         self.calipers_area = [0.2, 0.2]
         self.brake_pad_mu = [0.55, 0.55]
         self.diff_fl = 0.607
         self.diff_preload = 5.2
+        self.max_torque = 230 # Nm
 
 
     @property

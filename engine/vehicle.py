@@ -98,7 +98,7 @@ class Vehicle:
         return self.state.s_dot * np.sin(self.state.body_slip)
 
 
-    def get_loads(self, roll:float, pitch:float, heave:float, yaw_rate:float):
+    def get_loads(self, roll:float, pitch:float, heave:float, yaw_rate:float, slip_ratios:list):
         # gravity load
         gravity = np.array([0, 0, -self.params.mass * self.params.gravity])
         
@@ -108,18 +108,23 @@ class Vehicle:
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
         tire_forces, tire_moments, wheel_speeds, wheel_torques = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
-                                                            self.state.steered_angle, roll, pitch, heave, self.state.slip_ratios)
+                                                            self.state.steered_angle, roll, pitch, heave, slip_ratios)
 
         return aero_forces + tire_forces + gravity, aero_moments + tire_moments, wheel_speeds, wheel_torques
 
-    def brake_request_to_torque(self, brake_request): # Brake request value from 0 to 1
-        pedal_force = (self.params.max_pedal_force*brake_request)*self.params.pedal_ratio
+    def brake_request_to_torque(self, torque_request): # Brake request value from 0 to 1
+        if torque_request > 0:
+            return np.zeros(4)
+
+        pedal_force = (self.params.max_pedal_force*torque_request)*self.params.pedal_ratio
         line_pressure = np.array([(pedal_force/self.params.master_cylinder_area)*self.params.brake_bias_ratio,
                              (pedal_force/self.params.master_cylinder_area)*(1-self.params.brake_bias_ratio)])
 
         torques = line_pressure*self.params.calipers_area*self.params.brake_pad_mu*self.params.rotor_radius
 
-        return np.array([*torques])
+        return np.array([torques[0], torques[0], torques[1], torques[1]])
 
     def torque_bias_ratio(self, torque_on_diff):
+        if torque_on_diff == 0:
+            return 0.5
         return self.params.diff_fl + self.params.diff_preload/torque_on_diff

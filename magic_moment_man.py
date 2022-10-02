@@ -15,12 +15,12 @@ def main():
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 21
+    refinement = 5
 
     s_dot_sweep = [12] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
-    slip_ratio_sweep = np.array([np.array([x, x, x, x]) for x in [12, 10, 8, 6, 4, 2, 0, -2, -4, -6, -8, -10, -12]])
+    torque_requests = np.linspace(-1, 1, refinement)
 
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
@@ -30,7 +30,7 @@ def main():
     if multiprocessing_flag:
         p = multiprocessing.Pool(multiprocessing.cpu_count())
 
-        states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, slip_ratio_sweep)
+        states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_requests)
         print(states_product)
         return_list = list(tqdm(p.imap(why, states_product)))
         p.close()
@@ -40,8 +40,8 @@ def main():
         for s_dot in s_dot_sweep:
             for body_slip in body_slip_sweep:
                 for steered_angle in steered_angle_sweep:
-                    for slip_ratio in slip_ratio_sweep:
-                        state_sweep.append(engine.State(body_slip, steered_angle, s_dot, slip_ratio))
+                    for torque_req in torque_requests:
+                        state_sweep.append(engine.State(body_slip, steered_angle, s_dot, torque_req))
         for state in tqdm(state_sweep):
             return_list.append(solver.solve(state))
 
