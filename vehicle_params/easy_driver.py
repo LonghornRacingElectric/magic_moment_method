@@ -139,17 +139,18 @@ class EasyDriver():
         
         ### aerodynamics params ###
         
-        self.air_temperature = 27 # Celsius
+        self.air_temperature = 33.8889 # Celsius
         self.ClA_tot = 4.384
         self.CdA_tot = 1.028
-        self.CsA_tot = 33.91
+        self.CsA_tot = 5.673
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+        self.CsA0 = 8.43
 
         # distribution of downforce across components
         ClA_dist = [0.474, 0.289, 0.236]   # [front, undertray, rear]
         CdA_dist = [0.425, 0.178, 0.396]
-        CsA_dist = [0.250, 0.000, 0.750]
+        CsA_dist = [0.666, 0.000, 0.333]
 
         # pitch, body_slip, and roll sensitivities,
         #            Cl              Cd               Cs

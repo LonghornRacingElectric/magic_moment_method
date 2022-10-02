@@ -51,6 +51,8 @@ class Aerodynamics:
         # account for drag from rest of car
         drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
+        sideforce_no_aero = 0.5 * self.__air_density * self.vehicle_params.CsA0 * (x_dot * np.tan(body_slip)) ** 2 * s_dir 
+        forces[1] += sideforce_no_aero
         
         self.logger.log("aero_forces", forces)
         self.logger.log("aero_moments", moments)
