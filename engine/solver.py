@@ -39,7 +39,7 @@ class Solver:
             results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
             if results[2] == 1:
                 if i != 0:
-                    pass #print("Solution converged after changing initial guess")
+                    print("Solution converged after changing initial guess")
                 else:
                     pass
                     # NOTE: Solution converged on first guess!
@@ -47,7 +47,7 @@ class Solver:
                 return copy(self.vehicle.logger.return_log())
             elif results[2] != 1:
                 if i == (guesses_allowed -1 ):
-                    #print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
+                    print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
                     #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
                     return None
                 self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
@@ -118,10 +118,12 @@ class Solver:
         total_diff_torque = force_chain * params.diff_radius * params.diff_efficiency
 
         bias = self.vehicle.torque_bias_ratio(total_diff_torque)
-        diff_bias_matrix = [bias, 1 - bias] if diff_output_torques.argmax() == 0 else [1 - bias, bias]
+        diff_bias_matrix = [bias, 1 - bias] if not self.vehicle.state.is_left_bias else [1 - bias, bias]
 
         rear_axle_residuals = diff_bias_matrix * np.array([total_diff_torque, total_diff_torque]) - diff_output_torques
         front_axle_residuals = tire_torques[:2] - brake_torques[:2]
+
+        print(tire_torques)
 
         # log dependent states
         [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]

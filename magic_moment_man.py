@@ -21,6 +21,7 @@ def main():
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     torque_requests = np.linspace(-1, 1, refinement)
+    is_left_bias = np.array([True, False])
 
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
@@ -30,7 +31,7 @@ def main():
     if multiprocessing_flag:
         p = multiprocessing.Pool(multiprocessing.cpu_count())
 
-        states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_requests)
+        states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_requests, is_left_bias)
         print(states_product)
         return_list = list(tqdm(p.imap(why, states_product)))
         p.close()
@@ -41,7 +42,8 @@ def main():
             for body_slip in body_slip_sweep:
                 for steered_angle in steered_angle_sweep:
                     for torque_req in torque_requests:
-                        state_sweep.append(engine.State(body_slip, steered_angle, s_dot, torque_req))
+                        for bias in is_left_bias:
+                            state_sweep.append(engine.State(body_slip, steered_angle, s_dot, torque_req, bias))
         for state in tqdm(state_sweep):
             return_list.append(solver.solve(state))
 
