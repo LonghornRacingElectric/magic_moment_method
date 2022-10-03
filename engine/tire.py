@@ -113,7 +113,7 @@ class Tire:
         if Ca == 0 or Cs == 0:
             return np.array([0, 0, 0])
 
-        FY = FY if abs(SR) < 3 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
+        FY = FY if abs(SR) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
         FX = self.com_long(SA, SR, FX, FY, FZ, Ca)
 
         return np.array([FX, FY, FZ])

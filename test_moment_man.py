@@ -67,25 +67,26 @@ fz = 500
 output = [x.suspension._Suspension__tires.front_left.comstock(slip, -7 /180 *np.pi, fz, 0) for slip in slip_ratios] # 
 plt.plot(slip_ratios, output)
 plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.longitudinal_pacejka(fz, slip) for slip in slip_ratios])
-plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.lateral_pacejka(0, fz, slip/100) for slip in slip_ratios])
+plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.lateral_pacejka(0, fz, slip/180*np.pi) for slip in slip_ratios])
 plt.grid()
 plt.title("SA = -7 degrees, SR = -10 -> 10, Front Tire, FZ = 500 N")
 plt.legend(["FX_com", "FY_com", "FZ_com", "pure_long", "pure_lateral"])
 plt.show()
 print(x.suspension._Suspension__tires.front_left.comstock(-2.1, -5 * np.pi / 180, 500, 0))
+print(x.suspension._Suspension__tires.front_left.lateral_pacejka(0, fz, -7 /180 *np.pi))
 
 
 
-x = engine.Vehicle(vehicle_params.EasyDriver())
+# x = engine.Vehicle(vehicle_params.EasyDriver())
 
-slip_ratios = np.linspace(-15, 15, 10000)
-fz = 500
-output = [x.suspension._Suspension__tires.front_left.comstock(5, slip/100, fz, 0) for slip in slip_ratios] # 
-plt.plot(slip_ratios, output)
-plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.longitudinal_pacejka(fz, slip) for slip in slip_ratios])
-plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.lateral_pacejka(0, fz, slip/100) for slip in slip_ratios])
-plt.grid()
-plt.title("SA = -7 degrees, SR = -10 -> 10, Front Tire, FZ = 500 N")
-plt.legend(["FX_com", "FY_com", "FZ_com", "pure_long", "pure_lateral"])
-plt.show()
-print(x.suspension._Suspension__tires.front_left.comstock(-2.1, -5 * np.pi / 180, 500, 0))
+# slip_ratios = np.linspace(-15, 15, 10000)
+# fz = 500
+# output = [x.suspension._Suspension__tires.front_left.comstock(5, slip/100, fz, 0) for slip in slip_ratios] # 
+# plt.plot(slip_ratios, output)
+# plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.longitudinal_pacejka(fz, slip) for slip in slip_ratios])
+# plt.plot(slip_ratios, [x.suspension._Suspension__tires.front_left.lateral_pacejka(0, fz, slip/100) for slip in slip_ratios])
+# plt.grid()
+# plt.title("SA = -7 degrees, SR = -10 -> 10, Front Tire, FZ = 500 N")
+# plt.legend(["FX_com", "FY_com", "FZ_com", "pure_long", "pure_lateral"])
+# plt.show()
+# print(x.suspension._Suspension__tires.front_left.comstock(-2.1, -5 * np.pi / 180, 500, 0))
