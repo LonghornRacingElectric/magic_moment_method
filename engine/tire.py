@@ -33,9 +33,9 @@ class Tire:
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
     def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
-
         if normal_force <= 0:
             return 0
+        #normal_force *=-1
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
         multiplier =  -1 if self.direction_left else 1
         slip_degrees = slip_angle * 180 / math.pi * multiplier # degrees
@@ -58,9 +58,9 @@ class Tire:
     
     warnings.filterwarnings("error")
     def longitudinal_pacejka(self, normal_force:float, slip_ratio:float):
+
         FZ = normal_force / 1000
         SR = slip_ratio
-        
         try:
             [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
             C = b0
@@ -86,18 +86,16 @@ class Tire:
     # Long and lat formulas from Comstock
     def com_lat(self, SA, SR, FX, FY, FZ, IA, Cs):
         SR_adj = SR / 100
-        SA_adj = SA * np.pi / 180
-        calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
+        calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
         return abs(calc) * -1 if SA < 0 else abs(calc)
         
     def com_long(self, SA, SR, FX, FY, FZ, Ca):
         SR_adj = SR / 100
-        SA_adj = SA * np.pi / 180
         
         try:
             if FZ == 0:
                 return 0
-            calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX**2) / Ca)
+            calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA))**2 * FX**2) / Ca)
             return abs(calc) * -1 if SR < 0 else abs(calc)
         except:
             return self.longitudinal_pacejka(FZ, SR)
@@ -109,11 +107,14 @@ class Tire:
         FX = self.longitudinal_pacejka(FZ, SR)
         FY = self.lateral_pacejka(IA, FZ, SA)
 
-        Ca = (self.longitudinal_pacejka(FZ, 1) - self.longitudinal_pacejka(FZ, 0)) * (180 / np.pi)
-        Cs = (self.lateral_pacejka(FZ, 1, 0) - self.lateral_pacejka(FZ, 0, 0)) * 100
-        
-        FY = FY if abs(SA) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
-        FX = FX if abs(SR) < 1 else self.com_long(SA, SR, FX, FY, FZ, Ca)
+        Ca = (self.longitudinal_pacejka(FZ, 3) - self.longitudinal_pacejka(FZ, -3)) * (180 / np.pi)
+        Cs = (self.lateral_pacejka(IA, FZ, 3) - self.lateral_pacejka(IA, FZ, -3)) * 100
+
+        if Ca == 0 or Cs == 0:
+            return np.array([0, 0, 0])
+
+        FY = FY if abs(SR) < 0.2 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
+        FX = self.com_long(SA, SR, FX, FY, FZ, Ca)
 
         return np.array([FX, FY, FZ])
 

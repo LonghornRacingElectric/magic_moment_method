@@ -17,10 +17,10 @@ def main():
     peak_slip_angle = 18 * np.pi / 180 # rad
     refinement = 5
 
-    s_dot_sweep = [12] # velocity sweep in path tangential direction (total velocity)
+    s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
-    torque_requests = np.linspace(-1, 1, refinement)
+    torque_requests = np.linspace(-1, 1, 10)
     is_left_bias = np.array([True, False])
 
 
