@@ -9,7 +9,7 @@ Coordinate Systems:
 """
 
 class Vehicle:
-    def __init__(self, params:vehicle_params.BaseVehicle, state:engine.State = None):
+    def __init__(self, params, state:engine.State = None):
         """_summary_
 
         Args:
@@ -122,7 +122,7 @@ class Vehicle:
 
         torques = line_pressure*self.params.calipers_area*self.params.brake_pad_mu*self.params.rotor_radius
 
-        return np.array([torques[0], torques[0], torques[1], torques[1]]) * 1.5
+        return np.array([torques[0], torques[0], torques[1], torques[1]])
 
     def torque_bias_ratio(self, torque_on_diff):
         if torque_on_diff == 0:

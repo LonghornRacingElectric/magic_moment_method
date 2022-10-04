@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class UnitTestCar:
+class Concept2023:
     def __init__(self):
         #super().__init__()
 

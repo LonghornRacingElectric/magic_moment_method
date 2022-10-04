@@ -1,9 +1,8 @@
 import math
 import numpy as np
-from vehicle_params import BaseVehicle
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class EasyDriver():
+class EasyDriver:
     def __init__(self):
         #super().__init__()
 
@@ -166,7 +165,7 @@ class EasyDriver():
         self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1])
         self.driveline_damping = np.array([0.1, 0.1, 0.1, 0.1])
         self.diff_efficiency = 1
-        self.max_pedal_force = 100
+        self.max_pedal_force = 150
         self.pedal_ratio = 3
         self.master_cylinder_area = 0.2
         self.brake_bias_ratio = 0.6 # Percent of front

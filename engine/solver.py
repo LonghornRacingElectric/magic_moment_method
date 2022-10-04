@@ -6,25 +6,23 @@ import engine
 import vehicle_params
 
 class Solver:
-    def __init__(self, vehicle_parameters:vehicle_params.BaseVehicle, initial_guess:dict = None):
+    def __init__(self, vehicle_parameters):
         """_summary_
 
         Args:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
-            initial_guess (dict, optional): dictionary of 6 solver initial dependent parameter guesses. Defaults to None.
         """
-        self.__initial_guess = [initial_guess[x] for x in self.__output_variable_names] if initial_guess else [0.00125, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.vehicle = engine.Vehicle(vehicle_parameters)
 
 
-    def solve(self, input_state:engine.State):
+    def solve(self, input_state:engine.State, initial_guess:list = [0.00125, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
         """
         Non-linear solve for unique output variable set to match the prescribed states, with an initial guess of dependent states
         Converges on dependent vehicle states by iterating dependent parameter guesses
-
         Args:
             input_state (engine.State): the independent vehicle states
-
+            initial_guess (list, optional): list of 6 solver initial dependent parameter guesses - 
+                "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch". Defaults to 0s.
         Returns:
             dict: data on dependent state variables
         """
@@ -34,32 +32,30 @@ class Solver:
         warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
         # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
-        guesses_allowed = 5
+        guesses_allowed = 1
         for i in range(guesses_allowed):
             #try:
-            results = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
+            results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
             #except:
+             #   print("Error occurred - investigate this!")
             #    return None
             if results[2] == 1:
-                if i != 0:
-                    #print("Solution converged after changing initial guess")
-                    pass
-                else:
-                    pass
-                    # NOTE: Solution converged on first guess!
-                #print("Solution converged!")
+                # if i != 0:
+                #     print("Solution converged after changing initial guess")
+                # else:
+                #     print("Solution converged on first guess!")
                 return copy(self.vehicle.logger.return_log())
             elif results[2] != 1:
                 if i == (guesses_allowed -1 ):
                     #print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
                     #print(results[1]["fvec"],"\n") # for debugging why the solution didnt converge
                     return None
-                self.__initial_guess[self.__output_variable_names.index("heave")] += 0.00125
+                initial_guess[self.__output_variable_names.index("heave")] += 0.00125
 
     @property
     def __output_variable_names(self):
         return ["heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch", 
-                "wheel_speed_1", "wheel_speed_2", "wheel_speed_3", "wheel_speed_4"]
+                "front_left_slip_ratio", "front_right_slip_ratio", "rear_left_slip_ratio", "rear_right_slip_ratio"]
 
     def __DOF6_motion_residuals(self, x:list):
         """
@@ -74,6 +70,7 @@ class Solver:
         """
         [heave, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch], slip_ratios = x[:6], x[6:]
 
+        # cap the slip ratios at -100% and 100%
         wheel_slip_ratios = np.array([])
         for slip in slip_ratios:
             if slip < -1:
@@ -119,20 +116,11 @@ class Solver:
         # TODO: MOVE ALL THIS STUFF TO A DIFF MODEL
         params = self.vehicle.params
         brake_torques = self.vehicle.brake_request_to_torque(self.vehicle.state.torque_request)
-        #print(brake_torques)
-
-        # # diff & motor speeds & accelerations
         diff_angular_velocity = sum(wheel_angular_velocity[2:])/len(wheel_angular_velocity[2:])
         motor_angular_velocity = diff_angular_velocity * params.diff_radius / params.motor_radius
-        self.vehicle.logger.log("motor_angular_velocity", motor_angular_velocity)
-
-        # if self.vehicle.state.torque_request < 0 and wheel_slip_ratios.any(-1):
-        #     for index, slip_ratio in enumerate(wheel_slip_ratios):
-        #         if slip_ratio == -1:
-        #             brake_torques[index] = tire_torques[index]
 
 
-        # # torque flow through diff & motor
+        # torque flow through diff & motor
         diff_output_torques = tire_torques[2:] - brake_torques[2:]
         motor_torque = 0 if self.vehicle.state.torque_request < 0 else self.vehicle.state.torque_request * self.vehicle.params.max_torque
         force_chain = motor_torque / params.motor_radius
@@ -144,8 +132,14 @@ class Solver:
         rear_axle_residuals = diff_bias_matrix * np.array([total_diff_torque, total_diff_torque]) - diff_output_torques
         front_axle_residuals = tire_torques[:2] - brake_torques[:2]
 
+        if self.vehicle.state.torque_request == 0:
+            rear_axle_residuals, front_axle_residuals = np.array([0,0]), np.array([0,0])
+
+        ####################################
         # log dependent states
         [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]
+        self.vehicle.logger.log("motor_angular_velocity", motor_angular_velocity)
+        self.vehicle.logger.log("motor_torque", motor_angular_velocity)
         self.vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
         self.vehicle.logger.log("vehicle_kinetic_moment", kinetic_moments)
         self.vehicle.logger.log("vehicle_inertial_forces", inertial_forces)

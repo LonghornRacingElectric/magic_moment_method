@@ -20,56 +20,23 @@ def main():
     s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
-    torque_request = np.linspace(-.85, 1, refinement)
+    torque_request = np.linspace(-1, 1, refinement)
     is_left_bias = [True, False]
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
-    # NOTE: Right now this actually makes it slower on most computers, cloud computing time??
-    multiprocessing_flag = True
     t1 = perf_counter()
-    if multiprocessing_flag:
-        p = multiprocessing.Pool(multiprocessing.cpu_count())
-
-        states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
-        print(states_product)
-        return_list = list(tqdm(p.imap(why, states_product)))
-        p.close()
-    else:
-        return_list = []
-        state_sweep = []
-        for s_dot in s_dot_sweep:
-            for body_slip in body_slip_sweep:
-                for steered_angle in steered_angle_sweep:
-                    for request in torque_request:
-                        for bias in is_left_bias:
-                            state_sweep.append(engine.State(body_slip, steered_angle, s_dot, request, bias))
-        for state in tqdm(state_sweep):
-            return_list.append(solver.solve(state))
-
-            # print(f"{int(len(return_list) / len(state_sweep) * 100)}% complete")
-
-        #     bar.update(return_list, state_sweep, solver, state)
-        #bar.close()
-        t2 = perf_counter()
-        print("completed in {} seconds".format(t2 - t1))
-
-    temp_df = pd.DataFrame()
-    for x in return_list:
-        temp_df = pd.concat([temp_df, pd.DataFrame([x])], ignore_index=True)
-
-    #braking_df = temp_df[(abs(temp_df["front_left_tire_torque"] - temp_df["front_right_tire_torque"]) < 30) & (abs(temp_df["rear_left_tire_torque"] - temp_df["rear_right_tire_torque"]) < 30)]
-    #acceleration_df = temp_df[(temp_df["slip_ratios_0"] == 0) & (temp_df["slip_ratios_1"] == 0)]
-    #print(len(acceleration_df))
+    p = multiprocessing.Pool(multiprocessing.cpu_count())
+    states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
+    return_list = tqdm(p.imap(state_solver, states_product))
+    p.close()
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
-    #log_df = pd.concat(braking_df, acceleration_df)
+    log_df = pd.DataFrame.from_records(filter(None, return_list))
+    log_df.to_csv("analysis/MMM.csv")
+    print(f"Sweep completed in {int(perf_counter() - t1)} seconds, exported to CSV")
 
-    temp_df.to_csv("analysis/MMM.csv")
-    print("\nExport successful to CSV, MMM complete!")
-
-def why(s):
-    return solver.solve(engine.State(*s))
-
+def state_solver(state_inputs):
+    return solver.solve(engine.State(*state_inputs))
 
 if __name__ == "__main__":
     main()

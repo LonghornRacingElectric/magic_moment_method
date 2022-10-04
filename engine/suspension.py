@@ -13,9 +13,9 @@ Coordinate Systems:
 
 class Suspension():
     """ Handles suspension vehicle forces """
-    def __init__(self, params:vehicle_params.BaseVehicle, logger:engine.Logger):
+    def __init__(self, params, logger:engine.Logger):
         self.logger = logger
-        self.params:vehicle_params.BaseVehicle = params
+        self.params = params
         self.__tires = engine.Tires(params)
 
 

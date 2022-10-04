@@ -15,10 +15,9 @@ for index, tire in enumerate(tires):
     axs_i = axs[int(index/2)][index%2]
     slip_ratios = np.linspace(-1, 1, 100)
     slip_angle = result[tire + "_tire_slip_angle"]
-    slip_ratio = result["wheel_speed_" + str(index + 1)]
+    slip_ratio = result[tire + "_slip_ratio"]
     normal_force = result[tire + "_tire_tire_centric_forces_2"]
     long_force = result[tire + "_tire_tire_centric_forces_0"]
-    print(long_force)
     lat_force = result[tire + "_tire_tire_centric_forces_1"]
     output = [solver.vehicle.suspension._Suspension__tires.rear_left.comstock(slip, -slip_angle, normal_force, 0) for slip in slip_ratios] # 
     #output2 = [solver.vehicle.suspension._Suspension__tires.front_left.comstock(10, slip/100, normal_force, 0) for slip in slip_ratios] # 
@@ -32,6 +31,3 @@ for index, tire in enumerate(tires):
     axs_i.legend(["FX_com", "FY_com", "actual_FZ", "pure_long", "pure_lateral", "actual_SR", "actual_SA"])
     axs_i.set_title(tire)
 plt.show()
-
-#print(x["tire_torques_0"], x["tire_torques_1"], x["tire_torques_2"], x["tire_torques_3"])
-print(result["wheel_speed_1"], result["wheel_speed_2"], result["wheel_speed_3"], result["wheel_speed_4"])
