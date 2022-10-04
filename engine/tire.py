@@ -33,9 +33,6 @@ class Tire:
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
     def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
-        if normal_force <= 0:
-            return 0
-        #normal_force *=-1
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
         multiplier =  -1 if self.direction_left else 1
         slip_degrees = slip_angle * 180 / math.pi * multiplier # degrees
@@ -44,6 +41,8 @@ class Tire:
         [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17] = self.lateral_coeffs
         C = a0
         D = normal_force * (a1 * normal_force + a2) * (1 - a15 * inclination_degrees ** 2)
+        if D == 0:
+            return 0
         BCD = a3 * math.sin(math.atan(normal_force / a4) * 2) * (1 - a5 * abs(inclination_degrees))
         B = BCD / (C * D)
 
@@ -53,69 +52,57 @@ class Tire:
         Bx1 = B * (slip_degrees + H)
         
         # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
-        test_condition_multiplier = 0.47
+        test_condition_multiplier = 0.55
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
     
     warnings.filterwarnings("error")
-    def longitudinal_pacejka(self, normal_force:float, slip_ratio:float):
-
+    def longitudinal_pacejka(self, normal_force:float, SR:float):
+        SR = SR * 100
         FZ = normal_force / 1000
-        SR = slip_ratio
+        [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
+        C = b0
+        D = FZ * (b1 * FZ + b2)
         try:
-            [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
-            C = b0
-            D = FZ * (b1 * FZ + b2)
-
             BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
+        except:
+            return 0
 
-            B = BCD / (C * D)
+        B = BCD / (C * D)
 
-            H = b9 * FZ + b10
+        H = b9 * FZ + b10
 
-            E = (b6 * FZ**2 + b7 * FZ + b8) * (1 - b13 * np.sign(SR + H))
+        E = (b6 * FZ**2 + b7 * FZ + b8) * (1 - b13 * np.sign(SR + H))
 
-            V = b11 * FZ + b12
-            Bx1 = B * (SR + H)
-            
-            test_condition_multiplier = 0.47
-            return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        V = b11 * FZ + b12
+        Bx1 = B * (SR + H)
         
-        except RuntimeWarning:
-            return 1
+        test_condition_multiplier = 0.55
+        return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+
         
     # Long and lat formulas from Comstock
     def com_lat(self, SA, SR, FX, FY, FZ, IA, Cs):
-        SR_adj = SR / 100
-        calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
+        calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
         return abs(calc) * -1 if SA < 0 else abs(calc)
         
     def com_long(self, SA, SR, FX, FY, FZ, Ca):
-        SR_adj = SR / 100
-        
-        #try:
-        if FZ == 0:
+        try:
+            calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR**2 * Ca**2 + (1 - SR)**2 * (np.cos(SA))**2 * FX**2) / Ca)
+            return abs(calc) * -1 if SR < 0 else abs(calc)
+        except:
             return 0
-        calc = ((FX * FY) / np.sqrt(SR_adj**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA))**2 * FX**2) / Ca)
-        return abs(calc) * -1 if SR < 0 else abs(calc)
-        #except:
-        #    return self.longitudinal_pacejka(FZ, SR)
 
     # Full comstock calculations
     def comstock(self, SR, SA, FZ, IA):
-        if FZ < 0:
+        if FZ <= 0.0:
             return np.array([0, 0, 0])
         FX = self.longitudinal_pacejka(FZ, SR)
         FY = self.lateral_pacejka(IA, FZ, SA)
 
-        Ca = (self.longitudinal_pacejka(FZ, 0.5) - self.longitudinal_pacejka(FZ, -0.5)) * 100
-        Cs = (self.lateral_pacejka(IA, FZ, 0.5 *np.pi/180) - self.lateral_pacejka(IA, FZ, -0.5*np.pi/180)) * (180 / np.pi)
-
-        if Ca == 0 or Cs == 0:
-            return np.array([0, 0, 0])
-
-        FY = FY if abs(SR) < 1 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs)
-        FX = self.com_long(SA, SR, FX, FY, FZ, Ca)
-
+        Ca = (self.longitudinal_pacejka(FZ, 0.005) - self.longitudinal_pacejka(FZ, -0.005)) / (.01)
+        Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
+        FY = FY if abs(SA) < 0.001 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs) 
+        FX = FX if abs(SA) < 0.001 else self.com_long(SA, SR, FX, FY, FZ, Ca)
         return np.array([FX, FY, FZ])
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)

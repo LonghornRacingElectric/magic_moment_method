@@ -100,7 +100,7 @@ class Suspension():
                         inclination_angle:float, steering_slip:float, slip_ratio:list):
 
         tire_centric_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
-        tire_torque = tire_centric_forces[1] * tire.radius
+        tire_torque = tire_centric_forces[0] * tire.radius
         
         rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
                             [sin(steering_slip), cos(steering_slip),0],
@@ -109,7 +109,8 @@ class Suspension():
         # Rotate tire output into intermediate frame
         vehicle_centric_forces = np.dot(rotation_matrix, tire_centric_forces) 
         vehicle_centric_moments = np.cross(vehicle_centric_forces, tire.position)
-        
+
+        self.logger.log(tire_name + "_tire_torque", tire_torque)
         self.logger.log(tire_name + "_tire_tire_centric_forces", tire_centric_forces)
 
         return vehicle_centric_forces, vehicle_centric_moments, tire_torque
@@ -130,7 +131,7 @@ class Suspension():
         """        
         specific_residual_func = lambda x: self.__find_spring_displacements(x, tire_name, tire, heave, pitch, roll)
         tire_compression, wheel_displacement = fsolve(specific_residual_func, [0.006, 0.001])
-
+        tire_compression = 0 if tire_compression < 0 else tire_compression
         normal_force = tire.tire_stiffness_func(tire_compression) * tire_compression
         normal_force = 0 if normal_force < 0 else normal_force
         

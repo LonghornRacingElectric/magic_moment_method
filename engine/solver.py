@@ -36,7 +36,10 @@ class Solver:
         # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
         guesses_allowed = 5
         for i in range(guesses_allowed):
-            results  = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
+            #try:
+            results = fsolve(self.__DOF6_motion_residuals, self.__initial_guess, full_output = True)
+            #except:
+            #    return None
             if results[2] == 1:
                 if i != 0:
                     #print("Solution converged after changing initial guess")
@@ -70,15 +73,15 @@ class Solver:
             list: 10 output residuals - summation of forces in x/y/z, moments about x/y/z, and torques about axles 1/2/3/4
         """
         [heave, x_double_dot, y_double_dot, yaw_acceleration, roll, pitch], slip_ratios = x[:6], x[6:]
-        wheel_slip_ratios = []
-        for slip_ratio in slip_ratios:
-            if slip_ratio > 100:
-                wheel_slip_ratios.append(100)
-            elif slip_ratio < -100:
-                wheel_slip_ratios.append(-100)
-            else:
-                wheel_slip_ratios.append(slip_ratio)
 
+        wheel_slip_ratios = np.array([])
+        for slip in slip_ratios:
+            if slip < -1:
+                slip = -1
+            elif slip > 1:
+                slip = 1
+            wheel_slip_ratios = np.append(wheel_slip_ratios, [slip])
+        x[6:] = wheel_slip_ratios
 
         # accelerations
         translation_accelerations_imf = np.array([x_double_dot, y_double_dot, 0])
@@ -86,7 +89,7 @@ class Solver:
 
         # vehicle loads
         yaw_rate = self.vehicle.get_yaw_rate(translation_accelerations_ntb[1])
-        forces, moments, wheel_angular_velocity, tire_torques = self.vehicle.get_loads(roll, pitch, heave, yaw_rate, np.array(wheel_slip_ratios))
+        forces, moments, wheel_angular_velocity, tire_torques = self.vehicle.get_loads(roll, pitch, heave, yaw_rate, wheel_slip_ratios)
         vehicle_forces_ntb = self.vehicle.intermediate_frame_to_ntb_transform(forces)
         vehicle_moments_ntb = self.vehicle.intermediate_frame_to_ntb_transform(moments)
 
@@ -116,11 +119,18 @@ class Solver:
         # TODO: MOVE ALL THIS STUFF TO A DIFF MODEL
         params = self.vehicle.params
         brake_torques = self.vehicle.brake_request_to_torque(self.vehicle.state.torque_request)
+        #print(brake_torques)
 
         # # diff & motor speeds & accelerations
         diff_angular_velocity = sum(wheel_angular_velocity[2:])/len(wheel_angular_velocity[2:])
         motor_angular_velocity = diff_angular_velocity * params.diff_radius / params.motor_radius
         self.vehicle.logger.log("motor_angular_velocity", motor_angular_velocity)
+
+        # if self.vehicle.state.torque_request < 0 and wheel_slip_ratios.any(-1):
+        #     for index, slip_ratio in enumerate(wheel_slip_ratios):
+        #         if slip_ratio == -1:
+        #             brake_torques[index] = tire_torques[index]
+
 
         # # torque flow through diff & motor
         diff_output_torques = tire_torques[2:] - brake_torques[2:]
@@ -129,18 +139,10 @@ class Solver:
         total_diff_torque = force_chain * params.diff_radius * params.diff_efficiency
 
         bias = self.vehicle.torque_bias_ratio(total_diff_torque)
-        diff_bias_matrix = [bias, 1 - bias] if not self.vehicle.state.is_left_bias else [1 - bias, bias]
+        diff_bias_matrix = [bias, 1 - bias] if self.vehicle.state.is_left_bias else [1 - bias, bias]
 
         rear_axle_residuals = diff_bias_matrix * np.array([total_diff_torque, total_diff_torque]) - diff_output_torques
         front_axle_residuals = tire_torques[:2] - brake_torques[:2]
-
-        axle_residuals = np.array([*front_axle_residuals, *rear_axle_residuals])
-        resid = [0 if abs(resid) < 100 else resid for resid in axle_residuals]
-
-        self.vehicle.logger.log("tire_torques", tire_torques)
-        self.vehicle.logger.log("wheel_slip_ratios", wheel_slip_ratios)
-
-        #print(wheel_slip_ratios)
 
         # log dependent states
         [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]
@@ -153,4 +155,4 @@ class Solver:
         self.vehicle.logger.log("vehicle_y_dot", self.vehicle.y_dot)
         [self.vehicle.logger.log(name, val) for name, val in self.vehicle.state.items()]
 
-        return np.array([*summation_forces, *summation_moments, *resid]) #, *front_axle_residuals, *rear_axle_residuals])
+        return np.array([*summation_forces, *summation_moments, *front_axle_residuals, *rear_axle_residuals])

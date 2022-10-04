@@ -5,7 +5,7 @@ class State(BetterNamespace):
     """
     A class to represent independent car states
     """
-    def __init__(self, body_slip, steered_angle, s_dot, torque_request = 0.0, is_left_bias = True):
+    def __init__(self, body_slip, steered_angle, s_dot, torque_request, is_left_bias):
         """ 
         These are the prescribed MMM states
         All other vehicle tates are dependent, and solved to match conditions
