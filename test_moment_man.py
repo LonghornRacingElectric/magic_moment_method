@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 solver = engine.Solver(vehicle_params.EasyDriver())
-result = solver.solve(engine.State(3 * np.pi / 180, 0 * np.pi/180, 15, 0.35, True))
+result = solver.solve(engine.State(0 * np.pi / 180, 0 * np.pi/180, 15, -.90, True))
 
 tires = ["front_left","front_right", "rear_left", "rear_right"]
 
@@ -17,7 +17,10 @@ for index, tire in enumerate(tires):
     slip_angle = result[tire + "_tire_slip_angle"]
     slip_ratio = result[tire + "_slip_ratio"]
     normal_force = result[tire + "_tire_tire_centric_forces_2"]
+    print(normal_force)
+    
     long_force = result[tire + "_tire_tire_centric_forces_0"]
+    print(long_force)
     lat_force = result[tire + "_tire_tire_centric_forces_1"]
     if "front" in tire:
         comstock_output = [solver.vehicle.suspension._Suspension__tires.front_left.comstock(slip, -slip_angle, normal_force, 0) for slip in slip_ratios]
@@ -40,5 +43,5 @@ for index, tire in enumerate(tires):
     # print(slip_angle)
     #print(long_force)
 print(result["vehicle_accelerations_NTB_0"])
-print(result["vehicle_accelerations_NTB_1"])
+print(result["vehicle_vehicle_forces_ntb_2"])
 plt.show()
