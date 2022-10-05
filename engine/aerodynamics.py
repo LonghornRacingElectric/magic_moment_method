@@ -9,8 +9,7 @@ class Aerodynamics:
     """
     def __init__(self, params:vehicle_params.BaseVehicle, logger:engine.Logger):
         self.logger = logger
-        # TODO: PUT THESE ALL IN PARAM FILE PLZ
-        self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH
+        self.vehicle_params = params
 
         # conversion factors
         in_to_m = 0.0254
@@ -20,14 +19,16 @@ class Aerodynamics:
         self.CdA = self.vehicle_params.CdA_tot * self.vehicle_params.CdA_dist
         self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
 
+        # converts from CAD origin to IMF
         self.CoP = self.vehicle_params.CoP * in_to_m
         self.CoP[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
 
 
     def get_loads(self, x_dot, body_slip, pitch, roll, heave):
+        # TODO: Add heave sensitivities
+        # TODO: Add CoP position to log
 
-        moments = np.array([0, 0, 0])
-
+        # conversion factors
         rad_to_deg = 180 / np.pi
 
         # converts angles to degrees for sensitivity calcs
@@ -35,14 +36,13 @@ class Aerodynamics:
         pitch *= rad_to_deg
         roll *= rad_to_deg
 
-        coefs  = np.array([self.ClA, self.CdA, self.CsA])
+        coefs = np.array([self.ClA, self.CdA, self.CsA])
 
         p_dir = 1 if pitch <= 0 else 0
         psens = self.vehicle_params.p_sens[:,:,p_dir]
 
         angles = np.array([abs(body_slip), abs(pitch), abs(roll)])
         angle_sens = np.array([self.vehicle_params.bs_sens, psens, self.vehicle_params.r_sens])
-
 
         s_dir = -1
         if body_slip < 0:

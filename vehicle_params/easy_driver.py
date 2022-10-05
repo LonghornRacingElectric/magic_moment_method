@@ -152,6 +152,7 @@ class EasyDriver():
         self.CdA_dist = np.array([0.425, 0.178, 0.396])
         self.CsA_dist = np.array([0.666, 0.000, 0.333])
 
+        # TODO: Update Sensitivities
         # pitch, body_slip, and roll sensitivities,
         #                           Cl              Cd               Cs
         self.p_sens	=   np.array([[[.01,   -.06],  [.07,   -.055], [0,0]],   # front [pos, neg] -> [%/deg]
@@ -162,21 +163,12 @@ class EasyDriver():
         self.bs_sens = np.array([[.008,  .0114, 0], [.0061,  .0089, 0], [-.0018, -.0058, 0]]) # [Cl, Cd, Cs] -> [%/deg]
         self.r_sens	 = np.array([[-.018,  0,    0], [-.0137,  0,    0], [-.005,  -.0145, 0]])
 
-         # conversion factors
-        self.in_to_m = 0.0254
-        self.rad_to_deg = 180 / np.pi
 
-        # positions of component CoPs (magnitudes, equation takes signs into account)
-        # TODO: make positions relative to intermediate frame; these lines also seem wrong in general ATM
-        # Front, Undertray and Rear [x , y , z]
+        # positions of component CoPs from vehicle origin CAD
+        # Front, Undertray and Rear [x , y , z] (Inches)
         self.CoP = np.array([[23.65,  0, 9.30],
                              [-43.5,  0, 7.13],
                              [-67.6,  0, 42.91]])
-
-
-
-
-
 
     @property
     def cg_weighted_track(self): # m
