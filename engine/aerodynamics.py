@@ -62,21 +62,22 @@ class Aerodynamics:
         # multiply lift, drag, and sideforce coefficients by sensitivities
         coefs = np.multiply(angle_sens, coefs.T)
 
-        # calculate force arrays for each direction
+        # calculate force arrays for each direction: F_part = [front, undertray, rear]
         Fl_part = 0.5 * self.__air_density * coefs[:,0] * x_dot ** 2
         Fd_part = 0.5 * self.__air_density * coefs[:,1] * x_dot ** 2
         Fs_part = 0.5 * self.__air_density * coefs[:,2] * (x_dot * np.tan(body_slip/rad_to_deg)) ** 2 * s_dir
 
-        #
+        # drag is x, sideforce is y, lift is z
         part_force = np.array([-Fd_part, Fs_part, -Fl_part])
-
+        # forces are sum of forces on each part
         forces = np.array([-np.sum(Fd_part), np.sum(Fs_part), -np.sum(Fl_part)])
+        # sum moments from front, undertray, and rear
         moments = np.cross(self.CoP[0], part_force.T[0]) \
                 + np.cross(self.CoP[1], part_force.T[1]) \
                 + np.cross(self.CoP[2], part_force.T[2])
 
 
-        # account for drag from rest of car
+        # account for drag and sideforce from rest of car
         drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
         forces[0] -= drag_no_aero
         sideforce_no_aero = 0.5 * self.__air_density * self.vehicle_params.CsA0 * (x_dot * np.tan(body_slip/rad_to_deg)) ** 2 * s_dir
