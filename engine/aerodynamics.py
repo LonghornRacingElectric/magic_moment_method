@@ -20,6 +20,9 @@ class Aerodynamics:
         self.CdA = self.vehicle_params.CdA_tot * self.vehicle_params.CdA_dist
         self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
 
+        self.CoP = self.vehicle_params.CoP * in_to_m
+        self.CoP[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
+
 
     def get_loads(self, x_dot, body_slip, pitch, roll, heave):
 
@@ -68,9 +71,9 @@ class Aerodynamics:
         part_force = np.array([-Fd_part, Fs_part, -Fl_part])
 
         forces = np.array([-np.sum(Fd_part), np.sum(Fs_part), -np.sum(Fl_part)])
-        moments = np.cross(self.vehicle_params.CoP[0], part_force.T[0]) \
-                + np.cross(self.vehicle_params.CoP[1], part_force.T[1]) \
-                + np.cross(self.vehicle_params.CoP[2], part_force.T[2])
+        moments = np.cross(self.CoP[0], part_force.T[0]) \
+                + np.cross(self.CoP[1], part_force.T[1]) \
+                + np.cross(self.CoP[2], part_force.T[2])
 
 
         # account for drag from rest of car
