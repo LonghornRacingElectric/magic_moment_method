@@ -34,11 +34,11 @@ class Solver:
         # allow up to 5 chances for convergence - above 20 doesnt lead to many additional convergences
         guesses_allowed = 1
         for i in range(guesses_allowed):
-            #try:
-            results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
-            #except:
-             #   print("Error occurred - investigate this!")
-            #    return None
+            try:
+                results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
+            except:
+                print("Error occurred - investigate this!")
+                return None
             if results[2] == 1:
                 # if i != 0:
                 #     print("Solution converged after changing initial guess")
@@ -87,6 +87,7 @@ class Solver:
         # vehicle loads
         yaw_rate = self.vehicle.get_yaw_rate(translation_accelerations_ntb[1])
         forces, moments, wheel_angular_velocity, tire_torques = self.vehicle.get_loads(roll, pitch, heave, yaw_rate, wheel_slip_ratios)
+
         vehicle_forces_ntb = self.vehicle.intermediate_frame_to_ntb_transform(forces)
         vehicle_moments_ntb = self.vehicle.intermediate_frame_to_ntb_transform(moments)
 
@@ -139,7 +140,8 @@ class Solver:
         # log dependent states
         [self.vehicle.logger.log(self.__output_variable_names[i], x[i]) for i in range(len(x))]
         self.vehicle.logger.log("motor_angular_velocity", motor_angular_velocity)
-        self.vehicle.logger.log("motor_torque", motor_angular_velocity)
+        self.vehicle.logger.log("motor_torque", motor_torque)
+        self.vehicle.logger.log("brake_torques", brake_torques)
         self.vehicle.logger.log("vehicle_accelerations_NTB", translation_accelerations_ntb)
         self.vehicle.logger.log("vehicle_kinetic_moment", kinetic_moments)
         self.vehicle.logger.log("vehicle_inertial_forces", inertial_forces)
@@ -148,5 +150,5 @@ class Solver:
         self.vehicle.logger.log("vehicle_x_dot", self.vehicle.x_dot)
         self.vehicle.logger.log("vehicle_y_dot", self.vehicle.y_dot)
         [self.vehicle.logger.log(name, val) for name, val in self.vehicle.state.items()]
-
+        #print([*summation_forces, *summation_moments, *front_axle_residuals, *rear_axle_residuals])
         return np.array([*summation_forces, *summation_moments, *front_axle_residuals, *rear_axle_residuals])

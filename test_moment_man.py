@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 solver = engine.Solver(vehicle_params.EasyDriver())
-result = solver.solve(engine.State(0 * np.pi / 180, 0 * np.pi/180, 15, -.9, True))
+result = solver.solve(engine.State(3 * np.pi / 180, 0 * np.pi/180, 15, 0.35, True))
 
 tires = ["front_left","front_right", "rear_left", "rear_right"]
 
@@ -35,4 +35,10 @@ for index, tire in enumerate(tires):
     axs_i.grid()
     axs_i.legend(["FX_com", "FY_com", "actual_FZ", "pure_long", "pure_lateral", "actual_SR", "actual_SA"])
     axs_i.set_title(tire)
+    # print(result[tire + "_tire_vehicle_centric_forces_0"])
+    # print(result[tire + "_tire_steering_offset"])
+    # print(slip_angle)
+    #print(long_force)
+print(result["vehicle_accelerations_NTB_0"])
+print(result["vehicle_accelerations_NTB_1"])
 plt.show()

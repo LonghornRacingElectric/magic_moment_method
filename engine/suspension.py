@@ -27,11 +27,11 @@ class Suspension():
             
             ### ~~~ Normal Force Calculation ~~~ ###
             normal_force = self.__get_tire_normal_load(tire_name, tire, heave, pitch, roll)
-            
+
             ### ~~~ Slip Angle Calculation ~~~ ###
             tire_IMF_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]), tire.position) # in IMF
             steering_toe_slip = tire.steering_induced_slip(steered_angle)
-            slip_angle = np.arctan2(tire_IMF_velocity[1], tire_IMF_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
+            slip_angle = -np.arctan2(tire_IMF_velocity[1], tire_IMF_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
             
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.__get_inclination_angle(tire_name, tire, steered_angle, roll, heave, pitch)
@@ -56,6 +56,7 @@ class Suspension():
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
             self.logger.log(tire_name + "_tire_velocity", tire_IMF_velocity)
             self.logger.log(tire_name + "_tire_slip_angle", slip_angle)
+            self.logger.log(tire_name + "_tire_steering_offset", steering_toe_slip)
             self.logger.log(tire_name + "_tire_torque", tire_torque)
             self.logger.log(tire_name + "_tire_vehicle_centric_forces", tire_forces)
             self.logger.log(tire_name + "_tire_vehicle_centric_moments", tire_moments)
@@ -102,6 +103,8 @@ class Suspension():
         tire_centric_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
         tire_torque = tire_centric_forces[0] * tire.radius
         
+        #if (slip_angle - steering_slip) > steering_slip:
+
         rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
                             [sin(steering_slip), cos(steering_slip),0],
                             [0,0,1]])

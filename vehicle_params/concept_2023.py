@@ -22,6 +22,13 @@ class Concept2023:
         self.mass_unsprung_rear = 22 * (0.4359) # kg
         self.driver_mass = 150 * (0.4359) # kg
         self.mass_sprung = 552 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
+        self.max_speed = 29 # m/s
+
+        ##### TEMP #####
+        self.temp_accel_max = 1.2
+        self.temp_deccel_max = 1.8
+        self.temp_lateral_max = 1.75
+        ####
 
 
 
