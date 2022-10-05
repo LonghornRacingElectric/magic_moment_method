@@ -65,7 +65,7 @@ class Tire:
         try:
             BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
         except:
-            return 0
+            return 0.0001
 
         B = BCD / (C * D)
 
@@ -77,7 +77,8 @@ class Tire:
         Bx1 = B * (SR + H)
         
         test_condition_multiplier = 0.55
-        return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        FX = (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        return FX if abs(FX) > 0 else 0.0001
 
         
     # Long and lat formulas from Comstock

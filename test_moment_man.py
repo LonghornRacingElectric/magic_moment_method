@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 
 
 solver = engine.Solver(vehicle_params.EasyDriver())
-result = solver.solve(engine.State(3 * np.pi / 180, 0 * np.pi/180, 15, 0.35, True))
-
+result = solver.solve(engine.State(3 * np.pi / 180, 0 * np.pi/180, 15, 0.5, True)) # body_slip, steered_angle, s_dot, torque_request, is_left_bias
 tires = ["front_left","front_right", "rear_left", "rear_right"]
 
 fig, axs = plt.subplots(2,2,figsize=(16, 6), dpi=80)
