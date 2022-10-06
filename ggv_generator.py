@@ -7,7 +7,7 @@ import multiprocessing
 from tqdm import tqdm
 from time import perf_counter
 
-def main():
+def ggv_generator(sweeps:dict, mesh:int, file_target:str,):
 
     ### ~~~ SWEEP PARAMETERS FOR MMM ~~~ ###
     # NOTE: any parameter in the vehicle_params file can be swept as well
