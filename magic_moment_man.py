@@ -13,7 +13,7 @@ def generate_GGV(file_target = "analysis/MMM.csv"):
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 19
+    refinement = 9
 
     s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-10 * np.pi / 180, 10 * np.pi / 180, refinement)

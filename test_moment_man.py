@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 
 
 solver = engine.Solver(vehicle_params.EasyDriver())
-result = solver.solve(engine.State(0 * np.pi / 180, 0 * np.pi/180, 15, -.90, True))
-
+result = solver.solve(engine.State(0 * np.pi / 180, 0 * np.pi/180, 15, -1, False)) # body_slip, steered_angle, s_dot, torque_request, is_left_bias
 tires = ["front_left","front_right", "rear_left", "rear_right"]
 
 fig, axs = plt.subplots(2,2,figsize=(16, 6), dpi=80)
@@ -17,7 +16,6 @@ for index, tire in enumerate(tires):
     slip_angle = result[tire + "_tire_slip_angle"]
     slip_ratio = result[tire + "_slip_ratio"]
     normal_force = result[tire + "_tire_tire_centric_forces_2"]
-    print(normal_force)
     
     long_force = result[tire + "_tire_tire_centric_forces_0"]
     print(long_force)
@@ -30,14 +28,17 @@ for index, tire in enumerate(tires):
         comstock_output = [solver.vehicle.suspension._Suspension__tires.rear_left.comstock(slip, -slip_angle, normal_force, 0) for slip in slip_ratios]
         long_paj = [solver.vehicle.suspension._Suspension__tires.rear_left.longitudinal_pacejka(normal_force, slip) for slip in slip_ratios]
         lat_paj = [solver.vehicle.suspension._Suspension__tires.rear_left.lateral_pacejka(0, normal_force, slip) for slip in slip_ratios]
-    axs_i.plot(slip_ratios, comstock_output)
+    #axs_i.plot(slip_ratios, comstock_output)
     axs_i.plot(slip_ratios, long_paj)
-    axs_i.plot(slip_ratios, lat_paj)
+    #axs_i.plot(slip_ratios, lat_paj)
     axs_i.scatter(slip_ratio, long_force)
-    axs_i.scatter(slip_angle, lat_force)
+    #axs_i.scatter(slip_angle, lat_force)
     axs_i.grid()
-    axs_i.legend(["FX_com", "FY_com", "actual_FZ", "pure_long", "pure_lateral", "actual_SR", "actual_SA"])
+    #axs_i.legend(["FX_com", "FY_com", "actual_FZ", "pure_long", "pure_lateral", "actual_SR", "actual_SA"])
+    axs_i.legend(["long_pacejka", "Actual data point"])
     axs_i.set_title(tire)
+    axs_i.set_ylabel("Force (N)")
+    axs_i.set_ylabel("Normalized Slip Ratio / Slip Angle (%)")
     # print(result[tire + "_tire_vehicle_centric_forces_0"])
     # print(result[tire + "_tire_steering_offset"])
     # print(slip_angle)

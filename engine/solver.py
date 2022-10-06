@@ -133,8 +133,8 @@ class Solver:
         rear_axle_residuals = diff_bias_matrix * np.array([total_diff_torque, total_diff_torque]) - diff_output_torques
         front_axle_residuals = tire_torques[:2] - brake_torques[:2]
 
-        if self.vehicle.state.torque_request == 0:
-            rear_axle_residuals, front_axle_residuals = np.array([0,0]), np.array([0,0])
+        # if self.vehicle.state.torque_request == 0:
+        #     rear_axle_residuals, front_axle_residuals = np.array([0,0]), np.array([0,0])
 
         ####################################
         # log dependent states

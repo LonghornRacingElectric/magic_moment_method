@@ -52,7 +52,7 @@ class Tire:
         Bx1 = B * (slip_degrees + H)
         
         # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
-        test_condition_multiplier = 0.55
+        test_condition_multiplier = 2/3
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
     
     warnings.filterwarnings("error")
@@ -65,7 +65,7 @@ class Tire:
         try:
             BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
         except:
-            return 0
+            return 0.0001
 
         B = BCD / (C * D)
 
@@ -76,8 +76,9 @@ class Tire:
         V = b11 * FZ + b12
         Bx1 = B * (SR + H)
         
-        test_condition_multiplier = 0.55
-        return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        test_condition_multiplier = 2/3
+        FX = (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        return FX if abs(FX) > 0 else 0.0001
 
         
     # Long and lat formulas from Comstock
