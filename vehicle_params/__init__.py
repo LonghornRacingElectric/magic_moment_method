@@ -1,3 +1,3 @@
-from vehicle_params.easy_driver import EasyDriver
-from vehicle_params.unit_test_car import UnitTestCar
-from vehicle_params.concept_2023 import Concept2023
+from .easy_driver import EasyDriver
+from .unit_test_car import UnitTestCar
+from .concept_2023 import Concept2023

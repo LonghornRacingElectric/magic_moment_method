@@ -1,5 +1,4 @@
-from helpers.better_namespace import BetterNamespace
-
+from ..helpers.better_namespace import BetterNamespace
 
 class Logger(BetterNamespace):
     """

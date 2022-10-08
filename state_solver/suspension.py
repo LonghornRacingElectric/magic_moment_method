@@ -1,9 +1,9 @@
 from math import sin, cos
-
 import numpy as np
-import engine
 from scipy.optimize import fsolve
-import vehicle_params
+from ..state_solver.tires import Tires
+from ..state_solver.tire import Tire
+from ..state_solver.logger import Logger
 
 """
 Coordinate Systems:
@@ -13,10 +13,10 @@ Coordinate Systems:
 
 class Suspension():
     """ Handles suspension vehicle forces """
-    def __init__(self, params, logger:engine.Logger):
+    def __init__(self, params, logger:Logger):
         self.logger = logger
         self.params = params
-        self.__tires = engine.Tires(params)
+        self.__tires = Tires(params)
 
 
     def get_loads(self, vehicle_velocity:np.array, yaw_rate:float, steered_angle:float, roll:float, pitch:float, heave:float, slip_ratios:list):
@@ -74,7 +74,7 @@ class Suspension():
         return veh_forces, veh_moments, wheel_speeds, wheel_torques
 
           
-    def __get_inclination_angle(self, tire_name:str, tire:engine.Tire, steered_angle:float,
+    def __get_inclination_angle(self, tire_name:str, tire:Tire, steered_angle:float,
                                 roll:float, heave:float, pitch:float):
         # TODO: what the fuck does the following mean lol
         #disp = self.wheel_displacement
@@ -97,7 +97,7 @@ class Suspension():
         
         return tire.static_camber + steering_induced + roll_induced + heave_induced + pitch_induced
           
-    def __get_tire_output(self, tire_name:str, tire:engine.Tire, normal_force:float, slip_angle:float,
+    def __get_tire_output(self, tire_name:str, tire:Tire, normal_force:float, slip_angle:float,
                         inclination_angle:float, steering_slip:float, slip_ratio:list):
 
         tire_centric_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
@@ -119,12 +119,12 @@ class Suspension():
         return vehicle_centric_forces, vehicle_centric_moments, tire_torque
 
 
-    def __get_tire_normal_load(self, tire_name:str, tire:engine.Tire, heave:float, pitch:float, roll:float):
+    def __get_tire_normal_load(self, tire_name:str, tire:Tire, heave:float, pitch:float, roll:float):
         """ Gets tires normal force given vehicle displacements
 
         Args:
             tire_name (str): tire location
-            tire (engine.Tire): tire object
+            tire (Tire): tire object
             heave (float): vertical displacement - meters
             pitch (float): forward/backwards twist - radians
             roll (float): left/right twist - radians
@@ -143,13 +143,13 @@ class Suspension():
         return normal_force
 
 
-    def __find_spring_displacements(self, x:list, tire_name:str, tire:engine.Tire, heave:float, pitch:float, roll:float):
+    def __find_spring_displacements(self, x:list, tire_name:str, tire:Tire, heave:float, pitch:float, roll:float):
         """ Residual function for wheel displacement and tire compression to find tire normal load.
 
         Args:
             x (list): tire compression
             tire_name (str): tire location
-            tire (engine.Tire): tire object
+            tire (solver.Tire): tire object
             heave (float): vertical displacement - meters
             pitch (float): forward/backwards twist - radians
             roll (float): left/right twist - radians

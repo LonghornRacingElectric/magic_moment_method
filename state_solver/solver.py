@@ -2,8 +2,8 @@ import numpy as np
 from scipy.optimize import fsolve
 from copy import copy
 import warnings
-import engine
-import vehicle_params
+from ..state_solver.state import State
+from ..state_solver.vehicle import Vehicle
 
 class Solver:
     def __init__(self, vehicle_parameters):
@@ -12,10 +12,10 @@ class Solver:
         Args:
             vehicle_parameters (vehicle_params._parameter_file_): specific static & initial vehicle parameters
         """
-        self.vehicle = engine.Vehicle(vehicle_parameters)
+        self.vehicle = Vehicle(vehicle_parameters)
 
 
-    def solve(self, input_state:engine.State, initial_guess:list = [0.00125, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
+    def solve(self, input_state:State, initial_guess:list = [0.00125, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
         """
         Non-linear solve for unique output variable set to match the prescribed states, with an initial guess of dependent states
         Converges on dependent vehicle states by iterating dependent parameter guesses

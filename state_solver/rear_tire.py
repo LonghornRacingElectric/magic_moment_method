@@ -1,4 +1,4 @@
-from engine.tire import Tire
+from ..state_solver.tire import Tire
 
 class RearTire(Tire):
     def __init__(self, car_params, is_left_tire):

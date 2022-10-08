@@ -1,6 +1,8 @@
-import engine
 import numpy as np
-import vehicle_params
+from ..state_solver.state import State
+from ..state_solver.logger import Logger
+from ..state_solver.suspension import Suspension
+from ..state_solver.aerodynamics import Aerodynamics
 
 """
 Coordinate Systems:
@@ -9,18 +11,18 @@ Coordinate Systems:
 """
 
 class Vehicle:
-    def __init__(self, params, state:engine.State = None):
+    def __init__(self, params, state:State = None):
         """_summary_
 
         Args:
             params (vehicle_params._vehicle_setup_): static & initial vehicle parameters
-            state (engine.State, optional): independent prescribed vehicle states. Defaults to None.
+            state (State, optional): independent prescribed vehicle states. Defaults to None.
         """
         self.state = state
-        self.logger = engine.Logger()
+        self.logger = Logger()
         self.params = params        
-        self.suspension = engine.Suspension(self.params, self.logger)
-        self.aero = engine.Aerodynamics(self.params, self.logger)
+        self.suspension = Suspension(self.params, self.logger)
+        self.aero = Aerodynamics(self.params, self.logger)
     
 
     # TODO: CoG movements due to roll / pitch / heave

@@ -1,12 +1,11 @@
 import numpy as np
-import engine
-
+from ..state_solver.logger import Logger
 
 class Aerodynamics:
     """
     Handles aerodynamic vehicle forces
     """
-    def __init__(self, params, logger:engine.Logger):
+    def __init__(self, params, logger:Logger):
         self.logger = logger
         # TODO: PUT THESE ALL IN PARAM FILE PLZ
         self.vehicle_params = params # CONTAINS CG POSITION & WHEELBASE LENGTH

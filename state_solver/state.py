@@ -1,5 +1,4 @@
-from helpers.better_namespace import BetterNamespace
-import numpy as np
+from ..helpers.better_namespace import BetterNamespace
 
 class State(BetterNamespace):
     """

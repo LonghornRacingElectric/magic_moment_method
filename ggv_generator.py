@@ -2,31 +2,24 @@ import numpy as np
 import pandas as pd
 import itertools
 import engine
-import vehicle_params
 import multiprocessing
 from tqdm import tqdm
 from time import perf_counter
 
-def ggv_generator(sweeps:dict, mesh:int, file_target:str,):
+def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
 
-    ### ~~~ SWEEP PARAMETERS FOR MMM ~~~ ###
-    # NOTE: any parameter in the vehicle_params file can be swept as well
-    # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
-    peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 9
-
-    s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
-    body_slip_sweep = np.linspace(-10 * np.pi / 180, 10 * np.pi / 180, refinement)
-    steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
-    torque_request = np.linspace(-1, 1, refinement)
-    is_left_bias = [True, False]
-    vehicles = [vehicle_params.EasyDriver()]
+    s_dot_sweep = np.linspace(sweep_ranges["velocity"][0], sweep_ranges["velocity"][1], mesh)
+    body_slip_sweep = np.linspace(sweep_ranges["body_slip"][0], sweep_ranges["body_slip"][1], mesh)
+    steered_angle_sweep = np.linspace(sweep_ranges["steered_angle"][0], sweep_ranges["steered_angle"][1], mesh)
+    torque_request = np.linspace(sweep_ranges["torque_request"][0], sweep_ranges["torque_request"][1], mesh)
+    is_left_bias = sweep_ranges["torque_request"]
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
     t1 = perf_counter()
     p = multiprocessing.Pool(multiprocessing.cpu_count())
-    states_product = itertools.product(vehicles, body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
-    return_list = tqdm(p.imap(state_solver, states_product))
+    state_solver2 = lambda x: engine.Solver(vehicle_params).solve(engine.State(*x))
+    states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
+    return_list = tqdm(p.imap(state_solver2, states_product))
     p.close()
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
@@ -34,9 +27,6 @@ def ggv_generator(sweeps:dict, mesh:int, file_target:str,):
     log_df.to_csv("analysis/MMM.csv")
     print(f"Sweep completed in {int(perf_counter() - t1)} seconds, exported to CSV")
 
-def state_solver(inputs):
-    vehicle, state_inputs = inputs[:1], inputs[1:]
-    return engine.Solver(vehicle_params.EasyDriver()).solve(engine.State(*state_inputs))
-
-if __name__ == "__main__":
-    main()
+# def state_solver(inputs):
+#     vehicle, state_inputs = inputs[:1], inputs[1:]
+#     return engine.Solver(vehicle_params.EasyDriver()).solve(engine.State(*state_inputs))

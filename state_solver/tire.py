@@ -1,7 +1,6 @@
 from abc import abstractmethod, abstractproperty
 import math
 import numpy as np
-from scipy.optimize import fmin
 import warnings
 
 class Tire:

@@ -1,11 +1,14 @@
 import numpy as np
 import pandas as pd
 import itertools
-import engine
-import vehicle_params
 import multiprocessing
 from tqdm import tqdm
 from time import perf_counter
+
+import sys
+sys.path.append("..")
+import magic_moment_method.vehicle_params as vehicle_params
+import magic_moment_method.state_solver as state_solver
 
 def main():
 
@@ -13,7 +16,7 @@ def main():
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 9
+    refinement = 3
 
     s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-10 * np.pi / 180, 10 * np.pi / 180, refinement)
@@ -26,7 +29,7 @@ def main():
     t1 = perf_counter()
     p = multiprocessing.Pool(multiprocessing.cpu_count())
     states_product = itertools.product(vehicles, body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
-    return_list = tqdm(p.imap(state_solver, states_product))
+    return_list = tqdm(p.imap(solve_state, states_product))
     p.close()
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
@@ -34,9 +37,9 @@ def main():
     log_df.to_csv("analysis/MMM.csv")
     print(f"Sweep completed in {int(perf_counter() - t1)} seconds, exported to CSV")
 
-def state_solver(inputs):
+def solve_state(inputs):
     vehicle, state_inputs = inputs[:1], inputs[1:]
-    return engine.Solver(vehicle_params.EasyDriver()).solve(engine.State(*state_inputs))
+    return state_solver.Solver(vehicle_params.EasyDriver()).solve(state_solver.State(*state_inputs))
 
 if __name__ == "__main__":
     main()

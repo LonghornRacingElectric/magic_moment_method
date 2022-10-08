@@ -1,5 +1,4 @@
-
-from engine.tire import Tire
+from ..state_solver.tire import Tire
 import numpy as np
 
 class FrontTire(Tire):
