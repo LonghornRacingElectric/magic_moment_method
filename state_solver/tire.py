@@ -107,12 +107,6 @@ class Tire:
             Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
             FY_adj = self.com_lat(SA, SR, FX, FY, FZ, IA, Cs) 
             FX_adj = self.com_long(SA, SR, FX, FY, FZ, Ca)
-
-            if FX_adj == 0 and FY_adj == 0:
-                print("SR:", SR, "SA:", SA, "FZ:", FZ, "IA:", IA)
-                print("Ca:", Ca, "Cs:", Cs)
-                print("Pacejka FX:", FX, "Pacejka Fy:", FY)
-                print("Comstock FX:", FX_adj, "Comstock FY:", FY)
             
             return np.array([FX_adj, FY_adj, FZ])
 
