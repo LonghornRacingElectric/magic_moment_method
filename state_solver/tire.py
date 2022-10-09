@@ -33,6 +33,8 @@ class Tire:
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
     def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
+        if normal_force == 0:
+            return 0
         multiplier =  -1 if self.direction_left else 1
         slip_degrees = slip_angle * 180 / math.pi * multiplier # degrees
         inclination_degrees = inclination_angle * 180 / math.pi # degrees
@@ -40,8 +42,7 @@ class Tire:
         [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17] = self.lateral_coeffs
         C = a0
         D = normal_force * (a1 * normal_force + a2) * (1 - a15 * inclination_degrees ** 2)
-        if D == 0:
-            return 0
+
         BCD = a3 * math.sin(math.atan(normal_force / a4) * 2) * (1 - a5 * abs(inclination_degrees))
         B = BCD / (C * D)
 
@@ -56,15 +57,15 @@ class Tire:
     
     warnings.filterwarnings("error")
     def longitudinal_pacejka(self, normal_force:float, SR:float):
+        if normal_force <= 0:
+            return 0
         SR = SR * 100
         FZ = normal_force / 1000
         [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
         C = b0
         D = FZ * (b1 * FZ + b2)
-        try:
-            BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
-        except:
-            return 0.0001
+
+        BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
 
         B = BCD / (C * D)
 
@@ -76,34 +77,44 @@ class Tire:
         Bx1 = B * (SR + H)
         
         test_condition_multiplier = 2/3
-        FX = (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
-        return FX if abs(FX) > 0 else 0.0001
+        return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
 
         
     # Long and lat formulas from Comstock
     def com_lat(self, SA, SR, FX, FY, FZ, IA, Cs):
-        calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
-        return abs(calc) * -1 if SA < 0 else abs(calc)
+        if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
+            return abs(FY) * -1 if SA < 0 else abs(FY)
+        else:
+            calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
+            return abs(calc) * -1 if SA < 0 else abs(calc)
         
     def com_long(self, SA, SR, FX, FY, FZ, Ca):
-        try:
+        if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
+            return abs(FX) * -1 if SR < 0 else abs(FX)
+        else:
             calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR**2 * Ca**2 + (1 - SR)**2 * (np.cos(SA))**2 * FX**2) / Ca)
             return abs(calc) * -1 if SR < 0 else abs(calc)
-        except:
-            return 0
-
+        
     # Full comstock calculations
     def comstock(self, SR, SA, FZ, IA):
         if FZ <= 0.0:
             return np.array([0, 0, 0])
-        FX = self.longitudinal_pacejka(FZ, SR)
-        FY = self.lateral_pacejka(IA, FZ, SA)
+        else:
+            FX = self.longitudinal_pacejka(FZ, SR)
+            FY = self.lateral_pacejka(IA, FZ, SA)
 
-        Ca = (self.longitudinal_pacejka(FZ, 0.005) - self.longitudinal_pacejka(FZ, -0.005)) / (.01)
-        Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
-        FY = FY if abs(SA) < 0.001 else self.com_lat(SA, SR, FX, FY, FZ, IA, Cs) 
-        FX = FX if abs(SA) < 0.001 else self.com_long(SA, SR, FX, FY, FZ, Ca)
-        return np.array([FX, FY, FZ])
+            Ca = (self.longitudinal_pacejka(FZ, 0.005) - self.longitudinal_pacejka(FZ, -0.005)) / (.01)
+            Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
+            FY_adj = self.com_lat(SA, SR, FX, FY, FZ, IA, Cs) 
+            FX_adj = self.com_long(SA, SR, FX, FY, FZ, Ca)
+
+            if FX_adj == 0 and FY_adj == 0:
+                print("SR:", SR, "SA:", SA, "FZ:", FZ, "IA:", IA)
+                print("Ca:", Ca, "Cs:", Cs)
+                print("Pacejka FX:", FX, "Pacejka Fy:", FY)
+                print("Comstock FX:", FX_adj, "Comstock FY:", FY)
+            
+            return np.array([FX_adj, FY_adj, FZ])
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
     def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
