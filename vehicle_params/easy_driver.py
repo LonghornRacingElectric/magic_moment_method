@@ -152,16 +152,16 @@ class EasyDriver():
         self.CdA_dist = np.array([0.425, 0.178, 0.396])
         self.CsA_dist = np.array([0.666, 0.000, 0.333])
 
-        # TODO: Update Sensitivities
+        # TODO: Update undertray bodyslip and roll sensitivities
         # pitch, body_slip, and roll sensitivities,
         #                           Cl              Cd               Cs
-        self.p_sens	=   np.array([[[.01,   -.06],  [.07,   -.055], [0,0]],   # front [pos, neg] -> [%/deg]
-                                [[.0076, -.0457], [.0546, -.0434], [0,0]],   # undertray
-                                [[.0178, -.0245], [.0294, -.0478], [0,0]]])  # rear
+        self.p_sens	=   np.array([[[ -15.7,  -10.6], [ -7.5,  -12.5], [0,0]],   # front [pos, neg] -> [%/deg]
+                                  [[  7.39,  -7.19], [ 10.1, -15.15], [0,0]],   # undertray
+                                  [[ -0.72,  -4.06], [ 2.02,  -5.94], [0,0]]])  # rear
 
          #                          front               undertray           rear
-        self.bs_sens = np.array([[.008,  .0114, 0], [.0061,  .0089, 0], [-.0018, -.0058, 0]]) # [Cl, Cd, Cs] -> [%/deg]
-        self.r_sens	 = np.array([[-.018,  0,    0], [-.0137,  0,    0], [-.005,  -.0145, 0]])
+        self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
 
 
         # positions of component CoPs from vehicle origin CAD
