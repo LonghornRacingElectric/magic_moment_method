@@ -54,47 +54,55 @@ class Tire:
         # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
         test_condition_multiplier = 2/3
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
-    
+
     warnings.filterwarnings("error")
     def longitudinal_pacejka(self, normal_force:float, SR:float):
         if normal_force <= 0:
             return 0
-        SR = SR * 100
-        FZ = normal_force / 1000
-        [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
-        C = b0
-        D = FZ * (b1 * FZ + b2)
+        try:
+            SR = SR * 100
+            FZ = normal_force / 1000
+            [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
+            C = b0
+            D = FZ * (b1 * FZ + b2)
 
-        BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
+            BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
 
-        B = BCD / (C * D)
+            B = BCD / (C * D)
 
-        H = b9 * FZ + b10
+            H = b9 * FZ + b10
 
-        E = (b6 * FZ**2 + b7 * FZ + b8) * (1 - b13 * np.sign(SR + H))
+            E = (b6 * FZ**2 + b7 * FZ + b8) * (1 - b13 * np.sign(SR + H))
 
-        V = b11 * FZ + b12
-        Bx1 = B * (SR + H)
-        
-        test_condition_multiplier = 2/3
-        return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
-
+            V = b11 * FZ + b12
+            Bx1 = B * (SR + H)
+            
+            test_condition_multiplier = 2/3
+            return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        except:
+            return 0
         
     # Long and lat formulas from Comstock
-    def com_lat(self, SA, SR, FX, FY, FZ, IA, Cs):
+    def com_lat(self, SA, SR, FX, FY, Cs):
         if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
             return abs(FY) * -1 if SA < 0 else abs(FY)
         else:
-            calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
-            return abs(calc) * -1 if SA < 0 else abs(calc)
+            try:
+                calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
+                return abs(calc) * -1 if SA < 0 else abs(calc)
+            except:
+                return abs(FY) * -1 if SA < 0 else abs(FY)
         
-    def com_long(self, SA, SR, FX, FY, FZ, Ca):
+    def com_long(self, SA, SR, FX, FY, Ca):
         if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
             return abs(FX) * -1 if SR < 0 else abs(FX)
         else:
-            calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR**2 * Ca**2 + (1 - SR)**2 * (np.cos(SA))**2 * FX**2) / Ca)
-            return abs(calc) * -1 if SR < 0 else abs(calc)
-        
+            try:
+                calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR**2 * Ca**2 + (1 - SR)**2 * (np.cos(SA))**2 * FX**2) / Ca)
+                return abs(calc) * -1 if SR < 0 else abs(calc)
+            except:
+                return abs(FX) * -1 if SR < 0 else abs(FX)
+                
     # Full comstock calculations
     def comstock(self, SR, SA, FZ, IA):
         if FZ <= 0.0:
@@ -105,8 +113,8 @@ class Tire:
 
             Ca = (self.longitudinal_pacejka(FZ, 0.005) - self.longitudinal_pacejka(FZ, -0.005)) / (.01)
             Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
-            FY_adj = self.com_lat(SA, SR, FX, FY, FZ, IA, Cs) 
-            FX_adj = self.com_long(SA, SR, FX, FY, FZ, Ca)
+            FY_adj = self.com_lat(SA, SR, FX, FY, Cs) 
+            FX_adj = self.com_long(SA, SR, FX, FY, Ca)
             
             return np.array([FX_adj, FY_adj, FZ])
 
