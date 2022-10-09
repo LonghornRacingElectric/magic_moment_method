@@ -14,7 +14,7 @@ s_dot_sweep = [15]
 steering_sweep = [-0.07, 0, 0.07]
 body_sweep = [-0.07, 0, 0.07]
 torque_sweep = [0]
-bias_sweep = [True]
+differential_bias_sweep = [True]
 reference_file = "tests/test_MMM.csv"
 solver = state_solver.Solver(vehicle_params.UnitTestCar())
 
@@ -22,7 +22,7 @@ solver = state_solver.Solver(vehicle_params.UnitTestCar())
 @pytest.mark.parametrize("steered_angle", steering_sweep)
 @pytest.mark.parametrize("body_slip", body_sweep)
 @pytest.mark.parametrize("torque_request", torque_sweep)
-@pytest.mark.parametrize("is_left_bias", bias_sweep)
+@pytest.mark.parametrize("is_left_bias", differential_bias_sweep)
 def test_josie_solver(s_dot, steered_angle, body_slip, torque_request, is_left_bias):
     o_d = solver.solve(state_solver.State(body_slip, steered_angle, s_dot, torque_request, is_left_bias))
     e_d = pd.read_csv(reference_file)

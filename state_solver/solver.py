@@ -127,8 +127,12 @@ class Solver:
         force_chain = motor_torque / params.motor_radius
         total_diff_torque = force_chain * params.diff_radius * params.diff_efficiency
 
-        bias = self.vehicle.torque_bias_ratio(total_diff_torque)
-        diff_bias_matrix = [bias, 1 - bias] if self.vehicle.state.is_left_bias else [1 - bias, bias]
+        # if on a pure straight, diff doesnt bias. Otherwise it does
+        if self.vehicle.state.steered_angle == 0 and self.vehicle.state.body_slip == 0:
+            diff_bias = 0.5
+        else:
+            diff_bias = self.vehicle.torque_bias_ratio(total_diff_torque)
+        diff_bias_matrix = np.array([diff_bias, 1 - diff_bias]) if self.vehicle.state.is_left_diff_bias else np.array([1 - diff_bias, diff_bias])
 
         rear_axle_residuals = diff_bias_matrix * np.array([total_diff_torque, total_diff_torque]) - diff_output_torques
         front_axle_residuals = tire_torques[:2] - brake_torques[:2]
