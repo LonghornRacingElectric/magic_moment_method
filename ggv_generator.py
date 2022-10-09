@@ -12,13 +12,13 @@ def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
     body_slip_sweep = np.linspace(sweep_ranges["body_slip"][0], sweep_ranges["body_slip"][1], mesh)
     steered_angle_sweep = np.linspace(sweep_ranges["steered_angle"][0], sweep_ranges["steered_angle"][1], mesh)
     torque_request = np.linspace(sweep_ranges["torque_request"][0], sweep_ranges["torque_request"][1], mesh)
-    is_left_bias = sweep_ranges["torque_request"]
+    is_left_diff_bias = sweep_ranges["is_left_diff_bias"]
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
     t1 = perf_counter()
     p = multiprocessing.Pool(multiprocessing.cpu_count())
     state_solver2 = lambda x: engine.Solver(vehicle_params).solve(engine.State(*x))
-    states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
+    states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_diff_bias)
     return_list = tqdm(p.imap(state_solver2, states_product))
     p.close()
 
