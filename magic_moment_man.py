@@ -16,19 +16,19 @@ def main():
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 3
+    refinement = 9
 
     s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
     body_slip_sweep = np.linspace(-10 * np.pi / 180, 10 * np.pi / 180, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     torque_request = np.linspace(-1, 1, refinement)
-    is_left_bias = [True, False]
+    is_left_diff_bias = [True, False]
     vehicles = [vehicle_params.EasyDriver()]
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
     t1 = perf_counter()
     p = multiprocessing.Pool(multiprocessing.cpu_count())
-    states_product = itertools.product(vehicles, body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_bias)
+    states_product = itertools.product(vehicles, body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_diff_bias)
     return_list = tqdm(p.imap(solve_state, states_product))
     p.close()
 
