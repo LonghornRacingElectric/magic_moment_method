@@ -11,16 +11,12 @@ class Aerodynamics:
         self.logger = logger
         self.vehicle_params = params
 
-        # conversion factors
-        in_to_m = 0.0254
-
         # gets aero coefficients for each component
         self.ClA = self.vehicle_params.ClA_tot * self.vehicle_params.ClA_dist
         self.CdA = self.vehicle_params.CdA_tot * self.vehicle_params.CdA_dist
         self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
 
         # converts from CAD origin to IMF
-        self.CoP = self.vehicle_params.CoP * in_to_m
         self.CoP[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
 
 

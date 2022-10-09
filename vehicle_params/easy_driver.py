@@ -168,7 +168,7 @@ class EasyDriver():
         # Front, Undertray and Rear [x , y , z] (Inches)
         self.CoP = np.array([[23.65,  0, 9.30],
                              [-43.5,  0, 7.13],
-                             [-67.6,  0, 42.91]])
+                             [-67.6,  0, 42.91]]) * (0.0254) # convert to m
 
     @property
     def cg_weighted_track(self): # m
