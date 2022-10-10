@@ -104,7 +104,7 @@ class Tire:
                 return abs(FX) * -1 if SR < 0 else abs(FX)
                 
     # Full comstock calculations
-    def comstock(self, SR, SA, FZ, IA):
+    def get_comstock_forces(self, SR, SA, FZ, IA):
         if FZ <= 0.0:
             return np.array([0, 0, 0])
         else:

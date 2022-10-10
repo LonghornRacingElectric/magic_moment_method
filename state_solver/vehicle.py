@@ -74,7 +74,6 @@ class Vehicle:
         """
         return np.array([self.x_dot, self.y_dot, 0])
     
-
     def intermediate_frame_to_ntb_transform(self, intermediate_frame_vector:np.array):
         """ Transforms input vector using body slip
 
@@ -88,17 +87,14 @@ class Vehicle:
                                           [np.sin(self.state.body_slip), np.cos(self.state.body_slip), 0],
                                           [0, 0, 1]]))
         return np.dot(transformation_matrix, intermediate_frame_vector)       
-    
 
     @property
     def x_dot(self):
         return self.state.s_dot * np.cos(self.state.body_slip)
     
-
     @property
     def y_dot(self):
         return self.state.s_dot * np.sin(self.state.body_slip)
-
 
     def get_loads(self, roll:float, pitch:float, heave:float, yaw_rate:float, slip_ratios:list):
         # gravity load
@@ -109,10 +105,10 @@ class Vehicle:
                                heave)
         
         # Define tire loads (dynamics handles vehicle weight transfer through tire normals)
-        tire_forces, tire_moments, wheel_speeds, wheel_torques = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
+        tire_forces, tire_moments, wheel_speeds, tire_torques = self.suspension.get_loads(self.translational_velocities_IMF, yaw_rate,
                                                             self.state.steered_angle, roll, pitch, heave, slip_ratios)
 
-        return aero_forces + tire_forces + gravity, aero_moments + tire_moments, wheel_speeds, wheel_torques
+        return aero_forces + tire_forces + gravity, aero_moments + tire_moments, wheel_speeds, tire_torques
 
     def brake_request_to_torque(self, torque_request): # Brake request value from 0 to 1
         if torque_request > 0:
@@ -127,6 +123,13 @@ class Vehicle:
         return np.array([torques[0], torques[0], torques[1], torques[1]])
 
     def torque_bias_ratio(self, torque_on_diff):
-        if torque_on_diff == 0:
-            return 0.5
-        return self.params.diff_fl + self.params.diff_preload/torque_on_diff
+        # if on a pure straight, diff doesnt bias. Otherwise it does. BREAKAWAY TORQUE BABY
+        if self.state.steered_angle == 0 and self.state.body_slip == 0 or torque_on_diff == 0:
+            return np.array([0.5, 0.5])
+
+        traction_bias = self.params.diff_fl + self.params.diff_preload/torque_on_diff
+
+        if self.state.is_left_diff_bias:
+            return np.array([traction_bias, 1 - traction_bias])
+        else:
+            return np.array([1 - traction_bias, traction_bias])

@@ -20,7 +20,7 @@ class Suspension():
 
 
     def get_loads(self, vehicle_velocity:np.array, yaw_rate:float, steered_angle:float, roll:float, pitch:float, heave:float, slip_ratios:list):
-        veh_forces, veh_moments, wheel_speeds, wheel_torques = np.array([0, 0, 0]), np.array([0, 0, 0]), np.array([]), np.array([])
+        veh_forces, veh_moments, wheel_speeds, tire_torques = np.array([0, 0, 0]), np.array([0, 0, 0]), np.array([]), np.array([])
         
         # tire output forces as a function of inclination angle, slip angle, and normal force
         for tire_name, tire in self.__tires.items():
@@ -41,7 +41,7 @@ class Suspension():
             tire_forces, tire_moments, tire_torque = self.__get_tire_output(tire_name, tire, normal_force, slip_angle, inclination_angle, steering_toe_slip, slip_ratio)
             veh_forces = np.add(tire_forces, veh_forces)  
             veh_moments = np.add(tire_moments, veh_moments)
-            wheel_torques = np.append(wheel_torques, [tire_torque])
+            tire_torques = np.append(tire_torques, [tire_torque])
 
             ### ~~~ Wheel Speeds from Slip Ratios and Tire Velocities ~~~ ###
             tire_pointing_unit_vector = np.array([np.cos(steering_toe_slip), np.sin(steering_toe_slip), 0])
@@ -71,7 +71,7 @@ class Suspension():
             self.logger.log(tire_name + "_pullrod_force", tube_forces[4])
             self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
 
-        return veh_forces, veh_moments, wheel_speeds, wheel_torques
+        return veh_forces, veh_moments, wheel_speeds, tire_torques
 
           
     def __get_inclination_angle(self, tire_name:str, tire:Tire, steered_angle:float,
@@ -100,10 +100,9 @@ class Suspension():
     def __get_tire_output(self, tire_name:str, tire:Tire, normal_force:float, slip_angle:float,
                         inclination_angle:float, steering_slip:float, slip_ratio:list):
 
-        tire_centric_forces = tire.comstock(slip_ratio, slip_angle, normal_force, inclination_angle)
+        tire_centric_forces = tire.get_comstock_forces(slip_ratio, slip_angle, normal_force, inclination_angle)
+        # TODO: make effective radius
         tire_torque = tire_centric_forces[0] * tire.radius
-        
-        #if (slip_angle - steering_slip) > steering_slip:
 
         rotation_matrix = np.array([[cos(steering_slip), -sin(steering_slip), 0],
                             [sin(steering_slip), cos(steering_slip),0],
