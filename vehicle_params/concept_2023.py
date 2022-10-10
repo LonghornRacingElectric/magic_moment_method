@@ -13,7 +13,7 @@ class Concept2023:
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
         self.cg_bias = (1 - .456) #.456)  # % rear/total, value from 0->1
         self.cg_left = 0.495 # % left/total, value from 0->1 # TODO: not behaving as expected
-        self.cg_height = 11.7 * (0.0254) # m
+        self.cg_height = 12 * (0.0254) # m
         self.wheelbase = 65 * (0.0254) # m
         self.front_track = 48 * (0.0254) # m
         self.rear_track = 46 * (0.0254) # m
