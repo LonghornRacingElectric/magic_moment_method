@@ -6,10 +6,10 @@ import warnings
 class Tire:
     def __init__(self, car_params, is_left_tire):
         self.params = car_params
-        self.direction_left = is_left_tire # boolean
+        self.is_left_tire = is_left_tire # boolean
 
     def roll_inclination_angle_gain(self, roll):
-        mod_roll = - roll if self.direction_left else roll
+        mod_roll = - roll if self.is_left_tire else roll
         return mod_roll - (mod_roll * self.camber_gain)
     
     @abstractmethod
@@ -35,7 +35,7 @@ class Tire:
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
         if normal_force == 0:
             return 0
-        multiplier =  -1 if self.direction_left else 1
+        multiplier = -1 if self.is_left_tire else 1
         slip_degrees = slip_angle * 180 / math.pi * multiplier # degrees
         inclination_degrees = inclination_angle * 180 / math.pi # degrees
         

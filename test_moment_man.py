@@ -50,20 +50,3 @@ print(result["vehicle_accelerations_NTB_0"])
 print(result["vehicle_vehicle_forces_ntb_2"])
 print(result["aero_forces_0"])
 plt.show()
-
-
-# slip_ratios = np.linspace(-1, 1, 15)
-# normal_loads = np.array([500, 750, 1000])
-# colors = np.array(["r", "g", "b"])
-# for index, load in enumerate(normal_loads):
-#     output = []
-#     for slip_ratio in slip_ratios:
-#         for slip_angle in slip_ratios:
-#             comstock_output = x.vehicle.suspension._Suspension__tires.front_left.comstock(slip_ratio, slip_angle, load, 0)
-#             output.append([comstock_output[0], comstock_output[1]])
-#             plt.scatter(comstock_output[0], comstock_output[1], c= colors[index])
-# plt.ylabel("Lateral Acceleration (m/s^2)")
-# plt.xlabel("Long Acceleration (m/s^2)")
-# plt.title("Long vs Lateral")
-# plt.legend(normal_loads)
-# plt.show()

@@ -18,7 +18,6 @@ class Suspension():
         self.params = params
         self.__tires = Tires(params)
 
-
     def get_loads(self, vehicle_velocity:np.array, yaw_rate:float, steered_angle:float, roll:float, pitch:float, heave:float, slip_ratios:list):
         veh_forces, veh_moments, wheel_speeds, tire_torques = np.array([0, 0, 0]), np.array([0, 0, 0]), np.array([]), np.array([])
         
@@ -31,7 +30,7 @@ class Suspension():
             ### ~~~ Slip Angle Calculation ~~~ ###
             tire_IMF_velocity = vehicle_velocity + np.cross(np.array([0, 0, yaw_rate]), tire.position) # in IMF
             steering_toe_slip = tire.steering_induced_slip(steered_angle)
-            slip_angle = -np.arctan2(tire_IMF_velocity[1], tire_IMF_velocity[0]) +  steering_toe_slip# f(steered angle, body slip, yaw rate)
+            slip_angle = -np.arctan2(tire_IMF_velocity[1], tire_IMF_velocity[0]) + steering_toe_slip# f(steered angle, body slip, yaw rate)
             
             ### ~~~ Inclination Angle Calculation ~~~ ###
             inclination_angle = self.__get_inclination_angle(tire_name, tire, steered_angle, roll, heave, pitch)
@@ -50,7 +49,7 @@ class Suspension():
             wheel_speeds = np.append(wheel_speeds, [wheel_speed])
 
             ### ~~~ Suspension Tube Force Calculation ~~~ ###
-            tube_forces = [float(x) for x in self.get_tube_forces(tire, tire_forces * np.array([1, -tire.direction_left, 1]))]
+            tube_forces = [float(x) for x in self.get_tube_forces(tire, tire_forces * np.array([1, -tire.is_left_tire, 1]))]
 
             ### ~~~ Logging Useful Information ~~~ ###
             self.logger.log(tire_name + "_tire_inclination_angle", inclination_angle)
@@ -72,8 +71,7 @@ class Suspension():
             self.logger.log(tire_name + "_toe_link_force", tube_forces[5])
 
         return veh_forces, veh_moments, wheel_speeds, tire_torques
-
-          
+ 
     def __get_inclination_angle(self, tire_name:str, tire:Tire, steered_angle:float,
                                 roll:float, heave:float, pitch:float):
         # TODO: what the fuck does the following mean lol
@@ -166,8 +164,8 @@ class Suspension():
         ### ~~~ Roll Contribution ~~~ ###
         # TODO: do about roll center
         # TODO: for the tire & spring conversion to roll stiffness, assuming L & R have same stiffness here; seems like an issue
-        tire_contribution = tire_stiffness * tire.trackwidth ** 2 / 2 * (1 if tire.direction_left else -1)
-        spring_contribution = wheelrate * tire.trackwidth ** 2 / 2 * (1 if tire.direction_left else -1)
+        tire_contribution = tire_stiffness * tire.trackwidth ** 2 / 2 * (1 if tire.is_left_tire else -1)
+        spring_contribution = wheelrate * tire.trackwidth ** 2 / 2 * (1 if tire.is_left_tire else -1)
         arb_contribution = tire.arb_stiffness
 
 
@@ -214,7 +212,6 @@ class Suspension():
         tube_forces = np.linalg.solve(arr_coeff, b)
 
         return tube_forces
-
 
     @property
     def avg_front_roll_stiffness(self):

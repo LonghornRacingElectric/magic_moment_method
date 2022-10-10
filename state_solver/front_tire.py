@@ -1,5 +1,5 @@
-from ..state_solver.tire import Tire
 import numpy as np
+from ..state_solver.tire import Tire
 
 class FrontTire(Tire):
     def __init__(self, car_params, is_left_tire):
@@ -10,7 +10,7 @@ class FrontTire(Tire):
 
     @property
     def toe(self): # rad
-        return self.params.front_toe * (1 if self.direction_left else -1) # TODO: verify this
+        return self.params.front_toe * (1 if self.is_left_tire else -1) # TODO: verify this
 
     @property
     def tire_coeffs(self):
@@ -26,7 +26,7 @@ class FrontTire(Tire):
 
     @property
     def arb_stiffness(self): # Nm / rad
-        return self.params.front_arb_stiffness * (1 if self.direction_left else -1)
+        return self.params.front_arb_stiffness * (1 if self.is_left_tire else -1)
 
     # NOTE: Explanation of motion ratios & wheelrates: https://en.wikipedia.org/wiki/Motion_ratio
     @property
@@ -55,13 +55,13 @@ class FrontTire(Tire):
 
     @property
     def position(self): # [m, m, m]
-        y_pos = self.trackwidth/2 * (1 if self.direction_left else -1)
+        y_pos = self.trackwidth/2 * (1 if self.is_left_tire else -1)
         return [self.params.wheelbase * self.params.cg_bias, y_pos, 0]
     
     # input steered angle is in intermediate frame
     def steered_inclination_angle_gain(self, steered_angle):
         # convert steered angle to tire frame
-        steered_angle = steered_angle * (1 if self.direction_left else -1)
+        steered_angle = steered_angle * (1 if self.is_left_tire else -1)
         
         # steer_inc = - tire.caster * delta + (1 / 2) * tire.KPI * np.sign(delta) * (delta ** 2)
         steer_inc = np.arccos(np.sin(self.KPI) * np.cos(steered_angle)) + self.KPI + \
@@ -78,4 +78,4 @@ class FrontTire(Tire):
         return self.params.front_tire_radius
 
     def get_slip_ratio(self, slip_ratios):
-        return slip_ratios[0] if self.direction_left else slip_ratios[1]
+        return slip_ratios[0] if self.is_left_tire else slip_ratios[1]
