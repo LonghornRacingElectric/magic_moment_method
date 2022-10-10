@@ -1,66 +1,42 @@
 import numpy as np
 import pandas as pd
-import engine
-import vehicle_params
+import itertools
 import multiprocessing
-import time
-
-solver = engine.Solver(vehicle_params.EasyDriver())
+from tqdm import tqdm
+from time import perf_counter
+import sys
+sys.path.append("..")
+import magic_moment_method.vehicle_params as vehicle_params
+import magic_moment_method.state_solver as state_solver
 
 def main():
     ### ~~~ SWEEP PARAMETERS FOR MMM ~~~ ###
     # NOTE: any parameter in the vehicle_params file can be swept as well
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
-    refinement = 21
+    # NOTE: if refinement is even you may see weird plots in the plotter jupyter notebook
+    refinement = 7
 
-    s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
-    body_slip_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
+    s_dot_sweep = [12] # velocity sweep in path tangential direction (total velocity)
+    body_slip_sweep = np.linspace(-10 * np.pi / 180, 10 * np.pi / 180, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
-    
-    state_sweep = []
-    for s_dot in s_dot_sweep:
-        for body_slip in body_slip_sweep:
-            for steered_angle in steered_angle_sweep:
-                state_sweep.append(engine.State(body_slip, steered_angle, s_dot))
-
+    torque_request = np.linspace(-1, 1, refinement)
+    is_left_diff_bias = [True, False]
 
     ### ~~~ MULTIPROCESSING BELOW ~~~ ###
-    # NOTE: Right now this actually makes it slower on most computers, cloud computing time??
-    multiprocessing_flag = False
-    
-    if multiprocessing_flag:
-        manager = multiprocessing.Manager()
-        return_list = manager.list()
-        jobs = []
-        for state in state_sweep:
-            p = multiprocessing.Process(target=solver_mod, args=(state.values(), return_list))
-            jobs.append(p)
-            p.start()
-            while len(jobs) - len(return_list) > 2:
-                time.sleep(0.001)
-            print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
-
-        for proc in jobs:
-            proc.join()
-
-    else:
-        return_list = []
-        for state in state_sweep:
-            return_list.append(solver.solve(state))
-            print(f"{int(len(return_list)/len(state_sweep)*100)}% complete")
+    t1 = perf_counter()
+    p = multiprocessing.Pool(multiprocessing.cpu_count())
+    states_product = itertools.product(body_slip_sweep, steered_angle_sweep, s_dot_sweep, torque_request, is_left_diff_bias)
+    return_list = tqdm(p.imap(solve_state, states_product))
+    p.close()
 
     ### ~~~ EXPORT MMM RESULTS ~~~ ###
-    log_df = pd.DataFrame()
-    for x in return_list:
-        log_df = pd.concat([log_df, pd.DataFrame([x])], ignore_index=True)
-
+    log_df = pd.DataFrame.from_records(filter(None, return_list))
     log_df.to_csv("analysis/MMM.csv")
-    print("\nExport successful to CSV, MMM complete!")
+    print(f"Sweep completed in {int(perf_counter() - t1)} seconds, exported to CSV")
 
-def solver_mod(state_list, return_list):
-    x = solver.solve(engine.State(*state_list))
-    return_list.append(x)
+def solve_state(inputs):
+    return state_solver.Solver(vehicle_params.EasyDriver()).solve(state_solver.State(*inputs))
 
 if __name__ == "__main__":
     main()

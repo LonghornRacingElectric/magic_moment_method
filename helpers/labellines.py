@@ -9,7 +9,7 @@ def labelLine(line,x,label=None,align=True,**kwargs):
     ydata = line.get_ydata()
 
     if (x < xdata[0]) or (x > xdata[-1]):
-        print('x label location is outside data range!')
+        #print('x label location is outside data range!')
         return
 
     #Find corresponding y co-ordinate and angle of the line

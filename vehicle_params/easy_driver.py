@@ -1,9 +1,8 @@
 import math
 import numpy as np
-from vehicle_params import BaseVehicle
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class EasyDriver():
+class EasyDriver:
     def __init__(self):
         #super().__init__()
 
@@ -119,10 +118,13 @@ class EasyDriver():
         
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
-        self.front_tire_coeff_Fy = [3.493e-01, -1.146e-03, 8.760, 7.303e+02, 1.745e+03, 1.387e-02, -2.768e-04, 1.020, 1.582e-04, 1.494e-01, 
-                        -1.595e-01, 3.286e-02, 9.153, 1.406e-05, 3.275e-02, 3.621e-03, -1.425e-02, -1.164e-02]
-        self.rear_tire_coeff_Fy = [2.667e-02, 6.558e-04, 1.269e+02, 8.243e+02, 1.682e+03, 5.359e-02, -1.441e-04,
-                        1.014, 2.195e-04, 4.031e-02, -1.645e-01, 7.128e-02, 1.925e+01, 4.833e-05, 7.174e-02, 5.665e-03, -1.739e-03, -1.065e-02]
+        self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
+
+        self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
+
+        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 0, 0, 0, 0, 0, 0, 0, 0.005249, 0.0508, -0.1956]
+
+        self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
         
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
@@ -145,6 +147,33 @@ class EasyDriver():
         self.CsA_tot = 33.91
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+
+
+
+        ### differential & braking params ###
+
+        self.motor_radius = 1
+        self.diff_radius = 4
+        self.front_tire_radius = 8 * .0254
+        self.rear_tire_radius = 9 * .0254
+        self.motor_inertia = 0.1
+        self.diff_inertia = 0.1
+        self.motor_damping = 0.1
+        self.diff_damping = 0.1
+        self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1])
+        self.driveline_damping = np.array([0.1, 0.1, 0.1, 0.1])
+        self.diff_efficiency = 1
+        self.max_pedal_force = 150
+        self.pedal_ratio = 3
+        self.master_cylinder_area = 0.2
+        self.brake_bias_ratio = 0.67 # Percent of front
+        self.rotor_radius = [0.3 * 7, 0.2 * 9]
+        self.calipers_area = [0.2, 0.2]
+        self.brake_pad_mu = [0.55, 0.55]
+        self.diff_fl = 0.607
+        self.diff_preload = 5.2
+        self.max_torque = 230 # Nm
+
 
     @property
     def cg_weighted_track(self): # m

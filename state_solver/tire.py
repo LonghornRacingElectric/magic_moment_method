@@ -1,15 +1,15 @@
 from abc import abstractmethod, abstractproperty
 import math
 import numpy as np
-from scipy.optimize import fmin
+import warnings
 
 class Tire:
     def __init__(self, car_params, is_left_tire):
         self.params = car_params
-        self.direction_left = is_left_tire # boolean
+        self.is_left_tire = is_left_tire # boolean
 
     def roll_inclination_angle_gain(self, roll):
-        mod_roll = - roll if self.direction_left else roll
+        mod_roll = - roll if self.is_left_tire else roll
         return mod_roll - (mod_roll * self.camber_gain)
     
     @abstractmethod
@@ -32,16 +32,17 @@ class Tire:
     # https://www.edy.es/dev/docs/pacejka-94-parameters-explained-a-comprehensive-guide/
     # NOTE - ATM inclination angle and slip angle will be converted to ~~DEGREES~~ inside here
     def lateral_pacejka(self, inclination_angle:float, normal_force:float, slip_angle:float):
-        if normal_force <= 0:
-            return 0
         # NOTE: 1/-1 multiplier on slip_degrees is done for any non-symmetries in fit
-        multiplier =  -1 if self.direction_left else 1
+        if normal_force == 0:
+            return 0
+        multiplier = -1 if self.is_left_tire else 1
         slip_degrees = slip_angle * 180 / math.pi * multiplier # degrees
         inclination_degrees = inclination_angle * 180 / math.pi # degrees
         
         [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17] = self.lateral_coeffs
         C = a0
         D = normal_force * (a1 * normal_force + a2) * (1 - a15 * inclination_degrees ** 2)
+
         BCD = a3 * math.sin(math.atan(normal_force / a4) * 2) * (1 - a5 * abs(inclination_degrees))
         B = BCD / (C * D)
 
@@ -54,19 +55,68 @@ class Tire:
         test_condition_multiplier = 2/3
         return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
 
-    # def long_pacejka(self, inclination_angle, normal_force, slip_ratio):
-    #     # [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17] = self.pacejka_fit.Fx_coefficients
-    #     # C = b0;
-    #     # D = Fz*(b1*Fz+b2)
-    #     # BCD = (b3**Fz+b4*Fz)*math.exp(-b5*Fz)
-    #     # B = BCD/(C*D)
-    #     # H = b9*Fz+b10
-    #     # E = (b6**Fz+b7*Fz+b8)*(1-b13*math.sign(slip_ratio+H))
-    #     # V = b11*Fz+b12
-    #     # Bx1 = B*(slip_ratio+H)
+    warnings.filterwarnings("error")
+    def longitudinal_pacejka(self, normal_force:float, SR:float):
+        if normal_force <= 0:
+            return 0
+        try:
+            SR = SR * 100
+            FZ = normal_force / 1000
+            [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = self.longitudinal_coeffs
+            C = b0
+            D = FZ * (b1 * FZ + b2)
 
-    #     # return D*math.sin(C*math.atan(Bx1-E*(Bx1-math.atan(Bx1)))) + V
-    #     return 0
+            BCD = (b3 * FZ**2 + b4 * FZ) * np.exp(-1 * b5 * FZ)
+
+            B = BCD / (C * D)
+
+            H = b9 * FZ + b10
+
+            E = (b6 * FZ**2 + b7 * FZ + b8) * (1 - b13 * np.sign(SR + H))
+
+            V = b11 * FZ + b12
+            Bx1 = B * (SR + H)
+            
+            test_condition_multiplier = 2/3
+            return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+        except:
+            return 0
+        
+    # Long and lat formulas from Comstock
+    def com_lat(self, SA, SR, FX, FY, Cs):
+        if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
+            return abs(FY) * -1 if SA < 0 else abs(FY)
+        else:
+            try:
+                calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
+                return abs(calc) * -1 if SA < 0 else abs(calc)
+            except:
+                return abs(FY) * -1 if SA < 0 else abs(FY)
+        
+    def com_long(self, SA, SR, FX, FY, Ca):
+        if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
+            return abs(FX) * -1 if SR < 0 else abs(FX)
+        else:
+            try:
+                calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR**2 * Ca**2 + (1 - SR)**2 * (np.cos(SA))**2 * FX**2) / Ca)
+                return abs(calc) * -1 if SR < 0 else abs(calc)
+            except:
+                return abs(FX) * -1 if SR < 0 else abs(FX)
+                
+    # Full comstock calculations
+    def get_comstock_forces(self, SR, SA, FZ, IA):
+        if FZ <= 0.0:
+            return np.array([0, 0, 0])
+        else:
+            FX = self.longitudinal_pacejka(FZ, SR)
+            FY = self.lateral_pacejka(IA, FZ, SA)
+
+            Ca = (self.longitudinal_pacejka(FZ, 0.005) - self.longitudinal_pacejka(FZ, -0.005)) / (.01)
+            Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
+            FY_adj = self.com_lat(SA, SR, FX, FY, Cs) 
+            FX_adj = self.com_long(SA, SR, FX, FY, Ca)
+            
+            return np.array([FX_adj, FY_adj, FZ])
 
     # sees how much force is being lost if inclination angle was optimal (0 based on initial TTC data)
     def lateral_loss(self, normal_force:float, slip_angle:float, inclination_angle:float):
@@ -111,6 +161,10 @@ class Tire:
     @abstractproperty
     def lateral_coeffs(self):
         pass
+    
+    @abstractproperty
+    def longitudinal_coeffs(self):
+        pass
 
     @abstractproperty
     def KPI(self):
@@ -138,4 +192,12 @@ class Tire:
 
     @abstractproperty
     def tube_geometry(self):
+        pass
+
+    @abstractproperty
+    def radius(self):
+        pass
+
+    @abstractmethod
+    def get_slip_ratio(self, slip_ratios):
         pass
