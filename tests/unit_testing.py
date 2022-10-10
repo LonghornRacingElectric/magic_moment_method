@@ -39,7 +39,7 @@ def test_josie_solver(s_dot, steered_angle, body_slip, torque_request, is_left_d
                 pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]}")
             continue
         elif abs(o_d[key] - value) > 0.01:
-            pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]}")
+            pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]} for {key}")
     return True
 
 def generate_test_MMM():
