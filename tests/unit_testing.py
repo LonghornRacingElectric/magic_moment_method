@@ -11,8 +11,8 @@ import magic_moment_method.vehicle_params as vehicle_params
 import magic_moment_method.state_solver as state_solver
 
 s_dot_sweep = [15]
-steering_sweep = [-0.07, 0, 0.07]
-body_sweep = [-0.07, 0, 0.07]
+steering_sweep = [-0.05, 0.05]
+body_sweep = [-0.03, 0.03]
 torque_sweep = [0]
 differential_bias_sweep = [True]
 reference_file = "tests/test_MMM.csv"
