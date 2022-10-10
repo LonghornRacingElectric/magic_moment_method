@@ -8,7 +8,7 @@ import magic_moment_method.state_solver as state_solver
 
 
 x = state_solver.Solver(vehicle_params.EasyDriver())
-result = x.solve(state_solver.State(0 * np.pi / 180, 0 * np.pi/180, 15, -0.6, False)) # body_slip, steered_angle, s_dot, torque_request, is_left_bias
+result = x.solve(state_solver.State(1 * np.pi / 180, 0 * np.pi/180, 29, 0, False)) # body_slip, steered_angle, s_dot, torque_request, is_left_bias
 tires = ["front_left","front_right", "rear_left", "rear_right"]
 slip_ratios = np.linspace(-1, 1, 100)
 fig, axs = plt.subplots(2,2,figsize=(16, 6), dpi=80)
@@ -31,6 +31,7 @@ for index, tire in enumerate(tires):
         long_paj = [x.vehicle.suspension._Suspension__tires.rear_left.longitudinal_pacejka(normal_force, slip) for slip in slip_ratios]
         lat_paj = [x.vehicle.suspension._Suspension__tires.rear_left.lateral_pacejka(0, normal_force, slip) for slip in slip_ratios]
     #axs_i.plot(slip_ratios, comstock_output)
+    print(x.vehicle.suspension._Suspension__tires.rear_left.longitudinal_pacejka(normal_force, .037))
     axs_i.plot(slip_ratios, long_paj)
     #axs_i.plot(slip_ratios, lat_paj)
     axs_i.scatter(slip_ratio, long_force)
@@ -47,6 +48,7 @@ for index, tire in enumerate(tires):
     #print(long_force)
 print(result["vehicle_accelerations_NTB_0"])
 print(result["vehicle_vehicle_forces_ntb_2"])
+print(result["aero_forces_0"])
 plt.show()
 
 
