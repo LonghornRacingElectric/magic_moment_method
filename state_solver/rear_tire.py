@@ -1,4 +1,4 @@
-from engine.tire import Tire
+from ..state_solver.tire import Tire
 
 class RearTire(Tire):
     def __init__(self, car_params, is_left_tire):
@@ -10,7 +10,7 @@ class RearTire(Tire):
 
     @property
     def toe(self):
-        return self.params.rear_toe * (1 if self.direction_left else -1) #TODO : verify this
+        return self.params.rear_toe * (1 if self.is_left_tire else -1) #TODO : verify this
 
     @property
     def tire_coeffs(self):
@@ -19,10 +19,14 @@ class RearTire(Tire):
     @property
     def lateral_coeffs(self):
         return self.params.rear_tire_coeff_Fy
+    
+    @property
+    def longitudinal_coeffs(self):
+        return self.params.rear_tire_coeff_Fx
 
     @property
     def arb_stiffness(self): # Nm / rad
-        return self.params.rear_arb_stiffness * (1 if self.direction_left else -1)
+        return self.params.rear_arb_stiffness * (1 if self.is_left_tire else -1)
 
     # NOTE: Explanation of motion ratios & wheelrates: https://en.wikipedia.org/wiki/Motion_ratio
     @property
@@ -51,7 +55,7 @@ class RearTire(Tire):
 
     @property
     def position(self): # [m, m, m]
-        y_pos = self.trackwidth/2 * (1 if self.direction_left else -1)
+        y_pos = self.trackwidth/2 * (1 if self.is_left_tire else -1)
         return [-self.params.wheelbase * (1 - self.params.cg_bias), y_pos, 0]
     
     # TODO: implement, toe gain near 0 right now though
@@ -61,3 +65,10 @@ class RearTire(Tire):
     @property
     def tube_geometry(self):
         return self.params.rear_tube_normals, self.params.rear_lever_arms
+
+    @property
+    def radius(self):
+        return self.params.rear_tire_radius
+
+    def get_slip_ratio(self, slip_ratios):
+        return slip_ratios[2] if self.is_left_tire else slip_ratios[3]

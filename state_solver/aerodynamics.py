@@ -1,13 +1,11 @@
 import numpy as np
-import engine
-import vehicle_params
-
+from ..state_solver.logger import Logger
 
 class Aerodynamics:
     """
     Handles aerodynamic vehicle forces
     """
-    def __init__(self, params:vehicle_params.BaseVehicle, logger:engine.Logger):
+    def __init__(self, params, logger:Logger):
         self.logger = logger
         self.vehicle_params = params
 
