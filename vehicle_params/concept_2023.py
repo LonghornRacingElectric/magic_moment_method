@@ -18,6 +18,7 @@ class Concept2023:
         self.front_track = 48 * (0.0254) # m
         self.rear_track = 46 * (0.0254) # m
         self.max_vel = 57 * (0.44704) # m/s
+        self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
         
         self.mass_unsprung_front = 23  * (0.4359)  # kg
         self.mass_unsprung_rear = 22 * (0.4359) # kg
@@ -25,8 +26,6 @@ class Concept2023:
         self.mass_sprung = 552 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
         # TODO: temp
-        self.temp_lateral_max = 1.7
-        self.temp_accel_max = 1.2
         self.temp_deccel_max = 1.5
 
         ### suspension params ###
