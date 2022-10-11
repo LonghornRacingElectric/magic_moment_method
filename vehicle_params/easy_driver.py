@@ -145,7 +145,7 @@ class EasyDriver():
         self.CsA_tot = 5.673
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
-        self.CsA0 = 8.43
+        self.CsA0 = 8.43 # sideforce coefficent from non aero components
 
         # distribution of downforce across components
         self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
