@@ -32,7 +32,10 @@ class Solver:
         # NOTE: Sometimes adjusting heave improves convergence after first guess fails
         guesses_allowed = 1
         for i in range(guesses_allowed):
-            results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
+            try:
+                results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
+            except:
+                return None
             if results[2] == 1:
                 # if i != 0:
                 #     print("Solution converged after changing initial guess")
@@ -79,7 +82,6 @@ class Solver:
 
         vehicle_forces_ntb = self.vehicle.intermediate_frame_to_ntb_transform(forces)
         vehicle_moments_ntb = self.vehicle.intermediate_frame_to_ntb_transform(moments)
-
 
         # TODO: CoG movements due to roll / pitch / heave not captured
         """ 
