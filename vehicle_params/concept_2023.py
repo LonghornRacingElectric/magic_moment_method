@@ -25,9 +25,6 @@ class Concept2023:
         self.driver_mass = 150 * (0.4359) # kg
         self.mass_sprung = 552 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
-        # TODO: temp
-        self.temp_deccel_max = 1.5
-
         ### suspension params ###
         
         # ~~~ Stiffnesses ~~~ #
