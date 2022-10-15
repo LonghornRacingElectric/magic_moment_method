@@ -173,6 +173,7 @@ class EasyDriver:
         self.diff_fl = 0.607
         self.diff_preload = 5.2
         self.max_torque = 230 # Nm
+        self.inverter_efficiency = 0.97
 
 
     @property

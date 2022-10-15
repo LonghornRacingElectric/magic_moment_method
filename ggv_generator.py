@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 import itertools
@@ -32,7 +34,15 @@ def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
                  & (filt_df[f"{tire}_tire_tire_centric_forces_2"] > 1) & (filt_df[f"{tire}_tire_tire_centric_forces_2"] < 4000)]
     # Filter if power limit hit
     # TOD mapping
+    motor = state_solver.Motor("engine/magic_moment_method/vehicle_params/Eff228.csv")
+
+    # (motor.power_input(filt_df["motor_torque"], filt_df["motor_angular_velocity"]))
+    filt_df['power_input'] = filt_df.apply(lambda x: motor.power_input(x['motor_torque'], x['motor_angular_velocity']),
+                                           axis=1)
     filt_df = filt_df[filt_df["motor_angular_velocity"] * filt_df["motor_torque"] < 77000]
+
+    print()
+    print(filt_df[['motor_angular_velocity', 'motor_torque','power_input']])
 
     # 80 kW = P = W / t = F * d/t = F * v = T * w = (230 * 3.85) *
     # P
