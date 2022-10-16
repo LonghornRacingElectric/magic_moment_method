@@ -9,7 +9,7 @@ from . import state_solver
 
 def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
 
-    s_dot_sweep = [15] #np.linspace(sweep_ranges["velocity"][0], sweep_ranges["velocity"][1], mesh)
+    s_dot_sweep = np.linspace(sweep_ranges["velocity"][0], sweep_ranges["velocity"][1], mesh)
     body_slip_sweep = np.linspace(sweep_ranges["body_slip"][0], sweep_ranges["body_slip"][1], mesh)
     steered_angle_sweep = np.linspace(sweep_ranges["steered_angle"][0], sweep_ranges["steered_angle"][1], mesh)
     torque_request = np.linspace(sweep_ranges["torque_request"][0], sweep_ranges["torque_request"][1], mesh)
@@ -26,24 +26,30 @@ def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
 
     ### ~~~ FILTERING ~~~ ###
     tires = ["front_left", "front_right", "rear_left", "rear_right"]
-    filt_df = df[(df["roll"]*180/np.pi < 3) & (df["yaw_acceleration"] < 100)]
+    filt_df = df[(df["roll"]*180/np.pi < 5) & (df["yaw_acceleration"] < 200) & (df["motor_angular_velocity"] < vehicle_params.max_motor_speed)]
     for tire in tires:
         filt_df = filt_df[(filt_df[f"{tire}_tire_is_saturated"] == False)
                  & (filt_df[f"{tire}_tire_tire_centric_forces_2"] > 1) & (filt_df[f"{tire}_tire_tire_centric_forces_2"] < 4000)]
+    # Filter if power limit hit
+    # TOD mapping
+    filt_df = filt_df[filt_df["motor_angular_velocity"] * filt_df["motor_torque"] < 77000]
 
-    # ### ~~~ CONVEX HULL ~~~ ###
-    # hull_df = pd.DataFrame()
-    # for vel in filt_df["s_dot"].unique():
-    #     vel_df = filt_df[filt_df["s_dot"] == vel]
-    #     accel_df = vel_df[["vehicle_accelerations_NTB_1","vehicle_accelerations_NTB_0"]]
-    #     if len(accel_df.index) > 2:
-    #         print(accel_df)
-    #         hull_index = ConvexHull(accel_df).vertices
-    #     else:
-    #         hull_index = accel_df.index
-    #     hull_df = pd.concat(hull_df, vel_df.iloc[hull_index])
+    # 80 kW = P = W / t = F * d/t = F * v = T * w = (230 * 3.85) *
+    # P
+    # P = I * V = (T / Kt) * V
 
-    return filt_df, df
+    ### ~~~ CONVEX HULL ~~~ ###
+    hull_df = pd.DataFrame()
+    for vel in filt_df["s_dot"].unique():
+        vel_df = filt_df[filt_df["s_dot"] == vel].reset_index()
+        accel_df = vel_df[["vehicle_accelerations_NTB_1","vehicle_accelerations_NTB_0"]]
+        try:
+            hull_index = ConvexHull(accel_df).vertices
+        except:
+            hull_index = accel_df.index
+        hull_df = pd.concat([hull_df, vel_df.loc[hull_index]], axis = 0)
+
+    return hull_df
 
 def solve_wrapper(inputs):
     vehicle, *state_inputs = inputs
