@@ -6,13 +6,17 @@ class Motor:
         self.map = pd.read_csv(path)
 
 
-    def power_input(self, torque, w, angular_velocity = True):
+
+
+
+    def power_input(self, torque, w, angular_velocity = True, efficiency_output = False):
         """
 
         :param map: csv map for torque vs rpm
         :param torque: torque input
         :param w: angular velocity input
         :param angular_velocity: set to false if input for w is in units of RPM instead of angular velocity
+        :param efficiency_output: if true, return motor efficiency, otherwise return power_input
         :return: power input given torque and angular velocity input; solves for ineffiency through map
         """
         torqueprox = round(torque)
@@ -22,7 +26,10 @@ class Motor:
             rpmprox = round(w)
             w = rpmprox*(2*math.pi)/60
         efficiency = self.map.iat[torqueprox, rpmprox]
-        return torque * w / efficiency
+        if efficiency_output:
+            return efficiency
+        else:
+            return torque * w / efficiency
 
 # m = Motor()
 # #

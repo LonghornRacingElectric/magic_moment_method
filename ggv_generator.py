@@ -39,10 +39,18 @@ def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
     # (motor.power_input(filt_df["motor_torque"], filt_df["motor_angular_velocity"]))
     filt_df['power_input'] = filt_df.apply(lambda x: motor.power_input(x['motor_torque'], x['motor_angular_velocity']),
                                            axis=1)
-    filt_df = filt_df[filt_df["motor_angular_velocity"] * filt_df["motor_torque"] < 77000]
+    filt_df['motor_efficiency'] = filt_df.apply(lambda x: motor.power_input(x['motor_torque'], x['motor_angular_velocity'], efficiency_output=True),
+                                           axis=1)
+    filt_df = filt_df[filt_df["power_input"] < 80000]
+    filt_df['current'] = filt_df['motor_torque'] / (220 / 350)
+    filt_df['voltage'] = filt_df['power_input'] / filt_df['current']
+
+
+
+
 
     print()
-    print(filt_df[['motor_angular_velocity', 'motor_torque','power_input']])
+    print(filt_df[['motor_angular_velocity', 'motor_torque','power_input','motor_efficiency', 'current', 'voltage']])
 
     # 80 kW = P = W / t = F * d/t = F * v = T * w = (230 * 3.85) *
     # P
