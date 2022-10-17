@@ -133,22 +133,37 @@ class Concept2023:
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         
-        #TODO: implement accel/braking corner & fitting
-        #self.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        #self.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        
-        
-        
         ### aerodynamics params ###
-        
-        self.air_temperature = 27 # Celsius
+        self.air_temperature = 33.8889 # Celsius
         self.ClA_tot = 4.384
         self.CdA_tot = 1.028
-        self.CsA_tot = 33.91
+        self.CsA_tot = 5.673
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+        self.CsA0 = 8.43 # sideforce coefficent from non aero components
+
+        # distribution of downforce across components
+        self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
+        self.CdA_dist = np.array([0.425, 0.178, 0.396])
+        self.CsA_dist = np.array([0.666, 0.000, 0.333])
+
+        # TODO: Update undertray bodyslip and roll sensitivities
+        # pitch, body_slip, and roll sensitivities,
+        #                           Cl              Cd               Cs
+        self.p_sens	=   np.array([[[ -15.7,  -10.6], [ -7.5,  -12.5], [0,0]],   # front [pos, neg] -> [%/deg]
+                                  [[  7.39,  -7.19], [ 10.1, -15.15], [0,0]],   # undertray
+                                  [[ -0.72,  -4.06], [ 2.02,  -5.94], [0,0]]])  # rear
+
+         #                          front               undertray           rear
+        self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
 
 
+        # positions of component CoPs from vehicle origin CAD
+        # Front, Undertray and Rear [x , y , z] (Inches)
+        self.CoP = np.array([[23.65,  0, 9.30],
+                             [-43.5,  0, 7.13],
+                             [-67.6,  0, 42.91]]) * (0.0254) # convert to m
 
         ### differential & braking params ###
 

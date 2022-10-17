@@ -135,14 +135,7 @@ class EasyDriver:
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
-        #TODO: implement accel/braking corner & fitting
-        #self.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        #self.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-
-
         ### aerodynamics params ###
-
         self.air_temperature = 33.8889 # Celsius
         self.ClA_tot = 4.384
         self.CdA_tot = 1.028
@@ -173,7 +166,6 @@ class EasyDriver:
         self.CoP = np.array([[23.65,  0, 9.30],
                              [-43.5,  0, 7.13],
                              [-67.6,  0, 42.91]]) * (0.0254) # convert to m
-
 
 
         ### differential & braking params ###

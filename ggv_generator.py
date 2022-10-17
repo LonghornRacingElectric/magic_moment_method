@@ -32,29 +32,17 @@ def ggv_generator(vehicle_params, sweep_ranges:dict, mesh:int):
     for tire in tires:
         filt_df = filt_df[(filt_df[f"{tire}_tire_is_saturated"] == False)
                  & (filt_df[f"{tire}_tire_tire_centric_forces_2"] > 1) & (filt_df[f"{tire}_tire_tire_centric_forces_2"] < 4000)]
+    
     # Filter if power limit hit
-    # TOD mapping
     motor = state_solver.Motor("engine/magic_moment_method/vehicle_params/Eff228.csv")
 
-    # (motor.power_input(filt_df["motor_torque"], filt_df["motor_angular_velocity"]))
-    filt_df['power_input'] = filt_df.apply(lambda x: motor.power_input(x['motor_torque'], x['motor_angular_velocity']),
-                                           axis=1)
-    filt_df['motor_efficiency'] = filt_df.apply(lambda x: motor.power_input(x['motor_torque'], x['motor_angular_velocity'], efficiency_output=True),
-                                           axis=1)
+    filt_df[['power_input', 'motor_efficiency']] = filt_df.apply(lambda x: motor.power_input_and_efficiency(
+            x['motor_torque'], x['motor_angular_velocity']), axis=1, result_type="expand")
+    # filt_df['motor_efficiency'] = filt_df.apply(lambda x: motor.power_input(x['motor_torque'], x['motor_angular_velocity'], efficiency_output=True),
+    #                                        axis=1)
     filt_df = filt_df[filt_df["power_input"] < 80000]
-    filt_df['current'] = filt_df['motor_torque'] / (220 / 350)
-    filt_df['voltage'] = filt_df['power_input'] / filt_df['current']
-
-
-
-
-
-    print()
-    print(filt_df[['motor_angular_velocity', 'motor_torque','power_input','motor_efficiency', 'current', 'voltage']])
-
-    # 80 kW = P = W / t = F * d/t = F * v = T * w = (230 * 3.85) *
-    # P
-    # P = I * V = (T / Kt) * V
+    filt_df['motor_current'] = filt_df['motor_torque'] / (220 / 350) # TODO: move this to Motor
+    filt_df['motor_voltage'] = filt_df['power_input'] / filt_df['motor_current']
 
     ### ~~~ CONVEX HULL ~~~ ###
     hull_df = pd.DataFrame()
