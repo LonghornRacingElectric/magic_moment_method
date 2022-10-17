@@ -17,7 +17,9 @@ class EasyDriver:
         self.wheelbase = 65 * (0.0254) # m
         self.front_track = 48 * (0.0254) # m
         self.rear_track = 46 * (0.0254) # m
-        
+        self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
+        self.max_vel = 57 * (0.44704)  # m/s
+
         self.mass_unsprung_front = 23  * (0.4359)  # kg
         self.mass_unsprung_rear = 22 * (0.4359) # kg
         self.driver_mass = 150 * (0.4359) # kg
