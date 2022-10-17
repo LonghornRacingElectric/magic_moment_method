@@ -82,26 +82,44 @@ class Tire:
         except:
             return 0
         
+    # Zero protection
+    def zero_adj(self, SA, SR, IA, FZ, Cs, Ca, lat_long):
+        epsi = 1 / 1e64
+        SA_adj = SA + epsi
+        SR_adj = SR + epsi
+        FX_adj = self.longitudinal_pacejka(FZ, SR_adj)
+        FY_adj = self.lateral_pacejka(IA, FZ, SA_adj)
+        if lat_long == "lat":
+            calc = ((FX_adj * FY_adj) / np.sqrt(SR_adj**2 * FY_adj**2 + FX_adj**2 * (np.tan(SA_adj))**2)) * (np.sqrt((1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FY_adj**2 + (np.sin(SA_adj))**2 * Cs**2) / (Cs * np.cos(SA_adj)))
+            return calc
+        else:
+            calc = ((FX_adj * FY_adj) / np.sqrt(SR_adj**2 * FY_adj**2 + FX_adj**2 * (np.tan(SA_adj))**2)) * (np.sqrt(SR_adj**2 * Ca**2 + (1 - SR_adj)**2 * (np.cos(SA_adj))**2 * FX_adj**2) / Ca)
+            return calc
+
     # Long and lat formulas from Comstock
-    def com_lat(self, SA, SR, FX, FY, Cs):
+    def com_lat(self, SA, SR, FX, FY, IA, FZ, Cs):
         if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
-            return abs(FY) * -1 if SA < 0 else abs(FY)
+            calc = self.zero_adj(SA, SR, IA, FZ, Cs, 0, "lat")
+            return abs(calc) * -1 if SA < 0 else abs(calc)
         else:
             try:
                 calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt((1 - SR)**2 * (np.cos(SA))**2 * FY**2 + (np.sin(SA))**2 * Cs**2) / (Cs * np.cos(SA)))
                 return abs(calc) * -1 if SA < 0 else abs(calc)
             except:
-                return abs(FY) * -1 if SA < 0 else abs(FY)
+                calc = self.zero_adj(SA, SR, IA, FZ, Cs, 0, "lat")
+                return abs(calc) * -1 if SA < 0 else abs(calc)
         
-    def com_long(self, SA, SR, FX, FY, Ca):
+    def com_long(self, SA, SR, FX, FY, IA, FZ, Ca):
         if np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2) == 0:
-            return abs(FX) * -1 if SR < 0 else abs(FX)
+            calc = self.zero_adj(SA, SR, IA, FZ, 0, Ca, "long")
+            return abs(calc) * -1 if SA < 0 else calc
         else:
             try:
                 calc = ((FX * FY) / np.sqrt(SR**2 * FY**2 + FX**2 * (np.tan(SA))**2)) * (np.sqrt(SR**2 * Ca**2 + (1 - SR)**2 * (np.cos(SA))**2 * FX**2) / Ca)
                 return abs(calc) * -1 if SR < 0 else abs(calc)
             except:
-                return abs(FX) * -1 if SR < 0 else abs(FX)
+                calc = self.zero_adj(SA, SR, IA, FZ, 0, Ca, "long")
+                return abs(calc) * -1 if SA < 0 else calc
                 
     # Full comstock calculations
     def get_comstock_forces(self, SR, SA, FZ, IA):
@@ -113,8 +131,8 @@ class Tire:
 
             Ca = (self.longitudinal_pacejka(FZ, 0.005) - self.longitudinal_pacejka(FZ, -0.005)) / (.01)
             Cs = (self.lateral_pacejka(IA, FZ, 0.005) - self.lateral_pacejka(IA, FZ, -0.005)) / (.01)
-            FY_adj = self.com_lat(SA, SR, FX, FY, Cs) 
-            FX_adj = self.com_long(SA, SR, FX, FY, Ca)
+            FY_adj = self.com_lat(SA, SR, FX, FY, IA, FZ, Cs) 
+            FX_adj = self.com_long(SA, SR, FX, FY, IA, FZ, Ca)
             
             return np.array([FX_adj, FY_adj, FZ])
 
