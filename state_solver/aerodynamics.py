@@ -15,7 +15,8 @@ class Aerodynamics:
         self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
 
         # converts from CAD origin to IMF
-        # self.vehicle_params.CoP[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
+        self.vehicle_params.CoP_IMF = self.vehicle_params.CoP;
+        self.vehicle_params.CoP_IMF[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
 
 
     def get_loads(self, x_dot, body_slip, pitch, roll, heave):
@@ -69,9 +70,9 @@ class Aerodynamics:
         forces = np.array([-np.sum(Fd_part), np.sum(Fs_part), -np.sum(Fl_part)])
 
         # sum moments from front, undertray, and rear
-        moments = np.cross(self.vehicle_params.CoP[0], part_force.T[0]) \
-                + np.cross(self.vehicle_params.CoP[1], part_force.T[1]) \
-                + np.cross(self.vehicle_params.CoP[2], part_force.T[2])
+        moments = np.cross(self.vehicle_params.CoP_IMF[0], part_force.T[0]) \
+                + np.cross(self.vehicle_params.CoP_IMF[1], part_force.T[1]) \
+                + np.cross(self.vehicle_params.CoP_IMF[2], part_force.T[2])
 
 
         # account for drag and sideforce from rest of car
@@ -81,7 +82,10 @@ class Aerodynamics:
 
         self.logger.log("aero_forces", forces)
         self.logger.log("aero_moments", moments)
-
+        self.logger.log("CoP_front", self.vehicle_params.CoP[0])
+        self.logger.log("CoP_undertray", self.vehicle_params.CoP[1])
+        self.logger.log("CoP_rear", self.vehicle_params.CoP[2])
+        
         return forces, moments
 
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
