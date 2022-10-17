@@ -17,20 +17,13 @@ class Concept2023:
         self.wheelbase = 65 * (0.0254) # m
         self.front_track = 48 * (0.0254) # m
         self.rear_track = 46 * (0.0254) # m
+        self.max_vel = 57 * (0.44704) # m/s
+        self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
         
         self.mass_unsprung_front = 23  * (0.4359)  # kg
         self.mass_unsprung_rear = 22 * (0.4359) # kg
         self.driver_mass = 150 * (0.4359) # kg
         self.mass_sprung = 552 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
-        self.max_speed = 29 # m/s
-
-        ##### TEMP #####
-        self.temp_accel_max = 1.2
-        self.temp_deccel_max = 1.8
-        self.temp_lateral_max = 1.75
-        ####
-
-
 
         ### suspension params ###
         
@@ -125,15 +118,13 @@ class Concept2023:
         
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
-        self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0.000158, 0.149, 
-                        -0.1595, 0.0329, 9.153,  0.00001406, 0.0328, 0.00362, -0.0143, -0.0116]
+        self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
 
-        self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0.3977386758725586, 0, 0, 0, 0.10106424367287903]
+        self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
 
-        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382, -0.1171, 0.04597, 
-                        3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 0, 0, 0, 0, 0, 0, 0, 0.005249, 0.0508, -0.1956]
 
-        self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0.3977386758725586, 0, 0, 0, 0.10106424367287903]
+        self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
         
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
@@ -142,22 +133,37 @@ class Concept2023:
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         
-        #TODO: implement accel/braking corner & fitting
-        #self.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        #self.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        
-        
-        
         ### aerodynamics params ###
-        
-        self.air_temperature = 27 # Celsius
+        self.air_temperature = 33.8889 # Celsius
         self.ClA_tot = 4.384
         self.CdA_tot = 1.028
-        self.CsA_tot = 33.91
+        self.CsA_tot = 5.673
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+        self.CsA0 = 8.43 # sideforce coefficent from non aero components
+
+        # distribution of downforce across components
+        self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
+        self.CdA_dist = np.array([0.425, 0.178, 0.396])
+        self.CsA_dist = np.array([0.666, 0.000, 0.333])
+
+        # TODO: Update undertray bodyslip and roll sensitivities
+        # pitch, body_slip, and roll sensitivities,
+        #                           Cl              Cd               Cs
+        self.p_sens	=   np.array([[[ -15.7,  -10.6], [ -7.5,  -12.5], [0,0]],   # front [pos, neg] -> [%/deg]
+                                  [[  7.39,  -7.19], [ 10.1, -15.15], [0,0]],   # undertray
+                                  [[ -0.72,  -4.06], [ 2.02,  -5.94], [0,0]]])  # rear
+
+         #                          front               undertray           rear
+        self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
 
 
+        # positions of component CoPs from vehicle origin CAD
+        # Front, Undertray and Rear [x , y , z] (Inches)
+        self.CoP = np.array([[23.65,  0, 9.30],
+                             [-43.5,  0, 7.13],
+                             [-67.6,  0, 42.91]]) * (0.0254) # convert to m
 
         ### differential & braking params ###
 
@@ -182,6 +188,7 @@ class Concept2023:
         self.diff_fl = 0.607
         self.diff_preload = 5.2
         self.max_torque = 230 # Nm
+        self.inverter_efficiency = 0.97
 
 
     @property

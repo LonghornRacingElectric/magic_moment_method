@@ -32,6 +32,7 @@ def test_josie_solver(s_dot, steered_angle, body_slip, torque_request, is_left_d
         return True
 
     for key, value in e_d_filtered.items():
+        print(key,value)
         if "Unnamed" in str(key) or value is np.NaN or key == '0':
             continue
         elif type(value) in [np.bool_, bool]:

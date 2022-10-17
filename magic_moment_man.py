@@ -15,10 +15,10 @@ def main():
     # NOTE: guesstimation based from TTC on maximum tire saturation slip angle
     peak_slip_angle = 18 * np.pi / 180 # rad
     # NOTE: if refinement is even you may see weird plots in the plotter jupyter notebook
-    refinement = 7
+    refinement = 11
 
-    s_dot_sweep = [12] # velocity sweep in path tangential direction (total velocity)
-    body_slip_sweep = np.linspace(-10 * np.pi / 180, 10 * np.pi / 180, refinement)
+    s_dot_sweep = [15] # velocity sweep in path tangential direction (total velocity)
+    body_slip_sweep = np.linspace(-10 *np.pi / 180, 10 * np.pi / 180, refinement)
     steered_angle_sweep = np.linspace(-peak_slip_angle, peak_slip_angle, refinement)
     torque_request = np.linspace(-1, 1, refinement)
     is_left_diff_bias = [True, False]
