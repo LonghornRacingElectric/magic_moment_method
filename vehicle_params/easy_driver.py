@@ -7,7 +7,7 @@ class EasyDriver:
         #super().__init__()
 
         ### vehicle params ###
-        
+
         self.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2 # TODO is this correct? check solidworks
         self.gravity = 9.81 # m/s^2
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
@@ -28,21 +28,21 @@ class EasyDriver:
 
 
         ### suspension params ###
-        
+
         # ~~~ Stiffnesses ~~~ #
         self.front_spring_springrate = 550 * (4.448 / 0.0254) # N/m
         self.rear_spring_springrate = 650 * (4.448 / 0.0254) # N/m
         # TODO: make MRs not constant values (add nonlinear solver to this portion)
         self.front_motion_ratio = 1.92 # m/m
         self.rear_motion_ratio = 1.45 # m/m
-        self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618) 
+        self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618)
         # TODO: verify matches CAD right now
         # NOTE: not being used ATM, need to figure out how it applies to slip angle drag
-        
+
         # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
         self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
         self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
-        
+
         # ~~~ Linkages & HDPTs ~~~ #
         self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
         self.front_toe = 0 * (math.pi / 180) # rad # TODO: not correct to car
@@ -117,7 +117,7 @@ class EasyDriver:
         lengths = np.apply_along_axis(np.linalg.norm, 0, v_arr)
         self.rear_tube_normals = v_arr / lengths
         self.rear_lever_arms = pt_i_arr * 0.0254  # in to m
-        
+
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
         self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
@@ -130,25 +130,76 @@ class EasyDriver:
         
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
-        
+
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        
+
         #TODO: implement accel/braking corner & fitting
         #self.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        
-        
-        
+
+
+
         ### aerodynamics params ###
-        
-        self.air_temperature = 27 # Celsius
+
+        self.air_temperature = 33.8889 # Celsius
         self.ClA_tot = 4.384
         self.CdA_tot = 1.028
-        self.CsA_tot = 33.91
+        self.CsA_tot = 5.673
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
+        self.CsA0 = 8.43 # sideforce coefficent from non aero components
+
+        # distribution of downforce across components
+        self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
+        self.CdA_dist = np.array([0.425, 0.178, 0.396])
+        self.CsA_dist = np.array([0.666, 0.000, 0.333])
+
+        # TODO: Update undertray bodyslip and roll sensitivities
+        # pitch, body_slip, and roll sensitivities,
+        #                           Cl              Cd               Cs
+        self.p_sens	=   np.array([[[ -15.7,  -10.6], [ -7.5,  -12.5], [0,0]],   # front [pos, neg] -> [%/deg]
+                                  [[  7.39,  -7.19], [ 10.1, -15.15], [0,0]],   # undertray
+                                  [[ -0.72,  -4.06], [ 2.02,  -5.94], [0,0]]])  # rear
+
+         #                          front               undertray           rear
+        self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
+
+
+        # positions of component CoPs from vehicle origin CAD
+        # Front, Undertray and Rear [x , y , z] (Inches)
+        self.CoP = np.array([[23.65,  0, 9.30],
+                             [-43.5,  0, 7.13],
+                             [-67.6,  0, 42.91]]) * (0.0254) # convert to m
+
+
+
+        ### differential & braking params ###
+
+        self.motor_radius = 1
+        self.diff_radius = 4
+        self.front_tire_radius = 8 * .0254
+        self.rear_tire_radius = 9 * .0254
+        self.motor_inertia = 0.1
+        self.diff_inertia = 0.1
+        self.motor_damping = 0.1
+        self.diff_damping = 0.1
+        self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1])
+        self.driveline_damping = np.array([0.1, 0.1, 0.1, 0.1])
+        self.diff_efficiency = 1
+        self.max_pedal_force = 150
+        self.pedal_ratio = 3
+        self.master_cylinder_area = 0.2
+        self.brake_bias_ratio = 0.67 # Percent of front
+        self.rotor_radius = [0.3 * 7, 0.2 * 9]
+        self.calipers_area = [0.2, 0.2]
+        self.brake_pad_mu = [0.55, 0.55]
+        self.diff_fl = 0.607
+        self.diff_preload = 5.2
+        self.max_torque = 230 # Nm
+
 
 
 
@@ -185,7 +236,7 @@ class EasyDriver:
     @property
     def cg_total_position(self): # m
         return np.array([self.cg_bias * self.wheelbase, (self.cg_left - 0.5) * self.cg_weighted_track, self.cg_height])
-    
+
     @property
     def mass(self): # kg
         return self.mass_sprung + 2 * self.mass_unsprung_front + 2 * self.mass_unsprung_rear
