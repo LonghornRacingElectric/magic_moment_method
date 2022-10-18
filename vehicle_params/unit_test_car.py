@@ -1,9 +1,10 @@
 import math
 import numpy as np
+import pandas as pd
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
 class UnitTestCar:
-    def __init__(self):
+    def __init__(self, motor_directory):
         #super().__init__()
 
         ### vehicle params ###
@@ -201,6 +202,8 @@ class UnitTestCar:
         self.diff_fl = 0.607
         self.diff_preload = 5.2
         self.max_torque = 230 # Nm
+        self.power_limit = 80000 # kW
+        self.motor_map = pd.read_csv(motor_directory)
 
 
     @property
