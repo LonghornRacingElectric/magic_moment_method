@@ -41,7 +41,7 @@ class Solver:
                 #     print("Solution converged after changing initial guess")
                 # else:
                 #     print("Solution converged on first guess!")
-                return copy(self.vehicle.logger.return_log())
+                break
             elif results[2] != 1:
                 if i == (guesses_allowed -1 ):
                     #print(f"Solution convergence not found after {guesses_allowed} guesses for state: {input_state.body_slip} {input_state.s_dot} {input_state.steered_angle}")
@@ -49,6 +49,19 @@ class Solver:
                     return None
                 # increment heave to improve convergence
                 initial_guess[0] += 0.0008
+
+        # if solution converged, FILTER OUT BAD POINTS
+        output = copy(self.vehicle.logger.return_log())
+        if output["roll"] > 180/np.pi * 10 or output["yaw_acceleration"] > 200 or output["motor_angular_velocity"] > self.vehicle.params.max_motor_speed:
+            return None
+
+        output["power_input"], output["motor_efficiency"] = self.vehicle.motor.power_input_and_efficiency(
+                output['motor_torque'], output['motor_angular_velocity'])
+
+        if output["power_input"] > self.vehicle.params.power_limit:
+            return None
+       
+        return output
 
     def __DOF6_motion_residuals(self, x:list):
         """

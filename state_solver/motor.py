@@ -2,8 +2,8 @@ import pandas as pd
 import math
 
 class Motor:
-    def __init__(self, path):
-        self.map = pd.read_csv(path)
+    def __init__(self, params):
+        self.params = params
 
     def power_input_and_efficiency(self, torque, angular_vel):
         """
@@ -14,6 +14,6 @@ class Motor:
         """
         torque_approx = round(torque)
         rpm_approx = round(angular_vel*(60/(2*math.pi)))
-        efficiency = self.map.iat[torque_approx, rpm_approx]
+        efficiency = self.params.motor_map.iat[torque_approx, rpm_approx]
         power_in = torque * angular_vel / efficiency
         return power_in, efficiency

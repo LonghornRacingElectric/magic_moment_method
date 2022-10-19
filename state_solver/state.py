@@ -1,4 +1,4 @@
-from ..helpers.better_namespace import BetterNamespace
+from ..state_solver.better_namespace import BetterNamespace
 
 class State(BetterNamespace):
     """

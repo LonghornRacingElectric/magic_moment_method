@@ -1,9 +1,10 @@
 import math
 import numpy as np
+import pandas as pd
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
 class Concept2023:
-    def __init__(self):
+    def __init__(self, motor_directory):
         #super().__init__()
 
         ### vehicle params ###
@@ -189,6 +190,8 @@ class Concept2023:
         self.diff_preload = 5.2
         self.max_torque = 230 # Nm
         self.inverter_efficiency = 0.97
+        self.power_limit = 80000 # kW
+        self.motor_map = pd.read_csv(motor_directory)
 
 
     @property
