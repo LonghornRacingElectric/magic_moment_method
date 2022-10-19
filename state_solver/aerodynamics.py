@@ -15,7 +15,7 @@ class Aerodynamics:
         self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
 
         # converts from CAD origin to IMF
-        self.vehicle_params.CoP_IMF = self.vehicle_params.CoP;
+        self.vehicle_params.CoP_IMF = self.vehicle_params.CoP
         self.vehicle_params.CoP_IMF[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
 
 
