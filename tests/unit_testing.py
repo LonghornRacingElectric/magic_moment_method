@@ -40,7 +40,7 @@ def test_josie_solver(s_dot, steered_angle, body_slip, torque_request, is_left_d
             if value != o_d[key]:
                 pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]}")
             continue
-        elif abs(o_d[key] - value) > abs(0.01 * value) and abs(value) < 10**30:
+        elif abs(o_d[key] - value) > abs(0.05 * value) and abs(value) < 10**10:
             pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]} for {key}")
     return True
 
