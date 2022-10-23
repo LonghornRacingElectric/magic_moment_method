@@ -87,10 +87,10 @@ class Aerodynamics:
         self.logger.log("aero_forces", forces)
         self.logger.log("aero_moments", moments)
 
-        cop_x = moments[1]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0])) 
-        cop_y = moments[2]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0]))
-        self.logger.log("aero_cop_x",cop_x)
-        self.logger.log("aero_cop_y",cop_y)
+        # cop_x = moments[1]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0])) 
+        # cop_y = moments[2]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0]))
+        # self.logger.log("aero_cop_x",cop_x)
+        # self.logger.log("aero_cop_y",cop_y)
 
         return forces, moments
 
