@@ -66,4 +66,4 @@ if __name__ == "__main__":
     if args.generate:
         generate_test_MMM()
 
-    #test_josie_solver(15, .07, 0, 0, True) # NOTE: use this to investigate why there may be output misalignment
+    test_josie_solver(15, .07, 0, 0, True) # NOTE: use this to investigate why there may be output misalignment
