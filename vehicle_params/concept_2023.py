@@ -20,7 +20,7 @@ class Concept2023:
         self.rear_track = 46 * (0.0254) # m
         self.max_vel = 57 * (0.44704) # m/s
         self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
-        
+
         self.mass_unsprung_front = 23  * (0.4359)  # kg
         self.mass_unsprung_rear = 22 * (0.4359) # kg
         self.driver_mass = 150 * (0.4359) # kg
@@ -188,10 +188,11 @@ class Concept2023:
         self.brake_pad_mu = [0.55, 0.55]
         self.diff_fl = 0.607
         self.diff_preload = 5.2
-        self.max_torque = 230 # Nm
+
         self.inverter_efficiency = 0.97
         self.power_limit = 80000 # kW
         self.motor_map = pd.read_csv(motor_directory)
+        self.max_torque = len(self.motor_map)-1  # Nm
 
 
     @property

@@ -52,7 +52,8 @@ class Solver:
 
         # if solution converged, FILTER OUT BAD POINTS
         output = copy(self.vehicle.logger.return_log())
-        if output["roll"] > 180/np.pi * 10 or output["yaw_acceleration"] > 200 or output["motor_angular_velocity"] > self.vehicle.params.max_motor_speed:
+        if output["roll"] > 180/np.pi * 10 or output["yaw_acceleration"] > 200 or output["motor_angular_velocity"] > self.vehicle.params.max_motor_speed \
+                or output['motor_torque'] > self.vehicle.params.max_torque:#
             return None
 
         output["power_input"], output["motor_efficiency"] = self.vehicle.motor.power_input_and_efficiency(
