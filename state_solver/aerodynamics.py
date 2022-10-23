@@ -47,7 +47,7 @@ class Aerodynamics:
         # multiply each sensitivity by the corresponding angle
         # repeat -> reshape turns angles array into 3x3x3 array with angles in
         #   the right place for element-wise multiplication
-        angle_sens = np.multiply(angle_sens, np.reshape(np.repeat(angles,9),(3,3,3)))
+        angle_sens *= np.reshape(np.repeat(angles,9),(3,3,3))
 
         # add 1 to turn percent increases into multiplication factor
         angle_sens += 1
@@ -56,7 +56,7 @@ class Aerodynamics:
         angle_sens = np.prod(angle_sens, axis = 0)
 
         # multiply lift, drag, and sideforce coefficients by sensitivities
-        coefs = np.multiply(angle_sens, coefs.T)
+        coefs = angle_sens * coefs.T
 
         # heave sensitivities
         heave_sens = self.get_heave_sens(heave)
