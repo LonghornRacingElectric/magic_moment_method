@@ -8,3 +8,4 @@ from .rear_tire import RearTire
 from .suspension import Suspension
 from .aerodynamics import Aerodynamics
 from .tires import Tires
+from .motor import Motor

@@ -1,13 +1,14 @@
 import math
 import numpy as np
+import pandas as pd
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
 class UnitTestCar:
-    def __init__(self):
+    def __init__(self, motor_directory):
         #super().__init__()
 
         ### vehicle params ###
-
+        
         self.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2 # TODO is this correct? check solidworks
         self.gravity = 9.81 # m/s^2
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
@@ -17,26 +18,26 @@ class UnitTestCar:
         self.wheelbase = 65 * (0.0254) # m
         self.front_track = 48 * (0.0254) # m
         self.rear_track = 46 * (0.0254) # m
-
+        self.max_vel = 57 * (0.44704) # m/s
+        self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
+        
         self.mass_unsprung_front = 23  * (0.4359)  # kg
         self.mass_unsprung_rear = 22 * (0.4359) # kg
         self.driver_mass = 150 * (0.4359) # kg
         self.mass_sprung = 552 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
-
-
         ### suspension params ###
-
+        
         # ~~~ Stiffnesses ~~~ #
         self.front_spring_springrate = 550 * (4.448 / 0.0254) # N/m
         self.rear_spring_springrate = 650 * (4.448 / 0.0254) # N/m
         # TODO: make MRs not constant values (add nonlinear solver to this portion)
         self.front_motion_ratio = 1.92 # m/m
         self.rear_motion_ratio = 1.45 # m/m
-        self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618)
+        self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618) 
         # TODO: verify matches CAD right now
         # NOTE: not being used ATM, need to figure out how it applies to slip angle drag
-
+        
         # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
         self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
         self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
@@ -115,66 +116,55 @@ class UnitTestCar:
         lengths = np.apply_along_axis(np.linalg.norm, 0, v_arr)
         self.rear_tube_normals = v_arr / lengths
         self.rear_lever_arms = pt_i_arr * 0.0254  # in to m
-
+        
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
-        self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0.000158, 0.149, 
-                        -0.1595, 0.0329, 9.153,  0.00001406, 0.0328, 0.00362, -0.0143, -0.0116]
+        self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
 
-        self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0.3977386758725586, 0, 0, 0, 0.10106424367287903]
+        self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
 
-        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 7.733e-05, -0.08382, -0.1171, 0.04597, 
-                        3.107, 5.41e-05, 0.04736, 0.005249, 0.0508, -0.1956]
+        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 0, 0, 0, 0, 0, 0, 0, 0.005249, 0.0508, -0.1956]
 
-        self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0.3977386758725586, 0, 0, 0, 0.10106424367287903]
+        self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
         
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
-
+        
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        #TODO: implement accel/braking corner & fitting
-        #self.rear_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        #self.front_tire_coeff_Fx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-
-
+        
         ### aerodynamics params ###
-
         self.air_temperature = 33.8889 # Celsius
         self.ClA_tot = 4.384
         self.CdA_tot = 1.028
         self.CsA_tot = 5.673
         self.CdA0 = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
-        self.CsA0 = 8.43
+        self.CsA0 = 8.43 # sideforce coefficent from non aero components
 
         # distribution of downforce across components
         self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
         self.CdA_dist = np.array([0.425, 0.178, 0.396])
         self.CsA_dist = np.array([0.666, 0.000, 0.333])
 
-        # TODO: Update Sensitivities
+        # TODO: Update undertray bodyslip and roll sensitivities
         # pitch, body_slip, and roll sensitivities,
         #                           Cl              Cd               Cs
-        self.p_sens	=   np.array([[[.01,   -.06],  [.07,   -.055], [0,0]],   # front [pos, neg] -> [%/deg]
-                                [[.0076, -.0457], [.0546, -.0434], [0,0]],   # undertray
-                                [[.0178, -.0245], [.0294, -.0478], [0,0]]])  # rear
+        self.p_sens	=   np.array([[[ -15.7,  -10.6], [ -7.5,  -12.5], [0,0]],   # front [pos, neg] -> [%/deg]
+                                  [[  7.39,  -7.19], [ 10.1, -15.15], [0,0]],   # undertray
+                                  [[ -0.72,  -4.06], [ 2.02,  -5.94], [0,0]]])  # rear
 
          #                          front               undertray           rear
-        self.bs_sens = np.array([[.008,  .0114, 0], [.0061,  .0089, 0], [-.0018, -.0058, 0]]) # [Cl, Cd, Cs] -> [%/deg]
-        self.r_sens	 = np.array([[-.018,  0,    0], [-.0137,  0,    0], [-.005,  -.0145, 0]])
+        self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
 
 
         # positions of component CoPs from vehicle origin CAD
         # Front, Undertray and Rear [x , y , z] (Inches)
         self.CoP = np.array([[23.65,  0, 9.30],
                              [-43.5,  0, 7.13],
-                             [-67.6,  0, 42.91]])
-
-
+                             [-67.6,  0, 42.91]]) * (0.0254) # convert to m
 
         ### differential & braking params ###
 
@@ -192,13 +182,16 @@ class UnitTestCar:
         self.max_pedal_force = 150
         self.pedal_ratio = 3
         self.master_cylinder_area = 0.2
-        self.brake_bias_ratio = 0.6 # Percent of front
+        self.brake_bias_ratio = 0.67 # Percent of front
         self.rotor_radius = [0.3 * 7, 0.2 * 9]
         self.calipers_area = [0.2, 0.2]
         self.brake_pad_mu = [0.55, 0.55]
         self.diff_fl = 0.607
         self.diff_preload = 5.2
         self.max_torque = 230 # Nm
+        self.inverter_efficiency = 0.97
+        self.power_limit = 80000 # kW
+        self.motor_map = pd.read_csv(motor_directory)
 
 
     @property
@@ -208,7 +201,7 @@ class UnitTestCar:
     @property
     def cg_total_position(self): # m
         return np.array([self.cg_bias * self.wheelbase, (self.cg_left - 0.5) * self.cg_weighted_track, self.cg_height])
-
+    
     @property
     def mass(self): # kg
         return self.mass_sprung + 2 * self.mass_unsprung_front + 2 * self.mass_unsprung_rear

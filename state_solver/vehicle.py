@@ -3,6 +3,7 @@ from ..state_solver.state import State
 from ..state_solver.logger import Logger
 from ..state_solver.suspension import Suspension
 from ..state_solver.aerodynamics import Aerodynamics
+from ..state_solver.motor import Motor
 
 """
 Coordinate Systems:
@@ -23,6 +24,7 @@ class Vehicle:
         self.params = params        
         self.suspension = Suspension(self.params, self.logger)
         self.aero = Aerodynamics(self.params, self.logger)
+        self.motor = Motor(self.params)
     
 
     # TODO: CoG movements due to roll / pitch / heave

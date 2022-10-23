@@ -11,12 +11,12 @@ import magic_moment_method.vehicle_params as vehicle_params
 import magic_moment_method.state_solver as state_solver
 
 s_dot_sweep = [15]
-steering_sweep = [-0.05, 0.05]
-body_sweep = [-0.03, 0.03]
+steering_sweep = [0.349066, 0, -0.06]
+body_sweep = [0.174533,0, 0.01]
 torque_sweep = [0]
 differential_bias_sweep = [True]
 reference_file = "tests/test_MMM.csv"
-solver = state_solver.Solver(vehicle_params.UnitTestCar())
+solver = state_solver.Solver(vehicle_params.UnitTestCar(motor_directory="vehicle_params/Eff228.csv"))
 
 @pytest.mark.parametrize("s_dot", s_dot_sweep)
 @pytest.mark.parametrize("steered_angle", steering_sweep)
@@ -27,18 +27,20 @@ def test_josie_solver(s_dot, steered_angle, body_slip, torque_request, is_left_d
     o_d = solver.solve(state_solver.State(body_slip, steered_angle, s_dot, torque_request, is_left_diff_bias))
     e_d = pd.read_csv(reference_file)
     try:
-        e_d_filtered = e_d[(e_d["body_slip"] == body_slip) & (e_d["s_dot"] == s_dot) & (e_d["steered_angle"] == steered_angle)].iloc[0]
+        e_d_filtered = e_d[(e_d["body_slip"] == body_slip) & (e_d["s_dot"] == s_dot) 
+                    & (e_d["steered_angle"] == steered_angle) & (e_d["torque_request"] == torque_request)].iloc[0]
     except:
         return True
 
     for key, value in e_d_filtered.items():
+        print(key,value)
         if "Unnamed" in str(key) or value is np.NaN or key == '0':
             continue
         elif type(value) in [np.bool_, bool]:
             if value != o_d[key]:
                 pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]}")
             continue
-        elif abs(o_d[key] - value) > 0.01:
+        elif abs(o_d[key] - value) > abs(0.05 * value) and abs(value) < 10**10:
             pytest.fail(f"Failed Getting value {value} but expecting {o_d[key]} for {key}")
     return True
 
