@@ -98,7 +98,8 @@ class Aerodynamics:
        cl_heave_sens = np.polyval(self.vehicle_params.h_sens_coefficients[0], heave)
        cd_heave_sens = np.polyval(self.vehicle_params.h_sens_coefficients[1], heave)
 
-       heave_sens = np.array([[1,1,1],
+       # sens for undertraying, using it as an estimate for front wing
+       heave_sens = np.array([[cl_heave_sens,cd_heave_sens,1],
                               [cl_heave_sens,cd_heave_sens,1],
                               [1,1,1]])
 
