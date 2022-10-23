@@ -58,6 +58,10 @@ class Aerodynamics:
         # multiply lift, drag, and sideforce coefficients by sensitivities
         coefs = np.multiply(angle_sens, coefs.T)
 
+        # heave sensitivities
+        heave_sens = self.get_heave_sens(heave)
+        coefs *= heave_sens
+
         # calculate force arrays for each direction: F_part = [front, undertray, rear]
         Fl_part = 0.5 * self.__air_density * coefs[:,0] * x_dot ** 2
         Fd_part = 0.5 * self.__air_density * coefs[:,1] * x_dot ** 2
@@ -90,6 +94,16 @@ class Aerodynamics:
 
         return forces, moments
 
+    def get_heave_sens(self, heave):
+       cl_heave_sens = np.polyval(self.vehicle_params.h_sens_coefficients[0], heave)
+       cd_heave_sens = np.polyval(self.vehicle_params.h_sens_coefficients[1], heave)
+
+       heave_sens = np.array([[1,1,1],
+                              [cl_heave_sens,cd_heave_sens,1],
+                              [1,1,1]])
+
+       return heave_sens
+    
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
     @property
     def __air_density(self): # kg/m^3
