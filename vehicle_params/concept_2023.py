@@ -12,19 +12,19 @@ class Concept2023:
         self.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2 # TODO is this correct? check solidworks
         self.gravity = 9.81 # m/s^2
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
-        self.cg_bias = (1 - .456) #.456)  # % rear/total, value from 0->1
+        self.cg_bias = (1 - .47) #.456)  # % rear/total, value from 0->1
         self.cg_left = 0.495 # % left/total, value from 0->1 # TODO: not behaving as expected
         self.cg_height = 11.7 * (0.0254) # m
-        self.wheelbase = 65 * (0.0254) # m
-        self.front_track = 48 * (0.0254) # m
-        self.rear_track = 46 * (0.0254) # m
-        self.max_vel = 57 * (0.44704) # m/s
-        self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
+        self.wheelbase = 61 * (0.0254) # m
+        self.front_track = 50 * (0.0254) # m
+        self.rear_track = 48 * (0.0254) # m
+        self.max_vel = 65 * (0.44704) # m/s # TODO: verify
+        self.max_motor_speed = 4158 * (2 * np.pi / 60) # rad/s #TODO: verify
         
-        self.mass_unsprung_front = 23  * (0.4359)  # kg
-        self.mass_unsprung_rear = 22 * (0.4359) # kg
+        self.mass_unsprung_front = 20  * (0.4359)  # kg  # TODO: not being used for yaw inertia ATM
+        self.mass_unsprung_rear = 20 * (0.4359) # kg  # TODO: not being used for yaw inertia ATM
         self.driver_mass = 150 * (0.4359) # kg
-        self.mass_sprung = 552 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
+        self.mass_sprung = 490 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
         ### suspension params ###
         
@@ -36,7 +36,6 @@ class Concept2023:
         self.rear_motion_ratio = 1.45 # m/m
         self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618) 
         # TODO: verify matches CAD right now
-        # NOTE: not being used ATM, need to figure out how it applies to slip angle drag
         
         # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
         self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
@@ -117,6 +116,7 @@ class Concept2023:
         self.rear_tube_normals = v_arr / lengths
         self.rear_lever_arms = pt_i_arr * 0.0254  # in to m
         
+
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
         self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
@@ -159,7 +159,6 @@ class Concept2023:
         self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
         self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
 
-
         # positions of component CoPs from vehicle origin CAD
         # Front, Undertray and Rear [x , y , z] (Inches)
         self.CoP = np.array([[23.65,  0, 9.30],
@@ -167,30 +166,26 @@ class Concept2023:
                              [-67.6,  0, 42.91]]) * (0.0254) # convert to m
 
         ### differential & braking params ###
-
         self.motor_radius = 1
-        self.diff_radius = 4
-        self.front_tire_radius = 8 * .0254
-        self.rear_tire_radius = 9 * .0254
-        self.motor_inertia = 0.1
-        self.diff_inertia = 0.1
-        self.motor_damping = 0.1
-        self.diff_damping = 0.1
-        self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1])
-        self.driveline_damping = np.array([0.1, 0.1, 0.1, 0.1])
-        self.diff_efficiency = 1
+        self.diff_radius = 3.38
+        self.front_tire_radius = 8 * .0254 # TODO: effective radius
+        self.rear_tire_radius = 9 * .0254 # TODO: effective radius
+        self.motor_inertia = 0.1 # TODO: not used atm
+        self.diff_inertia = 0.1 # TODO: not used atm
+        self.driveline_inertias = np.array([0.1, 0.1, 0.1, 0.1]) # TODO: not used atm
+        self.diff_efficiency = 1 # TODO: not used atm
         self.max_pedal_force = 150
         self.pedal_ratio = 3
         self.master_cylinder_area = 0.2
-        self.brake_bias_ratio = 0.67 # Percent of front
+        self.brake_bias_ratio = 0.72 # Percent of front
         self.rotor_radius = [0.3 * 7, 0.2 * 9]
-        self.calipers_area = [0.2, 0.2]
-        self.brake_pad_mu = [0.55, 0.55]
-        self.diff_fl = 0.607
-        self.diff_preload = 5.2
-        self.max_torque = 230 # Nm
-        self.inverter_efficiency = 0.97
-        self.power_limit = 80000 # kW
+        self.calipers_area = [0.2, 0.2] # brembo calipers
+        self.brake_pad_mu = [0.55, 0.55] # estimate from Brembo
+        self.diff_fl = 0.607 # NOTE: from Bens testing
+        self.diff_preload = 5.2 # Nm - NOTE: from Bens testing
+        self.max_torque = 230 # Nm - Emrax 228
+        self.inverter_efficiency = 0.97 # TODO: not constant
+        self.power_limit = 80000 # kW - rules limit
         self.motor_map = pd.read_csv(motor_directory)
 
 

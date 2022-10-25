@@ -55,10 +55,12 @@ class Solver:
         if output["roll"] > 180/np.pi * 10 or output["yaw_acceleration"] > 200 or output["motor_angular_velocity"] > self.vehicle.params.max_motor_speed:
             return None
 
-        output["power_input"], output["motor_efficiency"] = self.vehicle.motor.power_input_and_efficiency(
+        output["power_into_motor"], output["motor_efficiency"] = self.vehicle.motor.power_input_and_efficiency(
                 output['motor_torque'], output['motor_angular_velocity'])
 
-        if output["power_input"] > self.vehicle.params.power_limit:
+        output["power_into_inverter"] = output["power_into_motor"] / .97 # TODO: move this
+
+        if output["power_into_inverter"] > self.vehicle.params.power_limit:
             return None
        
         return output
