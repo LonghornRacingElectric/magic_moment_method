@@ -166,6 +166,10 @@ class UnitTestCar:
                              [-43.5,  0, 7.13],
                              [-67.6,  0, 42.91]]) * (0.0254) # convert to m
 
+        # heave sensitivity regression fitted to undertray data
+        #                                     Cl                      Cd
+        self.h_sens_coefficients = np.array([[-19.4, 1.89, 0.949],  [15.7, -6.22, 1.27]])
+
         ### differential & braking params ###
 
         self.motor_radius = 1

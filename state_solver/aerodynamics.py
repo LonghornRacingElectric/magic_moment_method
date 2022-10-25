@@ -15,7 +15,8 @@ class Aerodynamics:
         self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
 
         # converts from CAD origin to IMF
-        self.vehicle_params.CoP[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
+        self.vehicle_params.CoP_IMF = self.vehicle_params.CoP
+        self.vehicle_params.CoP_IMF[:,0] += self.vehicle_params.cg_bias * self.vehicle_params.wheelbase
 
 
     def get_loads(self, x_dot, body_slip, pitch, roll, heave):
@@ -46,7 +47,7 @@ class Aerodynamics:
         # multiply each sensitivity by the corresponding angle
         # repeat -> reshape turns angles array into 3x3x3 array with angles in
         #   the right place for element-wise multiplication
-        angle_sens = np.multiply(angle_sens, np.reshape(np.repeat(angles,9),(3,3,3)))
+        angle_sens *= np.reshape(np.repeat(angles,9),(3,3,3))
 
         # add 1 to turn percent increases into multiplication factor
         angle_sens += 1
@@ -55,7 +56,11 @@ class Aerodynamics:
         angle_sens = np.prod(angle_sens, axis = 0)
 
         # multiply lift, drag, and sideforce coefficients by sensitivities
-        coefs = np.multiply(angle_sens, coefs.T)
+        coefs = angle_sens * coefs.T
+
+        # heave sensitivities
+        heave_sens = self.get_heave_sens(heave)
+        coefs *= heave_sens
 
         # calculate force arrays for each direction: F_part = [front, undertray, rear]
         Fl_part = 0.5 * self.__air_density * coefs[:,0] * x_dot ** 2
@@ -69,9 +74,9 @@ class Aerodynamics:
         forces = np.array([-np.sum(Fd_part), np.sum(Fs_part), -np.sum(Fl_part)])
 
         # sum moments from front, undertray, and rear
-        moments = np.cross(self.vehicle_params.CoP[0], part_force.T[0]) \
-                + np.cross(self.vehicle_params.CoP[1], part_force.T[1]) \
-                + np.cross(self.vehicle_params.CoP[2], part_force.T[2])
+        moments = np.cross(self.vehicle_params.CoP_IMF[0], part_force.T[0]) \
+                + np.cross(self.vehicle_params.CoP_IMF[1], part_force.T[1]) \
+                + np.cross(self.vehicle_params.CoP_IMF[2], part_force.T[2])
 
 
         # account for drag and sideforce from rest of car
@@ -82,8 +87,24 @@ class Aerodynamics:
         self.logger.log("aero_forces", forces)
         self.logger.log("aero_moments", moments)
 
+        # cop_x = moments[1]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0])) 
+        # cop_y = moments[2]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0]))
+        # self.logger.log("aero_cop_x",cop_x)
+        # self.logger.log("aero_cop_y",cop_y)
+
         return forces, moments
 
+    def get_heave_sens(self, heave):
+       cl_heave_sens = np.polyval(self.vehicle_params.h_sens_coefficients[0], heave)
+       cd_heave_sens = np.polyval(self.vehicle_params.h_sens_coefficients[1], heave)
+
+       # sens for undertraying, using it as an estimate for front wing
+       heave_sens = np.array([[cl_heave_sens,cd_heave_sens,1],
+                              [cl_heave_sens,cd_heave_sens,1],
+                              [1,1,1]])
+
+       return heave_sens
+    
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
     @property
     def __air_density(self): # kg/m^3
