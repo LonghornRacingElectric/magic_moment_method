@@ -14,11 +14,10 @@ class Concept2023:
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
         self.cg_bias = (1 - .47) #.456)  # % rear/total, value from 0->1
         self.cg_left = 0.495 # % left/total, value from 0->1 # TODO: not behaving as expected
-        self.cg_height = 11.7 * (0.0254) # m
+        self.cg_height = 13 * (0.0254) # m
         self.wheelbase = 61 * (0.0254) # m
         self.front_track = 50 * (0.0254) # m
         self.rear_track = 48 * (0.0254) # m
-        self.max_vel = 65 * (0.44704) # m/s # TODO: verify
         self.max_motor_speed = 4158 * (2 * np.pi / 60) # rad/s #TODO: verify
         
         self.mass_unsprung_front = 20  * (0.4359)  # kg  # TODO: not being used for yaw inertia ATM
@@ -129,6 +128,8 @@ class Concept2023:
         
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
+        self.front_tire_mu_scaling = 0.47 # %
+        self.rear_tire_mu_scaling = 0.47 # %
         
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]

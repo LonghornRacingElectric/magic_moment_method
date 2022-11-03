@@ -70,5 +70,9 @@ class RearTire(Tire):
     def radius(self):
         return self.params.rear_tire_radius
 
+    @property
+    def tire_scaling(self):
+        return self.params.rear_tire_mu_scaling
+
     def get_slip_ratio(self, slip_ratios):
         return slip_ratios[2] if self.is_left_tire else slip_ratios[3]
