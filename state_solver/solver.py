@@ -32,10 +32,9 @@ class Solver:
         # NOTE: Sometimes adjusting heave improves convergence after first guess fails
         guesses_allowed = 1
         for i in range(guesses_allowed):
-            try:
-                results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
-            except:
-                return None
+            results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
+            #except:
+            #    return None
             if results[2] == 1:
                 # if i != 0:
                 #     print("Solution converged after changing initial guess")

@@ -37,7 +37,7 @@ class Aerodynamics:
 
         angles = np.array([abs(body_slip), abs(pitch), abs(roll)])
         angle_sens = np.array([self.vehicle_params.bs_sens, psens, self.vehicle_params.r_sens])
-        angle_sens /= 100   # convert from percentages
+        angle_sens = angle_sens /  100   # convert from percentages
 
         s_dir = -1
         if body_slip < 0:
