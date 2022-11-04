@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 # ALL STATIC PARAMETERS GO HERE (or parameters assumed to be static)
-class UnitTestCar:
+class Combustion2023:
     def __init__(self, motor_directory):
         #super().__init__()
 
@@ -12,12 +12,12 @@ class UnitTestCar:
         self.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2 # TODO is this correct? check solidworks
         self.gravity = 9.81 # m/s^2
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
-        self.cg_bias = (1 - .456) #.456)  # % rear/total, value from 0->1
+        self.cg_bias = (1 - .45) #.456)  # % rear/total, value from 0->1
         self.cg_left = 0.495 # % left/total, value from 0->1 # TODO: not behaving as expected
-        self.cg_height = 11.7 * (0.0254) # m
-        self.wheelbase = 65 * (0.0254) # m
-        self.front_track = 48 * (0.0254) # m
-        self.rear_track = 46 * (0.0254) # m
+        self.cg_height = 12.5 * (0.0254) # m
+        self.wheelbase = 60.63 * (0.0254) # m
+        self.front_track = 50.5 * (0.0254) # m
+        self.rear_track = 48.5 * (0.0254) # m
         self.max_vel = 57 * (0.44704) # m/s
         self.max_motor_speed = 5000 * (2 * np.pi / 60) # rad/s
         
@@ -123,7 +123,7 @@ class UnitTestCar:
 
         self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
 
-        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 0, 0, 0, 0, 0, 0, 0, 0.005249, 0.0508, -0.1956]
+        self.rear_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
 
         self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
         
@@ -136,39 +136,39 @@ class UnitTestCar:
         
         ### aerodynamics params ###
         self.air_temperature = 33.8889 # Celsius
-        self.ClA_tot = 4.384
-        self.CdA_tot = 1.028
-        self.CsA_tot = 5.673
-        self.CdA0 = 0.7155 # drag coefficient from non aero componenets
+        self.ClA_tot = 2.89
+        self.CdA_tot = 1.3
+        self.CsA_tot = 0
+        self.CdA0 = 0 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
-        self.CsA0 = 8.43 # sideforce coefficent from non aero components
+        self.CsA0 = 0 # sideforce coefficent from non aero components
 
         # distribution of downforce across components
-        self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
-        self.CdA_dist = np.array([0.425, 0.178, 0.396])
-        self.CsA_dist = np.array([0.666, 0.000, 0.333])
+        self.ClA_dist = np.array([1, 0, 0])   # [front, undertray, rear]
+        self.CdA_dist = np.array([1, 0, 0])
+        self.CsA_dist = np.array([1, 0, 0])
 
         # TODO: Update undertray bodyslip and roll sensitivities
         # pitch, body_slip, and roll sensitivities,
         #                           Cl              Cd               Cs
-        self.p_sens	=   np.array([[[ -15.7,  -10.6], [ -7.5,  -12.5], [0,0]],   # front [pos, neg] -> [%/deg]
-                                  [[  7.39,  -7.19], [ 10.1, -15.15], [0,0]],   # undertray
-                                  [[ -0.72,  -4.06], [ 2.02,  -5.94], [0,0]]])  # rear
+        self.p_sens	=   np.array([[[ 0,  0], [ 0,  0], [0,0]],   # front [pos, neg] -> [%/deg]
+                                  [[  0,  0], [ 0, 0], [0,0]],   # undertray
+                                  [[ 0,  0], [ 0,  0], [0,0]]])  # rear
 
          #                          front               undertray           rear
-        self.bs_sens = np.array([[-2.4,   -0.7, 0], [  0.61, 0.89, 0], [-0.96,  0.33, 0]]) # [Cl, Cd, Cs] -> [%/deg]
-        self.r_sens	 = np.array([[-10.1, -13.1, 0], [-1.37,     0, 0], [-4.24, -2.02, 0]])
+        self.bs_sens = np.array([[0,   0, 0], [  0, 0, 0], [0,  00, 0]]) # [Cl, Cd, Cs] -> [%/deg]
+        self.r_sens	 = np.array([[0, -0, 0], [-0,     0, 0], [0, 0, 0]])
 
 
         # positions of component CoPs from vehicle origin CAD
         # Front, Undertray and Rear [x , y , z] (Inches)
-        self.CoP = np.array([[23.65,  0, 9.30],
-                             [-43.5,  0, 7.13],
-                             [-67.6,  0, 42.91]]) * (0.0254) # convert to m
+        self.CoP = np.array([[30.25,  0, 0],
+                             [0,  0, 0],
+                             [0,  0, 0]]) * (0.0254) # convert to m
 
         # heave sensitivity regression fitted to undertray data
         #                                     Cl                      Cd
-        self.h_sens_coefficients = np.array([[-19.4, 1.89, 0.949],  [15.7, -6.22, 1.27]])
+        self.h_sens_coefficients = np.array([[0, 0, 0],  [0, 0,0]])
 
         ### differential & braking params ###
 
@@ -208,4 +208,4 @@ class UnitTestCar:
     
     @property
     def mass(self): # kg
-        return self.mass_sprung + 2 * self.mass_unsprung_front + 2 * self.mass_unsprung_rear
+        return 650 * (0.4359)
