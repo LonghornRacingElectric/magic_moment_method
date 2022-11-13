@@ -10,9 +10,9 @@ class Aerodynamics:
         self.vehicle_params = params
 
         # gets aero coefficients for each component
-        self.ClA = self.vehicle_params.ClA_tot * self.vehicle_params.ClA_dist
-        self.CdA = self.vehicle_params.CdA_tot * self.vehicle_params.CdA_dist
-        self.CsA = self.vehicle_params.CsA_tot * self.vehicle_params.CsA_dist
+        self.ClA = self.vehicle_params.ClA_from_aero * self.vehicle_params.ClA_dist
+        self.CdA = self.vehicle_params.CdA_from_aero * self.vehicle_params.CdA_dist
+        self.CsA = self.vehicle_params.CsA_from_aero * self.vehicle_params.CsA_dist
 
         # converts from CAD origin to IMF
         self.vehicle_params.CoP_IMF = self.vehicle_params.CoP
@@ -80,11 +80,11 @@ class Aerodynamics:
 
 
 
-        # drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
-        # Commented out because the drag is already the total drag. dummy.
+
 
         # account for drag and sideforce from rest of car
-        sideforce_no_aero = 0.5 * self.__air_density * self.vehicle_params.CsA0 * (x_dot * np.tan(body_slip/rad_to_deg)) ** 2 * s_dir
+        drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA_no_aero * x_dot ** 2
+        sideforce_no_aero = 0.5 * self.__air_density * self.vehicle_params.CsA_no_aero * (x_dot * np.tan(body_slip/rad_to_deg)) ** 2 * s_dir
         forces += np.array([-drag_no_aero, sideforce_no_aero, 0])
 
         self.logger.log("aero_forces", forces)

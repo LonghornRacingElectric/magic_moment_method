@@ -8,7 +8,7 @@ class Concept2023:
         #super().__init__()
 
         ### vehicle params ###
-        
+
         self.sprung_inertia = np.array([[119.8, 0, 0], [0, 33.4, 0], [0, 0, 108.2]])  # kg*m^2 # TODO is this correct? check solidworks
         self.gravity = 9.81 # m/s^2
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
@@ -20,27 +20,27 @@ class Concept2023:
         self.rear_track = 48 * (0.0254) # m
         self.max_vel = 65 * (0.44704) # m/s # TODO: verify
         self.max_motor_speed = 4158 * (2 * np.pi / 60) # rad/s #TODO: verify
-        
+
         self.mass_unsprung_front = 20  * (0.4359)  # kg  # TODO: not being used for yaw inertia ATM
         self.mass_unsprung_rear = 20 * (0.4359) # kg  # TODO: not being used for yaw inertia ATM
         self.driver_mass = 150 * (0.4359) # kg
         self.mass_sprung = 490 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
         ### suspension params ###
-        
+
         # ~~~ Stiffnesses ~~~ #
         self.front_spring_springrate = 550 * (4.448 / 0.0254) # N/m
         self.rear_spring_springrate = 650 * (4.448 / 0.0254) # N/m
         # TODO: make MRs not constant values (add nonlinear solver to this portion)
         self.front_motion_ratio = 1.92 # m/m
         self.rear_motion_ratio = 1.45 # m/m
-        self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618) 
+        self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618)
         # TODO: verify matches CAD right now
-        
+
         # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
         self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
         self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
-        
+
         # ~~~ Linkages & HDPTs ~~~ #
         self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
         self.front_toe = 0 * (math.pi / 180) # rad # TODO: not correct to car
@@ -115,7 +115,7 @@ class Concept2023:
         lengths = np.apply_along_axis(np.linalg.norm, 0, v_arr)
         self.rear_tube_normals = v_arr / lengths
         self.rear_lever_arms = pt_i_arr * 0.0254  # in to m
-        
+
 
         # ~~~ Tires & Pacejka ~~~ #
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
@@ -126,22 +126,24 @@ class Concept2023:
         self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 0, 0, 0, 0, 0, 0, 0, 0.005249, 0.0508, -0.1956]
 
         self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
-        
+
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
-        
+
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        
+
         ### aerodynamics params ###
         self.air_temperature = 33.8889 # Celsius
-        self.ClA_tot = 4.384
-        self.CdA_tot = 1.028
-        self.CsA_tot = 5.673
-        self.CdA0 = 0.7155 # drag coefficient from non aero componenets
+        self.ClA_from_aero = 4.384
+        self.CdA_from_aero = 1.028 # drag coefficent from aero components. No aero is NOT added in this
+                                   # which is why it was really dumb to name it CdA_tot
+                                   
+        self.CsA_from_aero = 5.673
+        self.CdA_no_aero = 0.7155 # drag coefficient from non aero componenets
         self.static_ride_height = 0.0762 # m
-        self.CsA0 = 8.43 # sideforce coefficent from non aero components
+        self.CsA_no_aero = 8.43 # sideforce coefficent from non aero components
 
         # distribution of downforce across components
         self.ClA_dist = np.array([0.474, 0.289, 0.236])   # [front, undertray, rear]
@@ -200,7 +202,7 @@ class Concept2023:
     @property
     def cg_total_position(self): # m
         return np.array([self.cg_bias * self.wheelbase, (self.cg_left - 0.5) * self.cg_weighted_track, self.cg_height])
-    
+
     @property
     def mass(self): # kg
         return self.mass_sprung + 2 * self.mass_unsprung_front + 2 * self.mass_unsprung_rear
