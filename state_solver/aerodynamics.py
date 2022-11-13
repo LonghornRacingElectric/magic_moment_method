@@ -79,15 +79,18 @@ class Aerodynamics:
                 + np.cross(self.vehicle_params.CoP_IMF[2], part_force.T[2])
 
 
+
+        # drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
+        # Commented out because the drag is already the total drag. dummy.
+
         # account for drag and sideforce from rest of car
-        drag_no_aero = 0.5 * self.__air_density * self.vehicle_params.CdA0 * x_dot ** 2
         sideforce_no_aero = 0.5 * self.__air_density * self.vehicle_params.CsA0 * (x_dot * np.tan(body_slip/rad_to_deg)) ** 2 * s_dir
         forces += np.array([-drag_no_aero, sideforce_no_aero, 0])
 
         self.logger.log("aero_forces", forces)
         self.logger.log("aero_moments", moments)
 
-        # cop_x = moments[1]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0])) 
+        # cop_x = moments[1]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0]))
         # cop_y = moments[2]/(((forces[0]**2 + forces[2]**2))**(1/2)) * np.cos( np.arctan( forces[2] / forces[0]))
         # self.logger.log("aero_cop_x",cop_x)
         # self.logger.log("aero_cop_y",cop_y)
@@ -104,7 +107,7 @@ class Aerodynamics:
                               [1,1,1]])
 
        return heave_sens
-    
+
     # NOTE: Linear assumption data reference https://en.wikipedia.org/wiki/Density_of_air
     @property
     def __air_density(self): # kg/m^3
