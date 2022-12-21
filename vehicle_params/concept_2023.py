@@ -14,7 +14,7 @@ class Concept2023:
         # TODO: make cg bias of car and driver, so driver mass can be swept to see its affect on car performance
         self.cg_bias = (1 - .475) # % rear/total, value from 0->1
         self.cg_left = .495 # % left/total, value from 0->1 # TODO: verify this is right
-        self.cg_height = 12 * (0.0254) # m
+        self.cg_height = 11 * (0.0254) # m
         self.wheelbase = 61 * (0.0254) # m
         self.front_track = 50 * (0.0254) # m
         self.rear_track = 48 * (0.0254) # m
@@ -41,7 +41,7 @@ class Concept2023:
         self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
         
         # ~~~ Linkages & HDPTs ~~~ #
-        self.rear_toe = 1 * (math.pi / 180) # rad
+        self.rear_toe = 0 * (math.pi / 180) # rad
         self.front_toe = 0 * (math.pi / 180) # rad
         self.front_static_camber = -1 * (np.pi / 180) # rad
         self.rear_static_camber = -1 * (np.pi / 180) # rad
@@ -107,12 +107,12 @@ class Concept2023:
         # NOTE: These lateral fits all assumed slip angle was in DEGREES, not RADIANS
         self.front_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
         self.front_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
-        self.rear_tire_coeff_Fy = [1.384, -0.0003117, -2.936, 668.1, 1599, 0.03877, 0.0003177, 0.6252, 0, 0, 0, 0, 0, 0, 0, 0.005249, 0.0508, -0.1956]
+        self.rear_tire_coeff_Fy = [0.349, -0.00115, 8.760, 730.300, 1745.322, 0.0139, -0.000277, 1.02025435, 0, 0, 0, 0, 0, 0, 0, 0.00362, -0.0143, -0.0116]
         self.rear_tire_coeff_Fx = [0.46024966176377113, 4000.509873697152, 1097.1712081460967, 202.18848632159495, 100.8812198037175, -0.2557010431649166, 0.3066955241461764, 0.011822770671297778, -1.9521015799737094, 0, 0, 0, 0, 0]
         self.front_tire_spring_coeffs = [624 * 175, 0.5 / 0.0254] # N/m
         self.rear_tire_spring_coeffs = [715.3 * 175, 0.486 / 0.0254] # N/m
-        self.front_tire_mu_scaling = 0.57 # %
-        self.rear_tire_mu_scaling = 0.57 # %
+        self.front_tire_mu_scaling = 0.52 # %
+        self.rear_tire_mu_scaling = 0.52 # %
         # TODO: implement aligning moment & fitting
         #self.front_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         #self.rear_tire_coeff_Mz = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]

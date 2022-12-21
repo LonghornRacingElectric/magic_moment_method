@@ -31,14 +31,14 @@ class Drivetrain:
 
         return np.array([torques[0], torques[0], torques[1], torques[1]])
 
-    def torque_bias_ratio(self, torque_on_diff, is_straight_line):
+    def torque_bias_ratio(self, torque_on_diff, is_straight_line, is_left_bias):
         # if on a pure straight, diff doesnt bias. Otherwise it does. BREAKAWAY TORQUE BABY
         if is_straight_line or torque_on_diff == 0:
             return np.array([0.5, 0.5])
 
         traction_bias = self.params.diff_fl + self.params.diff_preload/torque_on_diff
 
-        if self.state.is_left_diff_bias:
+        if is_left_bias:
             return np.array([traction_bias, 1 - traction_bias])
         else:
             return np.array([1 - traction_bias, traction_bias])
