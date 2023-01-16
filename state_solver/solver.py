@@ -34,6 +34,7 @@ class Solver:
         for i in range(guesses_allowed):
             try:
                 results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
+                print(results)
             except:
                 return None
             if results[2] == 1:
@@ -159,5 +160,5 @@ class Solver:
         self.vehicle.logger.log("s_dot", self.vehicle.state.s_dot)
         self.vehicle.logger.log("torque_request", self.vehicle.state.torque_request)
         self.vehicle.logger.log("is_left_diff_bias", self.vehicle.state.is_left_diff_bias)
-
+    
         return np.array([*summation_forces, *summation_moments, *front_axle_residuals, *rear_axle_residuals])

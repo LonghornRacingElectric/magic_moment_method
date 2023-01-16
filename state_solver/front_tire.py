@@ -25,13 +25,15 @@ class FrontTire(Tire):
         return self.params.front_tire_coeff_Fx
 
     @property
-    def arb_stiffness(self): # Nm / rad
-        return self.params.front_arb_stiffness * (1 if self.is_left_tire else -1)
+    def roll_stiffness(self): # Nm / rad
+        roll_center_to_center_patch = np.sqrt(self.params.front_roll_center_height ** 2 + (self.trackwidth / 2) ** 2)
+        roll_installation_ratio = self.params.front_roll_ratio / (np.sin(1) * roll_center_to_center_patch) / self.params.front_roll_ratio
+        return self.params.front_roll_springrate * self.params.front_roll_ratio * roll_center_to_center_patch * roll_installation_ratio
 
     # NOTE: Explanation of motion ratios & wheelrates: https://en.wikipedia.org/wiki/Motion_ratio
     @property
     def wheelrate(self): # N/m
-        return self.params.front_spring_springrate/self.params.front_motion_ratio**2
+        return self.params.front_heave_springrate/self.params.front_heave_motion_ratio**2
 
     @property
     def KPI(self): # rad

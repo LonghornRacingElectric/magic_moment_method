@@ -29,17 +29,17 @@ class Concept2023:
         ### suspension params ###
         
         # ~~~ Stiffnesses ~~~ #
-        self.front_spring_springrate = 550 * (4.448 / 0.0254) # N/m
-        self.rear_spring_springrate = 650 * (4.448 / 0.0254) # N/m
+        self.front_heave_springrate = 550 * (4.448 / 0.0254) # N/m
+        self.rear_heave_springrate = 650 * (4.448 / 0.0254) # N/m
+        self.front_roll_springrate = 650 * (4.448 / 0.0254) # N/m
+        self.rear_roll_springrate = 650 * (4.448 / 0.0254) # N/m
         # TODO: make MRs not constant values (add nonlinear solver to this portion)
-        self.front_motion_ratio = 1.92 # m/m
-        self.rear_motion_ratio = 1.45 # m/m
+        self.front_heave_motion_ratio = 1.92 # m/m
+        self.rear_heave_motion_ratio = 1.45 # m/m
+        self.front_roll_ratio = 0.75 # m/rad
+        self.rear_roll_ratio = 0.75 #m/rad
         self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618) 
         # TODO: verify matches CAD right now
-        
-        # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
-        self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
-        self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
         
         # ~~~ Linkages & HDPTs ~~~ #
         self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
@@ -53,8 +53,8 @@ class Concept2023:
         self.front_caster = 2 * (np.pi / 180) # rad
         self.rear_caster = 2 * (np.pi / 180)  # rad
         self.rear_toe_gain = 0.18 * (np.pi / 180) # rad/rad # TODO: not correct to car; also TODO implement
-        self.front_roll_center_height = -.75 * .0254 # m  # TODO: not correct to car; also heavily NONLINEAR
-        self.rear_roll_center_height = -.5 * .0254 # m  # TODO: not correct to car; also heavily NONLINEAR
+        self.front_roll_center_height = 0.017 # m  # TODO: not correct to car; also heavily NONLINEAR
+        self.rear_roll_center_height = 0.0119 # m  # TODO: not correct to car; also heavily NONLINEAR
 
         # suspension tube geometry
         # Inputs (in inches, from CAD). Origin chosen to be contact patch. Initial point is outboard point.
