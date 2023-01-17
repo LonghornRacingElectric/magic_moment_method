@@ -157,7 +157,7 @@ class Suspension():
         guess_tire_compression, guess_wheel_displacement = x
 
         wheelrate = tire.wheelrate_f() 
-        
+
         tire_stiffness = tire.tire_stiffness_func(guess_tire_compression)
         riderate = (wheelrate * tire_stiffness) / (wheelrate + tire_stiffness) 
 
@@ -167,14 +167,13 @@ class Suspension():
         # TODO: do about roll center
         # TODO: for the tire & spring conversion to roll stiffness, assuming L & R have same stiffness here; seems like an issue
 
-        tire_contribution = tire_stiffness * tire.trackwidth ** 2 / 2 * (1 if tire.is_left_tire else -1)
-        spring_contribution = wheelrate * tire.trackwidth ** 2 / 2 * (1 if tire.is_left_tire else -1)
-        arb_contribution = tire.arb_stiffness
+        tire_contribution = tire_stiffness * (tire.trackwidth / 2) ** 2 * np.sin(1) * (1 if tire.is_left_tire else -1)
+        spring_contribution = tire.roll_stiffness_f()
 
 
         # ARB in parallel with spring, tire in series with ARB and spring
-        roll_stiffness = - ((spring_contribution + arb_contribution) * tire_contribution /
-                            ((spring_contribution + arb_contribution) + tire_contribution))
+        roll_stiffness = - ((spring_contribution) * tire_contribution /
+                            ((spring_contribution) + tire_contribution))
         f_roll = (roll_stiffness * roll) / tire.trackwidth
         x_wheel_roll = (spring_contribution / roll_stiffness) * f_roll / spring_contribution
         

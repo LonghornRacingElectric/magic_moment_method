@@ -152,7 +152,7 @@ class Tire:
     def wheelrate_f(self):
         return self.wheelrate
 
-    def roll_stiffness_(self, spring_displacement:float):
+    def roll_stiffness_f(self):
         return self.roll_stiffness
 
     @abstractmethod
