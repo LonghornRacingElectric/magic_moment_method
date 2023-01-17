@@ -174,8 +174,8 @@ class Suspension():
         # ARB in parallel with spring, tire in series with ARB and spring
         roll_stiffness = - ((spring_contribution) * tire_contribution /
                             ((spring_contribution) + tire_contribution))
-        f_roll = (roll_stiffness * roll) / tire.trackwidth
-        x_wheel_roll = (spring_contribution / roll_stiffness) * f_roll / spring_contribution
+        f_roll = (roll_stiffness * roll) / (tire.trackwidth / 2)
+        x_wheel_roll = f_roll / roll_stiffness
         
 
         ### ~~~ Heave Contribution ~~~ ###
