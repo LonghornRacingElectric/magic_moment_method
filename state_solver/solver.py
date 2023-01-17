@@ -34,7 +34,6 @@ class Solver:
         for i in range(guesses_allowed):
             try:
                 results = fsolve(self.__DOF6_motion_residuals, initial_guess, full_output = True)
-                print(results)
             except:
                 return None
             if results[2] == 1:

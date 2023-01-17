@@ -149,8 +149,11 @@ class Tire:
         # Nf = K * x
         return self.tire_coeffs[0] / (1 - self.tire_coeffs[1] * tire_displacement)
 
-    def wheelrate_f(self, spring_displacement:float):
+    def wheelrate_f(self):
         return self.wheelrate
+
+    def roll_stiffness_(self, spring_displacement:float):
+        return self.roll_stiffness
 
     @abstractmethod
     def steering_induced_slip(self, steered_angle:float):
@@ -162,6 +165,10 @@ class Tire:
 
     @abstractproperty
     def wheelrate(self):
+        pass
+    
+    @abstractproperty
+    def roll_stiffness(self):
         pass
 
     @abstractproperty
