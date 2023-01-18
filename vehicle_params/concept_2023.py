@@ -29,13 +29,13 @@ class Concept2023:
         ### suspension params ###
         
         # ~~~ Stiffnesses ~~~ #
-        self.front_heave_springrate = 550 * (4.448 / 0.0254) # N/m
-        self.rear_heave_springrate = 650 * (4.448 / 0.0254) # N/m
-        self.front_roll_springrate = 650 * (4.448 / 0.0254) # N/m
-        self.rear_roll_springrate = 650 * (4.448 / 0.0254) # N/m
+        self.front_heave_springrate = 300 * (4.448 / 0.0254) # N/m
+        self.rear_heave_springrate = 275 * (4.448 / 0.0254) # N/m
+        self.front_roll_springrate = 25000 * (4.448 / 0.0254) # N/m
+        self.rear_roll_springrate = 25000 * (4.448 / 0.0254) # N/m
         # TODO: make MRs not constant values (add nonlinear solver to this portion)
         self.front_heave_motion_ratio = 1.92 # m/m
-        self.rear_heave_motion_ratio = 1.45 # m/m
+        self.rear_heave_motion_ratio = 1.75 # m/m
         self.front_roll_ratio = 0.75 # m/rad
         self.rear_roll_ratio = 0.75 #m/rad
         self.antidive = 0.2 # % 0->1 (NOTE: Milliken pg. 618) 

@@ -168,14 +168,13 @@ class Suspension():
         # TODO: for the tire & spring conversion to roll stiffness, assuming L & R have same stiffness here; seems like an issue
 
         tire_contribution = tire_stiffness * (tire.trackwidth / 2) ** 2 * np.sin(1) * (1 if tire.is_left_tire else -1)
-        spring_contribution = tire.roll_stiffness_f()
+        spring_contribution = tire.roll_stiffness_f() * (1 if tire.is_left_tire else -1)
 
 
-        # ARB in parallel with spring, tire in series with ARB and spring
-        roll_stiffness = - ((spring_contribution) * tire_contribution /
-                            ((spring_contribution) + tire_contribution))
-        f_roll = (roll_stiffness * roll) / (tire.trackwidth / 2)
-        x_wheel_roll = f_roll / roll_stiffness
+        # Tire in series with spring
+        total_roll_stiffness = - 1 / ( 1 / spring_contribution + 1 / tire_contribution)
+        f_roll = (total_roll_stiffness * roll) / (tire.trackwidth / 2)
+        x_wheel_roll = f_roll / total_roll_stiffness
         
 
         ### ~~~ Heave Contribution ~~~ ###
