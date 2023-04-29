@@ -19,7 +19,7 @@ class Solver:
         Converges on dependent vehicle states by iterating dependent parameter guesses
         Args:
             input_state (engine.State): the independent vehicle states
-            initial_guess (list, optional): list of 6 solver initial dependent parameter guesses - 
+            initial_guess (list, optional): list of 10 solver initial dependent parameter guesses - 
                 "heave", "x_double_dot", "y_double_dot", "yaw_acceleration", "roll", "pitch". Defaults to 0s.
         Returns:
             dict: data on dependent state variables
