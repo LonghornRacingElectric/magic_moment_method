@@ -52,8 +52,7 @@ class Tire:
         Bx1 = B * (slip_degrees + H)
         
         # NOTE: 2/3 multiplier comes from TTC forum suggestions, including from Bill Cobb
-        test_condition_multiplier = 2/3
-        return test_condition_multiplier * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
+        return self.tire_scaling * (D * math.sin(C * math.atan(Bx1 - E * (Bx1 - math.atan(Bx1)))) + V) * multiplier
 
     warnings.filterwarnings("error")
     def longitudinal_pacejka(self, normal_force:float, SR:float):
@@ -77,8 +76,7 @@ class Tire:
             V = b11 * FZ + b12
             Bx1 = B * (SR + H)
             
-            test_condition_multiplier = 2/3
-            return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * test_condition_multiplier
+            return (D * np.sin(C * np.arctan(Bx1 - E * (Bx1 - np.arctan(Bx1)))) + V) * self.tire_scaling
         except:
             return 0
         
@@ -214,6 +212,10 @@ class Tire:
 
     @abstractproperty
     def radius(self):
+        pass
+
+    @abstractproperty
+    def tire_scaling(self):
         pass
 
     @abstractmethod

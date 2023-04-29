@@ -1,4 +1,5 @@
 from ..state_solver.better_namespace import BetterNamespace
+import numpy as np
 
 class State(BetterNamespace):
     """
@@ -20,3 +21,11 @@ class State(BetterNamespace):
         self.s_dot = s_dot
         self.torque_request = torque_request
         self.is_left_diff_bias = is_left_diff_bias
+
+    @property
+    def IMF_vel(self):
+        """
+        Returns:
+            np.array([0:2]): velocity vector in vehicle coordinate frame (IMF)
+        """
+        return self.s_dot * np.array([np.cos(self.body_slip), np.sin(self.body_slip), 0])

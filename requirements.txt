@@ -6,3 +6,4 @@ scipy
 pytest
 jupyter
 pathos
+tqdm
