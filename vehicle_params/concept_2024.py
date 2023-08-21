@@ -19,7 +19,7 @@ class Concept2024:
         self.front_track = 50 * (0.0254) # m
         self.rear_track = 48 * (0.0254) # m
         self.max_vel = 65 * (0.44704) # m/s # TODO: verify
-        self.max_motor_speed = 4158 * (2 * np.pi / 60) # rad/s #TODO: verify
+        self.max_motor_speed = 5500 * (2 * np.pi / 60) # rad/s #TODO: verify
         
         self.mass_unsprung_front = 20  * (0.4359)  # kg  # TODO: not being used for yaw inertia ATM
         self.mass_unsprung_rear = 20 * (0.4359) # kg  # TODO: not being used for yaw inertia ATM
