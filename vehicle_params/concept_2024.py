@@ -19,12 +19,12 @@ class Concept2024:
         self.front_track = 50 * (0.0254) # m
         self.rear_track = 48 * (0.0254) # m
         self.max_vel = 65 * (0.44704) # m/s # TODO: verify
-        self.max_motor_speed = 5500 * (2 * np.pi / 60) # rad/s #TODO: verify
+        self.max_motor_speed = 7000 * (2 * np.pi / 60) # rad/s #TODO: verify
         
         self.mass_unsprung_front = 20  * (0.4359)  # kg  # TODO: not being used for yaw inertia ATM
         self.mass_unsprung_rear = 20 * (0.4359) # kg  # TODO: not being used for yaw inertia ATM
         self.driver_mass = 150 * (0.4359) # kg
-        self.mass_sprung = 450 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
+        self.mass_sprung = 430 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
         ### suspension params ###
         
@@ -187,7 +187,7 @@ class Concept2024:
         self.brake_pad_mu = [0.55, 0.55] # estimate from Brembo
         self.diff_fl = 0.607 # NOTE: from Bens testing
         self.diff_preload = 5.2 # Nm - NOTE: from Bens testing
-        self.max_torque = 230 # Nm - Emrax 228
+        self.max_torque = 150 # Nm - Emrax 228
         self.inverter_efficiency = 0.97 # TODO: not constant
         self.power_limit = 80000 # kW - rules limit
         self.motor_map = pd.read_csv(motor_directory)
