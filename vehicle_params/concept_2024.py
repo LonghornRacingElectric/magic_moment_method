@@ -187,7 +187,7 @@ class Concept2024:
         self.brake_pad_mu = [0.55, 0.55] # estimate from Brembo
         self.diff_fl = 0.607 # NOTE: from Bens testing
         self.diff_preload = 5.2 # Nm - NOTE: from Bens testing
-        self.max_torque = 150 # Nm - Emrax 228
+        self.max_torque = 150 # Nm
         self.inverter_efficiency = 0.97 # TODO: not constant
         self.power_limit = 80000 # kW - rules limit
         self.motor_map = pd.read_csv(motor_directory)
