@@ -19,12 +19,12 @@ class Concept2024:
         self.front_track = 50 * (0.0254) # m
         self.rear_track = 48 * (0.0254) # m
         self.max_vel = 65 * (0.44704) # m/s # TODO: verify
-        self.max_motor_speed = 7000 * (2 * np.pi / 60) # rad/s #TODO: verify
+        self.max_motor_speed = 6500 * (2 * np.pi / 60) # rad/s #TODO: verify
         
         self.mass_unsprung_front = 20  * (0.4359)  # kg  # TODO: not being used for yaw inertia ATM
         self.mass_unsprung_rear = 20 * (0.4359) # kg  # TODO: not being used for yaw inertia ATM
         self.driver_mass = 150 * (0.4359) # kg
-        self.mass_sprung = 430 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
+        self.mass_sprung = 450 * (0.4359) - 2 * self.mass_unsprung_front - 2 * self.mass_unsprung_rear + self.driver_mass # kg
 
         ### suspension params ###
         
@@ -39,7 +39,7 @@ class Concept2024:
         
         # NOTE: Front ARB stiffness set such that roll stiffness F/R makes 50/50 bias on Easy Driver
         self.front_arb_stiffness = 5000 * self.front_track**2 / 2 # N/rad
-        self.rear_arb_stiffness = 0#50000  * self.rear_track**2 / 2 # N/rad
+        self.rear_arb_stiffness = 0 #50000  * self.rear_track**2 / 2 # N/rad
         
         # ~~~ Linkages & HDPTs ~~~ #
         self.rear_toe = 1 * (math.pi / 180) # rad  # TODO: not correct to car
@@ -171,7 +171,7 @@ class Concept2024:
 
         ### differential & braking params ###
         self.motor_radius = 1
-        self.diff_radius = 3.38
+        self.diff_radius = 4.0
         self.front_tire_radius = 8 * .0254 # TODO: effective radius
         self.rear_tire_radius = 8 * .0254 # TODO: effective radius
         self.motor_inertia = 0.1 # TODO: not used atm
@@ -187,7 +187,7 @@ class Concept2024:
         self.brake_pad_mu = [0.55, 0.55] # estimate from Brembo
         self.diff_fl = 0.607 # NOTE: from Bens testing
         self.diff_preload = 5.2 # Nm - NOTE: from Bens testing
-        self.max_torque = 150 # Nm
+        self.max_torque = 230 # Nm
         self.inverter_efficiency = 0.97 # TODO: not constant
         self.power_limit = 80000 # kW - rules limit
         self.motor_map = pd.read_csv(motor_directory)
