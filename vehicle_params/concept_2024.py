@@ -189,7 +189,7 @@ class Concept2024:
         self.diff_preload = 5.2 # Nm - NOTE: from Bens testing
         self.max_torque = 230 # Nm
         self.inverter_efficiency = 0.97 # TODO: not constant
-        self.power_limit = 80000 # kW - rules limit
+        self.power_limit = 80000 # W - rules limit
         self.motor_map = pd.read_csv(motor_directory)
 
 
